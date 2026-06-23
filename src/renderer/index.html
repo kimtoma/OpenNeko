@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>openNeko</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: transparent;
+      user-select: none;
+      -webkit-user-select: none;
+      font-family: 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+    }
+    #stage {
+      position: absolute;
+      inset: 0;
+      cursor: default;
+    }
+    /* 어떤 배경에서도 흰 몸이 분리돼 보이도록 (은은하게) */
+    #cat {
+      filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.22));
+    }
+    #bubble {
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%) translateY(6px) scale(0.92);
+      bottom: 272px;
+      max-width: 280px;
+      padding: 9px 13px;
+      background: #fffdf6;
+      border: 2px solid #2b2b2b;
+      border-radius: 14px;
+      box-shadow: 3px 3px 0 rgba(43, 43, 43, 0.25);
+      font-size: 13px;
+      line-height: 1.5;
+      color: #2b2b2b;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.18s ease, transform 0.18s ease;
+      white-space: pre-wrap;
+      text-align: center;
+      z-index: 6; /* 캔버스 위로 올려야 말풍선 클릭이 먹힌다 */
+    }
+    #bubble.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0) scale(1);
+      pointer-events: auto; /* 말풍선을 눌러도 입력창이 열리도록 */
+      cursor: pointer;
+    }
+    /* 긴 응답이 화면 밖으로 잘리지 않도록: 안쪽 텍스트만 스크롤(말풍선 꼬리는 유지) */
+    #bubbletext {
+      max-height: 320px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+    }
+    #bubble::after {
+      content: '';
+      position: absolute;
+      left: 50%;
+      bottom: -8px;
+      transform: translateX(-50%);
+      border-left: 7px solid transparent;
+      border-right: 7px solid transparent;
+      border-top: 8px solid #2b2b2b;
+    }
+    #chatbar {
+      position: absolute;
+      left: 50%;
+      bottom: 238px;
+      transform: translateX(-50%);
+      width: 260px;
+      display: none;
+      z-index: 5;
+    }
+    #chatbar.show { display: block; }
+    #chatinput {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 8px 12px;
+      border: 2px solid #2b2b2b;
+      border-radius: 12px;
+      background: #ffffff;
+      box-shadow: 3px 3px 0 rgba(43, 43, 43, 0.25);
+      font-size: 13px;
+      font-family: inherit;
+      color: #2b2b2b;
+      outline: none;
+    }
+    #chatinput::placeholder { color: #9a9a9a; }
+    /* 슬래시 명령 자동완성 드롭다운 */
+    #slashmenu {
+      display: none;
+      position: absolute;
+      bottom: 100%;
+      left: 0;
+      right: 0;
+      margin-bottom: 4px;
+      background: #fffdf6;
+      border: 2px solid #2b2b2b;
+      border-radius: 10px;
+      box-shadow: 3px 3px 0 rgba(43, 43, 43, 0.25);
+      max-height: 200px;
+      overflow-y: auto;
+      z-index: 10;
+    }
+    #slashmenu.open { display: block; }
+    .slash-item {
+      padding: 6px 10px;
+      cursor: pointer;
+      display: flex;
+      align-items: baseline;
+      gap: 6px;
+      font-size: 12px;
+      color: #2b2b2b;
+      border-radius: 7px;
+      margin: 2px;
+    }
+    .slash-item:hover, .slash-item.selected {
+      background: #f0edde;
+    }
+    .slash-item .slash-name {
+      font-weight: 600;
+      white-space: nowrap;
+    }
+    .slash-item .slash-desc {
+      color: #888;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+  </style>
+</head>
+<body>
+  <div id="stage">
+    <div id="bubble"><div id="bubbletext"></div></div>
+    <div id="chatbar">
+      <div id="slashmenu"></div>
+      <input id="chatinput" type="text" maxlength="2000" placeholder="물어보라냥…" autocomplete="off" spellcheck="false" />
+    </div>
+    <canvas id="cat"></canvas>
+  </div>
+  <script src="cat2d.bundle.js"></script>
+</body>
+</html>

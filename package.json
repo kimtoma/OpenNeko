@@ -1,0 +1,69 @@
+{
+  "name": "open-neko",
+  "version": "0.1.0",
+  "description": "GPT와 대화하고 작업 상태에 반응하는 오픈소스 데스크탑 픽셀 고양이",
+  "homepage": "https://github.com/kimtoma/openNeko",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/kimtoma/openNeko.git"
+  },
+  "main": "src/main.js",
+  "scripts": {
+    "test": "node --test",
+    "build": "esbuild src/renderer/cat2d.js --bundle --format=iife --outfile=src/renderer/cat2d.bundle.js && esbuild src/settings/settings.js --bundle --format=iife --outfile=src/settings/settings.bundle.js",
+    "start": "npm run build && electron .",
+    "dist": "npm run build && electron-builder --mac",
+    "dist:win": "npm run build && electron-builder --win",
+    "dist:release": "bash scripts/release-dmg.sh"
+  },
+  "author": "kimtoma",
+  "license": "MIT",
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "devDependencies": {
+    "electron": "^42.4.1",
+    "electron-builder": "^26.15.3",
+    "esbuild": "^0.28.1"
+  },
+  "dependencies": {
+    "bonjour-service": "^1.4.1",
+    "uiohook-napi": "^1.5.5",
+    "ws": "^8.21.0"
+  },
+  "build": {
+    "appId": "com.kimtoma.openneko",
+    "productName": "openNeko",
+    "icon": "build/icon.png",
+    "npmRebuild": false,
+    "files": [
+      "src/**/*",
+      "package.json"
+    ],
+    "asarUnpack": [
+      "**/*.node"
+    ],
+    "mac": {
+      "target": "dmg",
+      "category": "public.app-category.utilities",
+      "identity": null
+    },
+    "dmg": {
+      "title": "openNeko"
+    },
+    "win": {
+      "target": [
+        "nsis"
+      ],
+      "icon": "build/icon.png",
+      "artifactName": "openNeko-Setup-${version}.${ext}"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "shortcutName": "openNeko"
+    }
+  }
+}

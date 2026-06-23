@@ -1,0 +1,61 @@
+name: 🐛 버그 신고
+description: 고양이가 이상하게 행동하거나 오류가 났어요
+title: "[버그] "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        버그를 알려주셔서 고마워요냥 🐾 아래를 채워주시면 빠르게 고칠 수 있어요.
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: 무슨 일이 있었나요?
+      description: 어떤 동작을 했고, 무엇이 잘못됐는지 설명해주세요.
+      placeholder: 예) 고양이를 클릭했는데 말풍선이 안 떠요.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: 기대한 동작
+      placeholder: 예) 클릭하면 입력창이 열려야 해요.
+    validations:
+      required: false
+  - type: textarea
+    id: steps
+    attributes:
+      label: 재현 방법
+      description: 순서대로 적어주세요.
+      placeholder: |
+        1. 앱 실행
+        2. 고양이 클릭
+        3. ...
+    validations:
+      required: false
+  - type: input
+    id: os
+    attributes:
+      label: 환경
+      description: macOS 버전 / Apple Silicon·Intel / 설치 방식(소스 npm start · 원커맨드 스크립트)
+      placeholder: macOS 15.1, Apple Silicon, npm start
+    validations:
+      required: true
+  - type: dropdown
+    id: provider
+    attributes:
+      label: 사용 중인 AI 백엔드
+      options:
+        - OpenAI GPT
+        - Ollama / 로컬
+        - 직접 입력 / OpenAI 호환
+        - 모름 / 해당 없음
+    validations:
+      required: false
+  - type: textarea
+    id: logs
+    attributes:
+      label: 로그 / 스크린샷 (선택)
+      description: 터미널 출력이나 스크린샷이 있으면 붙여주세요.
+    validations:
+      required: false

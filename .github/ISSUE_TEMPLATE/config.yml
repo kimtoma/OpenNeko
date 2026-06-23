@@ -1,0 +1,11 @@
+blank_issues_enabled: true
+contact_links:
+  - name: ☕ 개발자 후원하기
+    url: https://ko-fi.com/kimtoma
+    about: openNeko가 마음에 든다면 커피 한 잔으로 응원해주세요냥
+  - name: 💛 PayPal로 후원
+    url: https://paypal.me/kimtoma
+    about: 해외에서도 후원할 수 있어요
+  - name: 🐾 만든 사람
+    url: https://kimtoma.com
+    about: kimtoma.com

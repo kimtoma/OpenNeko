@@ -1,0 +1,219 @@
+<!DOCTYPE html><html lang="ko"><head><meta charset="UTF-8"><title>openNeko settings</title>
+<style>
+  body{font-family:'Apple SD Gothic Neo',sans-serif;margin:0;padding:18px;background:#fafafa;color:#222;font-size:13px}
+  h2{margin:0 0 14px;font-size:16px}
+  .card{display:flex;align-items:center;gap:10px;padding:12px;margin-bottom:8px;background:#fff;
+    border:1px solid #e3e3e3;border-radius:12px;cursor:pointer}
+  .card:hover{border-color:#b9b9c8}
+  .card.current{border-color:#2b2b2b;background:#f3f3fb;cursor:default}
+  .card .ico{font-size:18px;line-height:1}
+  .card .body{flex:1;min-width:0}
+  .card .title{font-weight:700}
+  .card .sub{color:#999;font-size:11px;margin-top:2px}
+  .card .badge{font-size:11px;color:#2a9d5c;font-weight:700;white-space:nowrap}
+  .card .pick{font-size:12px;color:#0a66c2;font-weight:600;white-space:nowrap}
+  .card.add{border-style:dashed;color:#555;justify-content:center;font-weight:700}
+  #connect{margin:0 0 8px;padding:12px;background:#fff;border:1px solid #e3e3e3;border-radius:12px;display:none}
+  #connect.show{display:block}
+  .svc{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:6px}
+  .svc button{padding:7px 12px;border:1px solid #ccc;border-radius:20px;background:#fff;cursor:pointer;font-size:12px}
+  .svc button.sel{background:#2b2b2b;color:#fff;border-color:#2b2b2b}
+  .field{margin:8px 0}
+  .field label{display:block;font-weight:600;margin-bottom:4px}
+  .field input{width:100%;box-sizing:border-box;padding:8px 10px;border:1px solid #ccc;border-radius:8px;font-size:13px}
+  .hint{color:#999;font-size:11px;margin-top:3px}
+  .actions{display:flex;gap:8px;margin-top:10px}
+  button.primary{background:#2b2b2b;color:#fff;border:1px solid #2b2b2b;border-radius:8px;padding:8px 14px;cursor:pointer;font-size:13px}
+  button.ghost{background:#fff;border:1px solid #ccc;border-radius:8px;padding:8px 14px;cursor:pointer;font-size:13px}
+  .toggle{display:flex;align-items:center;justify-content:space-between;margin:0 2px;padding:14px 2px;border-bottom:1px solid #ececec;font-weight:600}
+  .toggle:last-child{border-bottom:none}
+  .toggle select{padding:4px 8px;border:1px solid #ccc;border-radius:6px;font-size:12px;background:#fff;cursor:pointer}
+  details{margin-top:12px}
+  summary{cursor:pointer;color:#777;font-size:12px;outline:none}
+  details .field{margin-top:8px}
+  #status{margin-top:10px;min-height:18px;font-size:12px;color:#555;white-space:pre-wrap}
+  #credit{margin-top:18px;padding-top:10px;border-top:1px solid #eee;text-align:center;color:#999;font-size:11px}
+  #credit .heart{color:#e0245e}
+  #credit a{color:#0a66c2;text-decoration:none;cursor:pointer}
+  #credit a:hover{text-decoration:underline}
+  #skins,#wiz-skins{display:grid;grid-template-columns:repeat(auto-fill,minmax(78px,1fr));gap:8px;margin:10px 2px 0}
+  .skin-tile{display:flex;flex-direction:column;align-items:center;gap:5px;padding:8px 6px;border:2px solid #e6e6ec;border-radius:12px;cursor:pointer;background:#fff;font-size:11px;color:#555}
+  .skin-tile:hover{border-color:#b9b9c8}
+  .skin-tile.selected{border-color:#2b2b2b;background:#f3f3fb}
+  .skin-thumb{width:56px;height:56px;border-radius:10px;background:#f1f2f6;display:flex;align-items:flex-end;justify-content:center;overflow:hidden}
+  .skin-thumb img{width:54px;height:54px;object-fit:contain;image-rendering:pixelated}
+  .skin-name{font-weight:600}
+  .more-skins-btn{display:block;width:100%;margin-top:8px;padding:7px 12px;border:1px dashed #b9b9c8;border-radius:8px;background:#fff;color:#0a66c2;font-size:12px;cursor:pointer;text-align:center}
+  .more-skins-btn:hover{background:#f3f3fb}
+  /* 첫 실행 환영 배너 */
+  #onboard-banner{background:#fffbe6;border:1px solid #ffe58f;border-radius:10px;padding:12px 14px;margin-bottom:12px;font-size:13px;font-weight:600;color:#7d4a00}
+  .skill-row{display:flex;align-items:center;gap:8px;padding:8px 10px;border-bottom:1px solid #f0f0f0}
+  .skill-row:last-of-type{border-bottom:none}
+  .skill-info{flex:1;min-width:0}
+  .skill-name{font-weight:600;font-size:13px}
+  .skill-desc{color:#888;font-size:11px;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .skill-badge{font-size:10px;padding:2px 6px;border-radius:10px;background:#e8f4fd;color:#1a7ab5;font-weight:600;white-space:nowrap}
+  .skill-toggle-label{display:flex;align-items:center;gap:4px;font-size:12px;color:#555;cursor:pointer;white-space:nowrap}
+  #skills-section .section-head{font-weight:700;font-size:13px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between}
+  #skills-section .section-body{background:#fff;border:1px solid #e3e3e3;border-radius:10px;overflow:hidden}
+  .skills-folder-btn{font-size:11px;color:#0a66c2;background:none;border:none;cursor:pointer;padding:0}
+  .skills-folder-btn:hover{text-decoration:underline}
+  /* --- depth 네비게이션 --- */
+  .page{display:none}
+  .page.active{display:block}
+  .nav-row{display:flex;align-items:center;gap:11px;padding:13px 12px;margin-bottom:8px;background:#fff;
+    border:1px solid #e3e3e3;border-radius:12px;cursor:pointer}
+  .nav-row:hover{border-color:#b9b9c8;background:#f8f8fc}
+  .nav-row .ico{font-size:19px;line-height:1;width:22px;text-align:center}
+  .nav-row .body{flex:1;min-width:0}
+  .nav-row .title{font-weight:700}
+  .nav-row .sub{color:#999;font-size:11px;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .nav-row .chev{color:#bbb;font-size:18px;font-weight:700}
+  .page-head{display:flex;align-items:center;gap:8px;margin-bottom:14px}
+  .page-head h2{margin:0;flex:1}
+  .back-btn{background:#fff;border:1px solid #ddd;border-radius:8px;padding:6px 11px;cursor:pointer;font-size:12px;color:#444;white-space:nowrap}
+  .back-btn:hover{border-color:#b9b9c8;background:#f3f3fb}
+  .section-note{color:#999;font-size:11px;margin:-6px 2px 12px}
+  /* --- 온보딩 위저드 --- */
+  #wiz-dots{display:flex;gap:6px;justify-content:center;margin:2px 0 16px}
+  .wiz-dot{width:7px;height:7px;border-radius:50%;background:#dcdce4}
+  .wiz-dot.on{background:#2b2b2b}
+  .wiz-hero{font-size:48px;text-align:center;margin:6px 0 4px}
+  .wiz-title{font-size:18px;margin:0 0 8px;text-align:center}
+  .wiz-text{color:#555;font-size:13px;line-height:1.6;margin:0 0 12px;text-align:center}
+  .wiz-perm{display:flex;align-items:center;gap:10px;margin:8px 0}
+  .wiz-perm button{flex:1}
+  .wiz-status{font-size:15px;width:18px;text-align:center}
+  .wiz-tips{list-style:none;padding:0;margin:6px 0}
+  .wiz-tips li{background:#fff;border:1px solid #e3e3e3;border-radius:10px;padding:11px 13px;margin-bottom:8px;font-size:13px}
+  #wiz-nav{display:flex;align-items:center;gap:8px;margin-top:18px}
+</style></head><body>
+
+  <!-- ===== 온보딩 위저드 (첫 실행) ===== -->
+  <section class="page" id="page-wizard">
+    <div id="wiz-dots"></div>
+    <div id="wiz-body"></div>
+    <div id="wiz-nav"></div>
+  </section>
+
+
+  <!-- ===== 홈 (메뉴) ===== -->
+  <section class="page active" id="page-home">
+    <h2 id="home-title">⚙️ 설정</h2>
+
+    <!-- 모양 (depth 없이 홈에서 바로 표시) -->
+    <div id="onboard-banner" style="display:none"></div>
+    <div class="toggle skin-toggle"><span id="skin-label">🎨 스킨</span></div>
+    <div id="skins"></div>
+    <div class="field" style="margin:10px 2px 0">
+      <label id="cat-name-label" for="cat-name">🐱 고양이 이름</label>
+      <input type="text" id="cat-name" maxlength="64">
+    </div>
+
+    <div id="nav-list" style="margin-top:14px">
+      <div class="nav-row" data-target="page-profile">
+        <span class="ico">🎂</span>
+        <div class="body"><div class="title" id="nav-profile-t"></div><div class="sub" id="nav-profile-s"></div></div>
+        <span class="chev">›</span>
+      </div>
+      <div class="nav-row" data-target="page-ai">
+        <span class="ico">🤖</span>
+        <div class="body"><div class="title" id="nav-ai-t"></div><div class="sub" id="nav-ai-s"></div></div>
+        <span class="chev">›</span>
+      </div>
+      <div class="nav-row" data-target="page-skills">
+        <span class="ico">🧩</span>
+        <div class="body"><div class="title" id="nav-skills-t"></div><div class="sub" id="nav-skills-s"></div></div>
+        <span class="chev">›</span>
+      </div>
+      <div class="nav-row" data-target="page-general">
+        <span class="ico">⚙️</span>
+        <div class="body"><div class="title" id="nav-general-t"></div><div class="sub" id="nav-general-s"></div></div>
+        <span class="chev">›</span>
+      </div>
+    </div>
+    <div id="credit">made by kimtoma with <span class="heart">❤️</span> · <a id="home">kimtoma.com</a></div>
+  </section>
+
+  <!-- ===== AI 답변 ===== -->
+  <section class="page" id="page-ai">
+    <div class="page-head"><button class="back-btn" data-back></button><h2 id="ai-title"></h2></div>
+    <div id="cards"></div>
+    <div id="connect"></div>
+    <div class="toggle"><span id="websearch-label">🔍 웹 검색</span>
+      <label><input type="checkbox" id="websearch-enabled"> <span id="websearch-on-label">켜기</span></label>
+    </div>
+    <div id="websearch-note" class="hint"></div>
+    <details id="advanced">
+      <summary>고급 설정</summary>
+      <div class="field">
+        <button class="ghost" id="adv-test">지금 연결 상태 확인</button>
+        <div class="hint">현재 선택한 AI로 실제 연결되는지 확인해요.</div>
+      </div>
+    </details>
+  </section>
+
+  <!-- ===== 스킬 ===== -->
+  <section class="page" id="page-skills">
+    <div class="page-head"><button class="back-btn" data-back></button><h2 id="skills-title"></h2></div>
+    <div id="skills-section"></div>
+  </section>
+
+  <!-- ===== 내 프로필 ===== -->
+  <section class="page" id="page-profile">
+    <div class="page-head"><button class="back-btn" data-back></button><h2 id="profile-title"></h2></div>
+    <div id="profile-section">
+      <div style="background:#fff;border:1px solid #e3e3e3;border-radius:10px;padding:12px">
+        <div class="field">
+          <label id="profile-name-label" for="profile-name" style="display:block;font-weight:600;margin-bottom:4px">이름</label>
+          <input type="text" id="profile-name" placeholder="" style="width:100%;box-sizing:border-box;padding:7px 10px;border:1px solid #ccc;border-radius:8px;font-size:13px">
+        </div>
+        <div class="field" style="margin-top:8px">
+          <label id="profile-birthdate-label" for="profile-birthdate" style="display:block;font-weight:600;margin-bottom:4px">생년월일</label>
+          <input type="date" id="profile-birthdate" style="width:100%;box-sizing:border-box;padding:7px 10px;border:1px solid #ccc;border-radius:8px;font-size:13px">
+        </div>
+        <div class="field" style="margin-top:8px">
+          <label id="profile-birthtime-label" for="profile-birthtime" style="display:block;font-weight:600;margin-bottom:4px">태어난 시각 (선택)</label>
+          <input type="time" id="profile-birthtime" style="width:100%;box-sizing:border-box;padding:7px 10px;border:1px solid #ccc;border-radius:8px;font-size:13px">
+        </div>
+        <div class="field" style="margin-top:8px">
+          <label id="profile-calendar-label" for="profile-calendar" style="display:block;font-weight:600;margin-bottom:4px">양력/음력</label>
+          <select id="profile-calendar" style="padding:6px 10px;border:1px solid #ccc;border-radius:8px;font-size:13px;background:#fff;cursor:pointer">
+            <option value="solar" id="profile-solar-opt">양력</option>
+            <option value="lunar" id="profile-lunar-opt">음력</option>
+          </select>
+        </div>
+        <div style="margin-top:10px;display:flex;align-items:center;gap:10px">
+          <button id="profile-save" class="primary">저장</button>
+          <span id="profile-saved-msg" style="font-size:12px;color:#2a9d5c;display:none"></span>
+        </div>
+        <div id="profile-privacy" class="hint" style="margin-top:8px"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== 일반 (언어 · 연결 확인) ===== -->
+  <section class="page" id="page-general">
+    <div class="page-head"><button class="back-btn" data-back></button><h2 id="general-title"></h2></div>
+    <div class="toggle lang-toggle"><span id="lang-label">🌐 언어 / Language</span>
+      <select id="lang">
+        <option value="ko">한국어</option>
+        <option value="en">English</option>
+        <option value="ja">日本語</option>
+        <option value="zh">简体中文</option>
+      </select>
+    </div>
+    <div class="toggle"><span id="sound-label">🔊 효과음</span>
+      <label><input type="checkbox" id="sound-enabled"> <span id="sound-on-label">켜기</span></label>
+    </div>
+    <div class="toggle"><span id="neighbor-label">🐱 이웃 고양이</span>
+      <input type="checkbox" id="neighbor-enabled"></div>
+    <div class="hint" id="neighbor-notice"></div>
+    <div class="toggle"><span id="rerun-onboard-label">🐾 온보딩 다시 보기</span>
+      <button class="ghost" id="rerun-onboard">시작</button>
+    </div>
+  </section>
+
+  <div id="status"></div>
+  <script src="settings.bundle.js"></script>
+</body></html>

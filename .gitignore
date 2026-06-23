@@ -1,0 +1,14 @@
+node_modules/
+dist/
+.DS_Store
+src/renderer/*.bundle.js
+src/settings/*.bundle.js
+assets/reference/
+# 스킨 소스 시트(대용량, ~84MB)는 로컬 보관 — 앱이 쓰는 건 src/renderer/sprites/<skin>/ 추출본.
+# 재생성: assets/gen/<skin>/*.png 넣고 `python3 tools/extract_gen.py <skin>`. (필요시 git add -f)
+assets/gen/black/
+assets/gen/orange/
+assets/gen/pink/
+assets/gen/calico/
+# 로컬 도구 venv
+.venv-tools/
