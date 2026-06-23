@@ -15,7 +15,7 @@ const fakeSafe = {
 test('save/load: 비밀 아닌 값 보존 + 키 암호화 라운드트립', () => {
   const dir = tmpDir();
   const store = makeStore({ dir, safeStorage: fakeSafe });
-  store.save({ provider: { preset:'openai', type:'openai-compat', baseURL:'http://x/v1', model:'m' }, apiKey: 'sk-123' });
+  store.save({ provider: { preset:'custom', type:'openai-compat', baseURL:'http://x/v1', model:'m' }, apiKey: 'sk-123' });
   const raw = JSON.parse(fs.readFileSync(path.join(dir, 'settings.json'), 'utf8'));
   assert.equal(raw.provider.baseURL, 'http://x/v1');
   assert.ok(!JSON.stringify(raw).includes('sk-123'), '평문 키가 파일에 있으면 안 됨');
@@ -35,16 +35,16 @@ test('makeStore: sound 라운드트립 + 기본값', () => {
   // 기본: sound 없으면 enabled true
   assert.deepEqual(store.load().sound, { enabled: true });
   // 저장 후 보존
-  store.save({ provider: { preset: 'openai' }, apiKey: '', sound: { enabled: false } });
+  store.save({ provider: { preset: 'custom' }, apiKey: '', sound: { enabled: false } });
   assert.deepEqual(store.load().sound, { enabled: false });
-  assert.deepEqual(store.load().provider, { preset: 'openai' });
+  assert.deepEqual(store.load().provider, { preset: 'custom' });
 });
 
 test('makeStore: lang 라운드트립 + 기본 null', () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'openneko-lang-'));
   const store = makeStore({ dir, safeStorage: null });
   assert.equal(store.load().lang, null);            // 기본 자동(=null)
-  store.save({ provider: { preset: 'openai' }, apiKey: '', sound: { enabled: true }, lang: 'ja' });
+  store.save({ provider: { preset: 'chatgpt-oauth' }, apiKey: '', sound: { enabled: true }, lang: 'ja' });
   assert.equal(store.load().lang, 'ja');
   // provider만 다시 저장하면서 lang을 같이 실어야 보존됨(settings-save 핸들러가 이 패턴을 따른다)
   const c = store.load();

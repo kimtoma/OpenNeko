@@ -2,13 +2,14 @@
 
 [English](README.md) · [日本語](README.ja.md) · [简体中文](README.zh.md)
 
-openNeko는 GPT와 대화하는 오픈소스 데스크탑 픽셀 고양이입니다. 화면 하단에 상주하면서 타이핑과 에이전트 상태 신호에 반응하고, 짧은 말풍선 답변을 제공합니다.
+openNeko는 AI Agent와 대화하는 오픈소스 데스크탑 픽셀 고양이입니다. 화면 하단에 상주하면서 타이핑과 에이전트 상태 신호에 반응하고, 선택한 Agent, 클라우드 모델, 로컬 모델로 짧은 말풍선 답변을 제공합니다.
 
 ## 기능
 
-- **GPT 대화**: 고양이를 짧게 클릭해서 말풍선 입력창으로 대화합니다.
-- **OpenAI 호환 provider**: 기본 OpenAI GPT, 로컬 Ollama, 직접 입력한 `/v1/chat/completions` 엔드포인트.
-- **상태 브리지**: HTTP로 `thinking`, `coding`, `success`, `error` 같은 상태를 보낼 수 있습니다.
+- **AI Agent 대화**: 고양이를 짧게 클릭해서 말풍선 입력창으로 대화합니다.
+- **OAuth 우선 연결**: OpenAI/Codex, Claude, Gemini CLI 로그인부터 사용하고, 필요한 경우에만 API 키를 입력합니다.
+- **로컬 모델**: Ollama와 로컬 OpenAI 호환 서버를 클라우드 API 키 없이 연결할 수 있습니다.
+- **AI Agent 상태 브리지**: HTTP 상태 이벤트와 Cursor, Claude Code CLI, Codex CLI/App, Antigravity, Gemini, Kiro 같은 에이전트 프로세스 활동에 반응합니다.
 - **타이핑 반응**: 키 내용은 읽지 않고, 키 입력 발생 사실만 사용합니다.
 - **스킨/스프라이트**: 번들 스킨 5종, 외부 스킨 폴더, 스프라이트 추출 도구.
 - **스킬**: 번들 및 사용자 `SKILL.md` 프롬프트를 메뉴/슬래시 명령으로 실행합니다.
@@ -40,13 +41,18 @@ npm run build
 npm start
 ```
 
-실행 전에 `OPENAI_API_KEY`를 설정하거나, 앱 설정에서 API 키를 저장하세요.
+API 키 없이 쓰려면 먼저 지원 CLI에 로그인하세요: `codex login`, `claude`, `gemini`. Ollama와 로컬 OpenAI 호환 엔드포인트는 설정에서 추가할 수 있습니다.
 
-## GPT Provider
+## AI Provider
 
-- `openai`: `https://api.openai.com/v1`, 기본 모델 `gpt-4o-mini`, `OPENAI_API_KEY` 폴백.
-- `ollama`: `http://localhost:11434/v1`, 기본 모델 `llama3.2`.
-- `custom`: OpenAI 호환 엔드포인트 직접 입력.
+- `chatgpt-oauth`: 로컬 Codex CLI의 OpenAI 로그인 사용. `codex login` 필요.
+- `claude-oauth`: 로컬 Claude Code 로그인 사용.
+- `gemini-oauth`: 로컬 Gemini CLI Google 로그인 사용.
+- `ollama`: 로컬 Ollama 서버 사용.
+- `local-openai`: LM Studio, llama.cpp, vLLM 같은 로컬 OpenAI 호환 서버.
+- `gemini`: Google AI Studio Gemini API 키 사용.
+- `claude`: Anthropic API 키 사용.
+- `custom`: OpenAI 호환 엔드포인트 직접 입력. 서버가 요구할 때만 API 키를 넣으면 됩니다.
 
 API 키는 가능한 경우 Electron `safeStorage`로 암호화 저장합니다.
 
@@ -68,7 +74,7 @@ curl -X POST http://127.0.0.1:48800/state \
 ~/.openneko/skills/<skill-id>/SKILL.md
 ```
 
-스킬 본문은 현재 GPT provider의 system 지침으로 주입됩니다. 스크립트는 실행하지 않습니다.
+스킬 본문은 현재 AI provider의 system 지침으로 주입됩니다. 스크립트는 실행하지 않습니다.
 
 ## 개발
 

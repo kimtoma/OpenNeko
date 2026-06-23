@@ -1,10 +1,13 @@
 const { test } = require('node:test');
 const assert = require('node:assert');
-const { createProvider, DEFAULT_BASE_URL, DEFAULT_MODEL } = require('../src/llm');
+const { createProvider } = require('../src/llm');
 const { PERSONA, persona } = require('../src/llm/persona');
 const { formatPrompt, historyToMessages, httpError, makeAbort, redactSecrets } = require('../src/llm/format');
 const { createSSEParser } = require('../src/llm/sse');
 const { OpenAICompatProvider } = require('../src/llm/openaiCompat');
+const { ClaudeCliProvider, GeminiCliProvider } = require('../src/llm/agentCli');
+const { GeminiProvider } = require('../src/llm/gemini');
+const { AnthropicProvider } = require('../src/llm/anthropic');
 const { PRESETS, presetConfig } = require('../src/llm/presets');
 
 test('persona: 4개 언어 존재 + 미지원은 en 폴백', () => {
@@ -129,23 +132,30 @@ test('redactSecrets: 키 비슷한 값 마스킹', () => {
   assert.doesNotMatch(redactSecrets('Authorization: Bearer sk-abcdef123456'), /abcdef123456/);
 });
 
-test('PRESETS: GPT-first 필수 프리셋 존재', () => {
+test('PRESETS: OAuth/local-first 필수 프리셋 존재', () => {
   const ids = PRESETS.map(p => p.id);
-  assert.deepEqual(ids, ['openai', 'ollama', 'custom']);
+  assert.deepEqual(ids, [
+    'chatgpt-oauth',
+    'claude-oauth',
+    'gemini-oauth',
+    'ollama',
+    'local-openai',
+    'gemini',
+    'claude',
+    'custom',
+  ]);
 });
 
 test('presetConfig: 프리셋 기본값 + override 병합', () => {
-  const c = presetConfig('ollama', { model: 'llama3' });
-  assert.equal(c.type, 'openai-compat');
-  assert.equal(c.baseURL, 'http://localhost:11434/v1');
-  assert.equal(c.model, 'llama3');
+  const c = presetConfig('gemini', { model: 'gemini-test' });
+  assert.equal(c.type, 'gemini');
+  assert.equal(c.model, 'gemini-test');
 });
 
-test('createProvider: config 없으면 OpenAI GPT 기본', () => {
+test('createProvider: config 없으면 OpenAI/Codex OAuth 기본', () => {
   const p = createProvider();
-  assert.equal(p.name, 'openai-compat');
-  assert.equal(p.baseURL, DEFAULT_BASE_URL);
-  assert.equal(p.model, DEFAULT_MODEL);
+  assert.equal(p.name, 'codex-cli');
+  assert.equal(p.bin, 'codex');
 });
 
 test('createProvider: openai-compatible 인스턴스 생성', () => {
@@ -153,4 +163,39 @@ test('createProvider: openai-compatible 인스턴스 생성', () => {
   assert.equal(p.name, 'openai-compat');
   assert.equal(p.baseURL, 'http://x/v1');
   assert.equal(p.model, 'm');
+});
+
+test('createProvider: Codex CLI OAuth provider 생성', () => {
+  const p = createProvider({ type:'codex-cli', model:'gpt-5.5' });
+  assert.equal(p.name, 'codex-cli');
+  assert.equal(p.bin, 'codex');
+  assert.equal(p.model, 'gpt-5.5');
+});
+
+test('createProvider: Claude CLI OAuth provider 생성', () => {
+  const p = createProvider({ type:'claude-cli', model:'sonnet' });
+  assert.ok(p instanceof ClaudeCliProvider);
+  assert.equal(p.name, 'claude-cli');
+  assert.equal(p.bin, 'claude');
+});
+
+test('createProvider: Gemini CLI OAuth provider 생성', () => {
+  const p = createProvider({ type:'gemini-cli', model:'gemini-test' });
+  assert.ok(p instanceof GeminiCliProvider);
+  assert.equal(p.name, 'gemini-cli');
+  assert.equal(p.bin, 'gemini');
+});
+
+test('createProvider: Gemini provider 생성', () => {
+  const p = createProvider({ type:'gemini', apiKey:'k', model:'gemini-x' });
+  assert.ok(p instanceof GeminiProvider);
+  assert.equal(p.name, 'gemini');
+  assert.equal(p.model, 'gemini-x');
+});
+
+test('createProvider: Anthropic Claude provider 생성', () => {
+  const p = createProvider({ type:'anthropic', apiKey:'k', model:'claude-x' });
+  assert.ok(p instanceof AnthropicProvider);
+  assert.equal(p.name, 'anthropic');
+  assert.equal(p.model, 'claude-x');
 });

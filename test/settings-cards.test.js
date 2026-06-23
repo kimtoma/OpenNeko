@@ -3,39 +3,76 @@ const assert = require('node:assert');
 const { categorizeProviders, friendlyLabel } = require('../src/settings/cards');
 
 const PRESETS = [
-  { id: 'openai', label: 'OpenAI GPT', fields: ['apiKey', 'model'] },
-  { id: 'ollama', label: 'Ollama (local)', fields: ['baseURL', 'model'] },
+  { id: 'chatgpt-oauth', label: 'OpenAI Login (Codex)', fields: ['model'], cliBin: 'codex', recommended: true },
+  { id: 'claude-oauth', label: 'Claude Login', fields: ['model'], cliBin: 'claude' },
+  { id: 'gemini-oauth', label: 'Gemini Login', fields: ['model'], cliBin: 'gemini' },
+  { id: 'ollama', label: 'Ollama', fields: ['baseURL', 'model'], local: true },
+  { id: 'local-openai', label: 'Local OpenAI-compatible', fields: ['baseURL', 'model'], local: true },
+  { id: 'gemini', label: 'Gemini API Key', fields: ['apiKey', 'model'], requiresApiKey: true },
+  { id: 'claude', label: 'Claude API Key', fields: ['apiKey', 'model'], requiresApiKey: true },
   { id: 'custom', label: 'Custom OpenAI-compatible', fields: ['baseURL', 'apiKey', 'model'] },
 ];
 
-test('categorizeProviders: openai는 항상 ready 첫 번째 + 추천', () => {
-  const { ready } = categorizeProviders({ presets: PRESETS, detected: [], currentPresetId: 'openai' });
-  assert.equal(ready[0].presetId, 'openai');
-  assert.equal(ready[0].recommended, true);
-  assert.match(ready[0].subtitle, /OPENAI_API_KEY/);
+test('categorizeProviders: 감지되지 않은 provider는 ready에 임의 추가하지 않음', () => {
+  const { ready } = categorizeProviders({ presets: PRESETS, detected: [], currentPresetId: 'chatgpt-oauth' });
+  assert.deepEqual(ready, []);
 });
 
-test('categorizeProviders: 감지된 ollama는 ready에 들어가고 connect에서 빠진다', () => {
+test('categorizeProviders: 감지된 Gemini API key는 ready에 들어가고 connect에서 빠진다', () => {
   const { ready, connect } = categorizeProviders({
     presets: PRESETS,
-    detected: [{ presetId: 'ollama', source: 'local', models: ['llama3', 'gpt-oss'] }],
-    currentPresetId: 'openai',
+    detected: [{ presetId: 'gemini', source: 'env' }],
+    currentPresetId: 'chatgpt-oauth',
   });
   const readyIds = ready.map((c) => c.presetId);
   const connectIds = connect.map((c) => c.presetId);
-  assert.ok(readyIds.includes('ollama'));
-  assert.ok(!connectIds.includes('ollama'));
-  const o = ready.find((c) => c.presetId === 'ollama');
-  assert.match(o.subtitle, /Ready/);
-  assert.match(o.subtitle, /llama3/);
+  assert.ok(readyIds.includes('gemini'));
+  assert.ok(!connectIds.includes('gemini'));
+  const g = ready.find((c) => c.presetId === 'gemini');
+  assert.match(g.subtitle, /Ready/);
 });
 
-test('categorizeProviders: 입력 필요한 custom은 connect에 남는다', () => {
-  const { connect } = categorizeProviders({ presets: PRESETS, detected: [], currentPresetId: 'openai' });
+test('categorizeProviders: 감지된 OAuth CLI는 ready에 들어간다', () => {
+  const { ready, connect } = categorizeProviders({
+    presets: PRESETS,
+    detected: [
+      { presetId: 'chatgpt-oauth', source: 'oauth' },
+      { presetId: 'claude-oauth', source: 'oauth' },
+      { presetId: 'gemini-oauth', source: 'oauth' },
+    ],
+    currentPresetId: 'chatgpt-oauth',
+  });
+  const chatgpt = ready.find((c) => c.presetId === 'chatgpt-oauth');
+  assert.ok(chatgpt);
+  assert.equal(chatgpt.recommended, true);
+  assert.ok(ready.some((c) => c.presetId === 'claude-oauth'));
+  assert.ok(ready.some((c) => c.presetId === 'gemini-oauth'));
+  assert.ok(!connect.some((c) => c.presetId === 'chatgpt-oauth'));
+});
+
+test('categorizeProviders: 감지된 Ollama는 ready에 모델 목록을 싣는다', () => {
+  const { ready, connect } = categorizeProviders({
+    presets: PRESETS,
+    detected: [{ presetId: 'ollama', source: 'local', models: ['gemma4:e2b'] }],
+    currentPresetId: 'chatgpt-oauth',
+  });
+  const o = ready.find((c) => c.presetId === 'ollama');
+  assert.ok(o);
+  assert.deepEqual(o.models, ['gemma4:e2b']);
+  assert.ok(!connect.some((c) => c.presetId === 'ollama'));
+});
+
+test('categorizeProviders: 입력/설치 필요한 서비스는 connect에 남는다', () => {
+  const { connect } = categorizeProviders({ presets: PRESETS, detected: [], currentPresetId: 'chatgpt-oauth' });
   const ids = connect.map((c) => c.presetId);
+  assert.ok(ids.includes('chatgpt-oauth'));
+  assert.ok(ids.includes('claude-oauth'));
+  assert.ok(ids.includes('gemini-oauth'));
   assert.ok(ids.includes('ollama'));
+  assert.ok(ids.includes('local-openai'));
+  assert.ok(ids.includes('gemini'));
+  assert.ok(ids.includes('claude'));
   assert.ok(ids.includes('custom'));
-  assert.ok(!ids.includes('openai'));
 });
 
 test('categorizeProviders: currentPresetId가 currentId로 반영', () => {
@@ -44,7 +81,10 @@ test('categorizeProviders: currentPresetId가 currentId로 반영', () => {
 });
 
 test('friendlyLabel: 매핑 있으면 친근 라벨, 없으면 폴백', () => {
-  assert.equal(friendlyLabel('openai', 'OpenAI GPT'), 'OpenAI GPT');
-  assert.equal(friendlyLabel('ollama', 'x'), 'Ollama on this computer');
+  assert.equal(friendlyLabel('chatgpt-oauth', 'x'), 'OpenAI Login');
+  assert.equal(friendlyLabel('claude-oauth', 'x'), 'Claude Login');
+  assert.equal(friendlyLabel('gemini-oauth', 'x'), 'Gemini Login');
+  assert.equal(friendlyLabel('gemini', 'x'), 'Gemini API Key');
+  assert.equal(friendlyLabel('claude', 'x'), 'Claude API Key');
   assert.equal(friendlyLabel('unknown-id', 'fallback'), 'fallback');
 });

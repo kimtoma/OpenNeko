@@ -24,7 +24,7 @@ test('t: 키 반환 / 폴백 / 보간 / 함수값', () => {
   const { t } = createI18n('en');
   assert.equal(typeof t('menu.settings'), 'string');
   assert.equal(t('no.such.key'), 'no.such.key');          // 폴백 후 key
-  assert.match(t('settings.nowAnswers', { name: 'OpenAI GPT' }), /OpenAI GPT/); // 보간/함수
+  assert.match(t('settings.nowAnswers', { name: 'Claude Login' }), /Claude Login/); // 보간/함수
 });
 
 test('모든 언어가 동일 키 집합 (번역 누락 검출)', () => {

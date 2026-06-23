@@ -2,23 +2,27 @@ const { app, BrowserWindow, ipcMain, screen, Menu, clipboard, Tray, nativeImage,
 const path = require('path');
 const http = require('http');
 const os = require('os');
-const { exec, execFile } = require('child_process');
+const { exec, execFile, execFileSync } = require('child_process');
 const { parseBehind, isDirty, updateDecision } = require('./updater');
 const { createProvider } = require('./llm');
 const { safeStorage } = require('electron');
 const { makeStore } = require('./settings');
-const { presetConfig, PRESETS, resolveApiKey } = require('./llm/presets');
+const { presetConfig, PRESETS, DEFAULT_PRESET_ID, resolveApiKey } = require('./llm/presets');
 const { detectProviders } = require('./llm/detect');
-const { augmentPath } = require('./llm/pathEnv');
+const { augmentPath, spawnEnv } = require('./llm/pathEnv');
 const fs = require('node:fs');
 const { createI18n, resolveLang, SUPPORTED } = require('./i18n');
 const { persona } = require('./llm/persona');
 const { BUNDLED_SKINS, mergeSkins, resolveSkin } = require('./renderer/skins');
 const { discoverSkills, buildSkillSystem, enabledSkills } = require('./skills');
+const { localizeSkill, localizeSkills } = require('./skills/i18n');
 const { buildProfileContext } = require('./profile');
 const { randomUUID } = require('node:crypto');
 const { createNeighborNet, coarsePresence } = require('./lan');
 const { ensurePeerId, displayName } = require('./lan/identity');
+const { dockAwareWindowBounds, estimateBottomDockRect } = require('./renderer/dragGeometry');
+const { detectAgentProcessCpu } = require('./agentProcs');
+const { pickDailyBgm } = require('./bgm');
 
 // 상주 데스크탑 펫: uncaught 예외가 나도 Electron 기본 동작(모달 에러창)으로
 // 이벤트 루프를 멈추면 안 된다(모달이 뜨면 브리지·트레이까지 먹통 + 단일 인스턴스
@@ -30,15 +34,12 @@ process.on('unhandledRejection', (e) => {
   console.error('[openneko] unhandledRejection (무시하고 계속):', e);
 });
 
-// 고양이가 사는 창 크기. 말풍선 공간 포함.
-const WIN_W = 380;
-const WIN_H = 680; // 레거시 — move-window 클램프 참조용으로 유지 (창 크기로는 더 이상 미사용)
-const STRIP_H = 700; // 전폭 하단 스트립 높이 (고양이 + 말풍선 공간)
 const CURSOR_POLL_MS = 50;
 
 let win = null;
 let tray = null;
 let cursorTimer = null;
+let screenMetricsTimer = null;
 let i18n = createI18n('en'); // 앱 준비 후 refreshI18n()으로 덮어씀
 
 function currentLang() { return resolveLang(store().load().lang, app.getLocale()); }
@@ -46,16 +47,101 @@ function refreshI18n() { i18n = createI18n(currentLang()); }
 
 const gotSingleInstanceLock = app.requestSingleInstanceLock();
 
+function sameRect(a, b) {
+  return !!a && !!b
+    && a.x === b.x
+    && a.y === b.y
+    && a.width === b.width
+    && a.height === b.height;
+}
+
+function currentDisplay() {
+  if (!win || win.isDestroyed()) return screen.getPrimaryDisplay();
+  return screen.getDisplayMatching(win.getBounds());
+}
+
+let dockInfoCache = { at: 0, value: null };
+function readDockDefaults() {
+  if (process.platform !== 'darwin') return null;
+  const now = Date.now();
+  if (now - dockInfoCache.at < 5000) return dockInfoCache.value;
+
+  const read = (key) => {
+    try { return execFileSync('defaults', ['read', 'com.apple.dock', key], { timeout: 600 }).toString().trim(); }
+    catch { return ''; }
+  };
+  const countTiles = (key) => {
+    const s = read(key);
+    return (s.match(/\btile-data\b/g) || []).length;
+  };
+
+  const tileSize = parseFloat(read('tilesize')) || 44;
+  const orientation = read('orientation') || 'bottom';
+  const apps = countTiles('persistent-apps');
+  const others = countTiles('persistent-others');
+  const showRecents = read('show-recents') !== '0';
+  const recents = showRecents ? countTiles('recent-apps') : 0;
+  dockInfoCache = {
+    at: now,
+    value: { tileSize, orientation, itemCount: apps + others + recents },
+  };
+  return dockInfoCache.value;
+}
+
+function screenMetricsPayload(display) {
+  if (!win || win.isDestroyed()) return null;
+  const windowBounds = win.getBounds();
+  const dock = readDockDefaults();
+  const dockRect = dock && dock.orientation === 'bottom'
+    ? estimateBottomDockRect({
+      displayBounds: display.bounds,
+      workArea: display.workArea,
+      tileSize: dock.tileSize,
+      itemCount: dock.itemCount,
+    }) : null;
+  return {
+    workArea: display.workArea,
+    displayBounds: display.bounds,
+    dockRect,
+    winX: windowBounds.x,
+    winY: windowBounds.y,
+    windowBounds,
+  };
+}
+
+let lastScreenMetricsKey = '';
+function updateScreenMetrics({ force = false } = {}) {
+  if (!win || win.isDestroyed()) return;
+  const display = currentDisplay();
+  const nextBounds = dockAwareWindowBounds(display);
+  if (!sameRect(win.getBounds(), nextBounds)) {
+    win.setBounds(nextBounds, false);
+  }
+
+  const payload = screenMetricsPayload(display);
+  if (!payload) return;
+  const key = JSON.stringify({
+    workArea: payload.workArea,
+    displayBounds: payload.displayBounds,
+    dockRect: payload.dockRect,
+    windowBounds: payload.windowBounds,
+  });
+  if (force || key !== lastScreenMetricsKey) {
+    lastScreenMetricsKey = key;
+    win.webContents.send('screen-metrics', payload);
+  }
+}
+
 function createWindow() {
   const display = screen.getPrimaryDisplay();
-  const wa = display.workArea; // 독/작업표시줄 제외 영역
 
-  // 전폭 하단 스트립: 고양이 위치는 창 내부 catX로 관리, 창 자체는 고정
+  // Dock이 바닥에 있을 땐 투명 창은 화면 바닥까지 확장하고, 렌더러의 바닥 좌표만 Dock 위로 잡는다.
+  const bounds = dockAwareWindowBounds(display);
   win = new BrowserWindow({
-    width: wa.width,
-    height: STRIP_H,
-    x: wa.x,
-    y: wa.y + wa.height - STRIP_H,
+    width: bounds.width,
+    height: bounds.height,
+    x: bounds.x,
+    y: bounds.y,
     transparent: true,
     frame: false,
     resizable: false,
@@ -76,6 +162,7 @@ function createWindow() {
   win.webContents.on('did-finish-load', () => {
     win.webContents.send('sound-config', store().load().sound);
     win.webContents.send('lang-config', currentLang());
+    updateScreenMetrics({ force: true });
     pushSkinConfig();
     pushCatConfig();
   });
@@ -87,19 +174,24 @@ function createWindow() {
     const [wx, wy] = win.getPosition();
     win.webContents.send('cursor', { x: cursor.x, y: cursor.y, winX: wx, winY: wy });
   }, CURSOR_POLL_MS);
+
+  screenMetricsTimer = setInterval(() => updateScreenMetrics(), 500);
+  win.on('closed', () => {
+    if (cursorTimer) { clearInterval(cursorTimer); cursorTimer = null; }
+    if (screenMetricsTimer) { clearInterval(screenMetricsTimer); screenMetricsTimer = null; }
+  });
 }
 
-// 전폭 스트립 전환 후 창은 항상 고정 — move-window는 no-op.
-// 고양이 위치 이동은 렌더러 내부의 state.catX가 담당한다.
+// 전폭 창 전환 후 창은 항상 고정 — move-window는 no-op.
+// 고양이 위치 이동은 렌더러 내부의 state.catX/state.catY가 담당한다.
 // 기존 인터페이스를 그대로 남겨 렌더러 코드가 IPC를 보내도 안전하게 무시.
 ipcMain.on('move-window', (_e, _payload) => {
-  // 창은 전폭 하단 스트립 고정 — 이동하지 않음
+  // 창은 전폭 전체 높이로 고정 — 이동하지 않음
 });
 
 ipcMain.handle('get-work-area', () => {
   if (!win || win.isDestroyed()) return null;
-  const [wx, wy] = win.getPosition();
-  return { workArea: screen.getDisplayNearestPoint({ x: wx, y: wy }).workArea, winX: wx, winY: wy };
+  return screenMetricsPayload(currentDisplay());
 });
 
 // 고양이 몸 위가 아닐 때는 클릭이 아래 앱으로 통과되어야 한다
@@ -250,16 +342,35 @@ function whichBin(bin) {
   }));
 }
 
+function execFileCapture(file, args, opts = {}) {
+  return new Promise((resolve, reject) => {
+    execFile(file, args, { ...opts, env: spawnEnv(process.env) }, (error, stdout, stderr) => {
+      if (error) {
+        error.stdout = stdout;
+        error.stderr = stderr;
+        reject(error);
+        return;
+      }
+      resolve({ stdout, stderr });
+    });
+  });
+}
+
 function currentProviderConfig() {
   const s = store().load();
   const { provider, apiKey } = s;
   const lang = currentLang();
-  if (!provider) return { ...presetConfig('openai'), apiKey: resolveApiKey('openai', apiKey), lang };
-  return { ...provider, apiKey: resolveApiKey(provider.preset, apiKey), lang };
+  const savedProvider = validProvider(provider) ? provider : null;
+  if (!savedProvider) return { ...presetConfig(DEFAULT_PRESET_ID), apiKey: resolveApiKey(DEFAULT_PRESET_ID, apiKey), lang };
+  return { ...savedProvider, apiKey: resolveApiKey(savedProvider.preset, apiKey), lang };
 }
 function ensureProvider() {
   if (!llmProvider) llmProvider = createProvider(currentProviderConfig());
   return llmProvider;
+}
+
+function validProvider(provider) {
+  return !!(provider && PRESETS.some((p) => p.id === provider.preset));
 }
 
 // === 스킬 발견 =============================================================
@@ -276,12 +387,13 @@ function allSkillDefs() {
   });
 }
 
-function enabledSkillDefs() {
-  return enabledSkills(allSkillDefs(), store().load().disabledSkills);
+function enabledSkillDefs(lang = currentLang()) {
+  return localizeSkills(enabledSkills(allSkillDefs(), store().load().disabledSkills), lang);
 }
 
-function findSkill(id) {
-  return allSkillDefs().find((s) => s.id === id);
+function findSkill(id, lang = currentLang()) {
+  const skill = allSkillDefs().find((s) => s.id === id);
+  return skill ? localizeSkill(skill, lang) : skill;
 }
 
 function classifyChatError(e) {
@@ -295,7 +407,8 @@ function classifyChatError(e) {
 
 // 시스템 프롬프트 합성: 스킬 본문(있으면) + 페르소나 + 프로필/오늘날짜 컨텍스트
 function composeSystem({ skill, lang }) {
-  const base = skill ? buildSkillSystem(skill, persona(lang)) : persona(lang);
+  const localizedSkill = skill ? localizeSkill(skill, lang) : null;
+  const base = localizedSkill ? buildSkillSystem(localizedSkill, persona(lang)) : persona(lang);
   return base + '\n\n' + buildProfileContext(store().load().profile, new Date());
 }
 
@@ -336,12 +449,32 @@ ipcMain.on('chat-reset', () => {
 });
 
 function stripKey(f) { const { apiKey, ...rest } = f || {}; return rest; }
+function providerNeedsKey(presetId) {
+  const p = PRESETS.find((x) => x.id === presetId);
+  return !!(p && (p.fields || []).includes('apiKey'));
+}
+function providerRequiresKey(presetId) {
+  const p = PRESETS.find((x) => x.id === presetId);
+  return !!(p && p.requiresApiKey === true);
+}
 function resolveKey(fields) { return (fields && 'apiKey' in fields) ? fields.apiKey : store().load().apiKey; }
+function keyForSave(presetId, fields, cur) {
+  if (!providerNeedsKey(presetId)) return '';
+  if (fields && 'apiKey' in fields) return fields.apiKey;
+  return cur.provider && cur.provider.preset === presetId ? cur.apiKey : '';
+}
+function keyForTest(presetId, fields) {
+  if (fields && 'apiKey' in fields) return fields.apiKey;
+  const cur = store().load();
+  return cur.provider && cur.provider.preset === presetId ? cur.apiKey : '';
+}
 
 ipcMain.handle('settings-get', () => {
   const { provider, apiKey, sound, lang, onboarded, webSearch, profile, neighbor, catName } = store().load();
+  const savedProvider = validProvider(provider) ? provider : null;
   return {
-    provider, hasKey: !!apiKey, presetId: provider ? provider.preset : 'openai',
+    provider: savedProvider, hasKey: !!(savedProvider && providerNeedsKey(savedProvider.preset) && apiKey),
+    presetId: savedProvider ? savedProvider.preset : DEFAULT_PRESET_ID,
     sound, lang, resolvedLang: currentLang(), skin: currentSkin(),
     onboarding: !onboarded,
     webSearch: webSearch !== false,
@@ -390,7 +523,7 @@ ipcMain.handle('settings-save', (_e, { presetId, fields }) => {
   try {
     const cur = store().load();
     // sound·lang·skin·온보딩 필드는 provider와 독립 — 저장 시 보존
-    store().save({ ...cur, provider, apiKey: resolveKey(fields) });
+    store().save({ ...cur, provider, apiKey: keyForSave(provider.preset, fields, cur) });
     llmProvider = null; return { ok: true };
   }
   catch (e) { return { ok: false, error: e.message }; }
@@ -537,17 +670,18 @@ ipcMain.handle('onboard-open-perms', (_e, { which }) => {
 });
 ipcMain.handle('settings-test', async (_e, { presetId, fields }) => {
   try {
-    const p = createProvider({ ...presetConfig(presetId, stripKey(fields)), apiKey: resolveApiKey(presetId, resolveKey(fields)) });
+    const p = createProvider({ ...presetConfig(presetId, stripKey(fields)), apiKey: resolveApiKey(presetId, keyForTest(presetId, fields)) });
     const r = await p.chat({ history: [{ role: 'user', text: '안녕? 한 단어로 인사해' }] });
     return { ok: true, text: r.text };
   } catch (e) { return { ok: false, error: classifyChatError(e) + ' (' + (e.message || '') + ')' }; }
 });
-ipcMain.handle('settings-presets', () => PRESETS.map(({ id, label, fields, defaults, note }) => ({ id, label, fields, defaults, note })));
+ipcMain.handle('settings-presets', () => PRESETS.map(({
+  id, label, fields, defaults, note, cliBin, local, recommended, requiresApiKey,
+}) => ({ id, label, fields, defaults, note, cliBin, local, recommended, requiresApiKey })));
 ipcMain.handle('settings-detect', async () => {
   try {
-    // fetch는 있을 때만 전달 — 혹시 없더라도 env 감지는 살아남게(없으면 Ollama만 건너뜀).
     const f = typeof fetch !== 'undefined' ? (...a) => fetch(...a) : undefined;
-    return await detectProviders({ env: process.env, which: whichBin, fetch: f });
+    return await detectProviders({ env: process.env, which: whichBin, execFile: execFileCapture, fetch: f });
   } catch { return []; }
 });
 
@@ -555,6 +689,10 @@ ipcMain.handle('settings-detect', async () => {
 // inputOverride가 있으면 그 텍스트를 input으로 사용(클립보드/none 로직 건너뜀).
 async function runSkill(skill, inputOverride) {
   if (!win || win.isDestroyed()) return;
+  if (skill.id === 'daily-bgm') {
+    await runBgmSkill(inputOverride);
+    return;
+  }
   let input;
   if (inputOverride !== undefined) {
     input = String(inputOverride).slice(0, 6000);
@@ -582,6 +720,35 @@ async function runSkill(skill, inputOverride) {
   } catch (e) {
     if (e && e.name === 'AbortError') return;
     if (win && !win.isDestroyed()) win.webContents.send('skill-error', classifyChatError(e));
+  }
+}
+
+async function runBgmSkill(inputOverride) {
+  if (!win || win.isDestroyed()) return;
+  const arg = String(inputOverride || '').trim().toLowerCase();
+  win.webContents.send('skill-thinking');
+  if (/^(stop|off|pause|정지|중지|끄기)$/.test(arg)) {
+    win.webContents.send('bgm-stop');
+    win.webContents.send('skill-reply', i18n.t('skill.bgmStopped'));
+    return;
+  }
+  const cur = store().load();
+  const bgm = pickDailyBgm(new Date(), {
+    preference: inputOverride,
+    profile: cur.profile || {},
+    lang: currentLang(),
+  });
+  win.webContents.send('bgm-stop');
+  try {
+    await shell.openExternal(bgm.url);
+    win.webContents.send('skill-reply', i18n.t('skill.bgmPlaying', {
+      title: bgm.title,
+      query: bgm.query,
+      service: bgm.service,
+      personalized: bgm.personalized ? i18n.t('skill.bgmPersonalized') : '',
+    }));
+  } catch (e) {
+    win.webContents.send('skill-error', (e && e.message) || i18n.t('chat.errGeneric'));
   }
 }
 
@@ -613,9 +780,7 @@ function startBridge() {
       // 드래그/위치 디버그: 창 위치 + 작업영역
       res.writeHead(200, { 'Content-Type': 'application/json' });
       if (!win || win.isDestroyed()) { res.end('{}'); return; }
-      const [wx, wy] = win.getPosition();
-      const wa = screen.getDisplayNearestPoint({ x: wx, y: wy }).workArea;
-      res.end(JSON.stringify({ x: wx, y: wy, wa }));
+      res.end(JSON.stringify(screenMetricsPayload(currentDisplay())));
     } else if (req.url === '/capture') {
       // 시각 검증용: 현재 창(고양이) 렌더 결과를 투명 PNG로 반환. 화면 좌표 몰라도 캡처 가능.
       if (!win || win.isDestroyed()) { res.writeHead(503); res.end(); return; }
@@ -631,13 +796,6 @@ function startBridge() {
   server.listen(BRIDGE_PORT, '127.0.0.1');
 }
 
-// 프로세스 폴링: 알려진 에이전트 CLI의 CPU 사용률 (macOS/Linux)
-const AGENT_PROCS = [
-  { source: 'codex', re: /(^|\/)codex(\s|$|-)/ },
-  { source: 'antigravity', re: /antigravity/i },
-  { source: 'kiro', re: /(^|\/)kiro(\s|$)|Kiro\.app/i },
-];
-
 function startProcPoller() {
   // Windows에선 CLI가 node.exe로 감싸 실행돼 프로세스명/CPU 매칭이 불안정 → CPU 폴러 비활성.
   // 대신 OS 무관한 HTTP 브리지(:48800/state)로 상태를 받는다(README/연동 참고).
@@ -645,15 +803,7 @@ function startProcPoller() {
   setInterval(() => {
     exec('ps -axo pcpu=,args=', { maxBuffer: 4 * 1024 * 1024 }, (err, out) => {
       if (err || !win || win.isDestroyed()) return;
-      const cpu = {};
-      for (const line of out.split('\n')) {
-        const m = line.trim().match(/^([\d.]+)\s+(.+)$/);
-        if (!m) continue;
-        for (const a of AGENT_PROCS) {
-          if (a.re.test(m[2])) cpu[a.source] = Math.max(cpu[a.source] || 0, parseFloat(m[1]));
-        }
-      }
-      win.webContents.send('agent-procs', cpu);
+      win.webContents.send('agent-procs', detectAgentProcessCpu(out));
     });
   }, 3000);
 }
@@ -682,7 +832,7 @@ let settingsWin = null;
 function openSettingsWindow() {
   if (settingsWin && !settingsWin.isDestroyed()) { settingsWin.show(); settingsWin.focus(); return; }
   settingsWin = new BrowserWindow({
-    width: 460, height: 600, resizable: false, title: i18n.t('app.name') + ' ' + i18n.t('menu.settings'), // 로드 후 콘텐츠 높이로 자동 맞춤(settings-resize)
+    width: 560, height: 680, minWidth: 520, minHeight: 420, resizable: true, title: i18n.t('app.name') + ' ' + i18n.t('menu.settings'), // 로드 후 콘텐츠 높이로 자동 맞춤(settings-resize)
     webPreferences: { preload: path.join(__dirname, 'preloadSettings.js'), contextIsolation: true, nodeIntegration: false },
   });
   settingsWin.loadFile(path.join(__dirname, 'settings', 'settings.html'));
@@ -706,7 +856,7 @@ ipcMain.handle('open-external', (_e, url) => {
 // === 스킬 IPC =============================================================
 ipcMain.handle('skills-list', () => {
   const disabled = new Set(store().load().disabledSkills);
-  return allSkillDefs().map((s) => ({
+  return localizeSkills(allSkillDefs(), currentLang()).map((s) => ({
     id: s.id, name: s.name, description: s.description,
     input: s.input, source: s.source, enabled: !disabled.has(s.id),
   }));

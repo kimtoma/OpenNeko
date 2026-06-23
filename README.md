@@ -2,13 +2,14 @@
 
 [한국어](README.ko.md) · [日本語](README.ja.md) · [简体中文](README.zh.md)
 
-openNeko is an open-source desktop pixel cat for GPT. It lives along the bottom of your screen, reacts to typing and agent state signals, and answers short chat messages through OpenAI-compatible models.
+openNeko is an open-source desktop pixel cat for AI agents. It lives along the bottom of your screen, reacts to typing and agent state signals, and answers short chat messages through your chosen agent, cloud model, or local model.
 
 ## Features
 
-- **GPT chat**: short-click the cat, type a message, and get a compact cat-style reply.
-- **OpenAI-compatible providers**: OpenAI GPT by default, local Ollama, or a custom `/v1/chat/completions` endpoint.
-- **State bridge**: send `thinking`, `coding`, `success`, `error`, and other states over HTTP.
+- **AI Agent chat**: short-click the cat, type a message, and get a compact cat-style reply.
+- **OAuth-first providers**: OpenAI/Codex, Claude, and Gemini CLI logins first; API keys only when needed.
+- **Local models**: Ollama and local OpenAI-compatible servers can answer without a cloud API key.
+- **Agent status bridge**: reacts to HTTP state events and busy agent processes including Cursor, Claude Code CLI, Codex CLI/App, Antigravity, Gemini, and Kiro.
 - **Typing reaction**: the cat animates when you type. Key contents are never read.
 - **Skins and sprites**: five bundled skins, external skin folder support, and reusable sprite extraction tools.
 - **Skills**: bundled and user `SKILL.md` prompts can be triggered from the menu or slash commands.
@@ -40,15 +41,20 @@ npm run build
 npm start
 ```
 
-Set `OPENAI_API_KEY` before launching, or add your key in Settings.
+For keyless setup, sign in with a supported CLI first: `codex login`, `claude`, or `gemini`. Ollama and local OpenAI-compatible endpoints can be added in Settings.
 
-## GPT Providers
+## AI Providers
 
 Supported presets:
 
-- `openai`: `https://api.openai.com/v1`, model `gpt-4o-mini`, `OPENAI_API_KEY` fallback.
-- `ollama`: `http://localhost:11434/v1`, model `llama3.2` by default.
-- `custom`: any OpenAI-compatible endpoint.
+- `chatgpt-oauth`: uses the local Codex CLI OpenAI login. Requires `codex login`.
+- `claude-oauth`: uses the local Claude Code login.
+- `gemini-oauth`: uses the local Gemini CLI Google login.
+- `ollama`: uses a local Ollama server.
+- `local-openai`: local OpenAI-compatible servers such as LM Studio, llama.cpp, or vLLM.
+- `gemini`: Google AI Studio Gemini API key.
+- `claude`: Anthropic API key.
+- `custom`: any OpenAI-compatible endpoint, with an API key only if that server requires one.
 
 API keys are stored with Electron `safeStorage` when available.
 
@@ -76,7 +82,7 @@ Bundled skills live in `src/skills/builtin/*/SKILL.md`. User skills go in:
 ~/.openneko/skills/<skill-id>/SKILL.md
 ```
 
-Supported skill inputs are `prompt`, `clipboard`, and `none`. Skill bodies are injected as system instructions for the current GPT provider; scripts are not executed.
+Supported skill inputs are `prompt`, `clipboard`, and `none`. Skill bodies are injected as system instructions for the current AI provider; scripts are not executed.
 
 ## Development
 

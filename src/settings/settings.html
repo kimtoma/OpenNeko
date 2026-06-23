@@ -1,92 +1,106 @@
 <!DOCTYPE html><html lang="ko"><head><meta charset="UTF-8"><title>openNeko settings</title>
 <style>
-  body{font-family:'Apple SD Gothic Neo',sans-serif;margin:0;padding:18px;background:#fafafa;color:#222;font-size:13px}
-  h2{margin:0 0 14px;font-size:16px}
-  .card{display:flex;align-items:center;gap:10px;padding:12px;margin-bottom:8px;background:#fff;
-    border:1px solid #e3e3e3;border-radius:12px;cursor:pointer}
-  .card:hover{border-color:#b9b9c8}
-  .card.current{border-color:#2b2b2b;background:#f3f3fb;cursor:default}
-  .card .ico{font-size:18px;line-height:1}
+  :root{
+    --bg:#f2f4f7;--panel:#fff;--text:#20242c;--muted:#5f6875;--subtle:#8a93a1;
+    --line:#e1e5eb;--line-strong:#c4cbd6;--accent:#1769d1;--accent-bg:#edf5ff;
+    --ok:#198754;--ok-bg:#e9f7ef;--warn-bg:#fff7d6;--warn-line:#ead27c;--warn-text:#6e5100;
+    --radius:8px;--shadow:0 1px 2px rgba(20,28,40,.05);
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;padding:12px;background:var(--bg);color:var(--text);font:13px/1.4 -apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Segoe UI',sans-serif;
+    word-break:keep-all;overflow-wrap:anywhere;
+  }
+  button,input,select{font:inherit}
+  button{border-radius:var(--radius)}
+  button:focus-visible,input:focus-visible,select:focus-visible,.card:focus-visible,.skin-tile:focus-visible{
+    outline:2px solid rgba(23,105,209,.35);outline-offset:2px;
+  }
+  .page{display:none}.page.active{display:block}
+  .panel,.setting-section{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow)}
+  .setting-section{padding:10px;margin-top:8px}
+  .setting-section.primary{border-color:#c8d8f2;background:linear-gradient(180deg,#fff,#f8fbff)}
+  .section-top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:8px}
+  .section-top h2{margin:0;font-size:15px;font-weight:760;letter-spacing:0}
+  .section-sub{margin:2px 0 0;color:var(--muted);font-size:11px}
+  .settings-hero{padding:10px;border:1px solid #dbe2ec;border-radius:var(--radius);background:#fff;box-shadow:var(--shadow)}
+  .settings-hero h1{margin:1px 0 6px;font-size:19px;line-height:1.1;font-weight:800;letter-spacing:0}
+  .eyebrow{color:var(--subtle);font-size:11px;font-weight:760;text-transform:uppercase;letter-spacing:.04em}
+  .summary-row{display:flex;flex-wrap:wrap;gap:6px}
+  .summary-chip,.tag{display:inline-flex;align-items:center;min-height:22px;padding:3px 8px;border-radius:999px;background:#f0f2f5;color:#4b5563;font-size:11px;font-weight:690;white-space:nowrap}
+  .summary-chip.ai,.tag.recommended{background:var(--accent-bg);color:var(--accent)}
+  .tag.source{background:#f4f7fa;color:#586070}.tag.model{max-width:100%;white-space:normal}
+  #onboard-banner{display:none;background:var(--warn-bg);border:1px solid var(--warn-line);border-radius:var(--radius);padding:10px;margin-top:8px;font-weight:690;color:var(--warn-text)}
+
+  #cards,#wiz-cards{display:grid;grid-template-columns:1fr;gap:6px}
+  .card{
+    display:flex;align-items:center;gap:10px;min-height:58px;padding:9px 10px;background:#fff;border:1px solid var(--line);
+    border-radius:var(--radius);cursor:pointer;box-shadow:var(--shadow);transition:border-color .12s ease,background .12s ease,transform .12s ease;
+  }
+  .card:hover{border-color:var(--line-strong);background:#fbfcfe}.card:active{transform:translateY(1px)}
+  .card.current{border-color:#273142;background:#eef4ff;cursor:default}
+  .card.add{justify-content:center;border-style:dashed;background:#fbfcfe;color:#4d5562;font-weight:740}
+  .card .ico{width:34px;height:34px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex:0 0 auto;overflow:hidden;background:#f1f3f6}
+  .provider-icon{width:34px;height:34px;display:block;object-fit:contain}
   .card .body{flex:1;min-width:0}
-  .card .title{font-weight:700}
-  .card .sub{color:#999;font-size:11px;margin-top:2px}
-  .card .badge{font-size:11px;color:#2a9d5c;font-weight:700;white-space:nowrap}
-  .card .pick{font-size:12px;color:#0a66c2;font-weight:600;white-space:nowrap}
-  .card.add{border-style:dashed;color:#555;justify-content:center;font-weight:700}
-  #connect{margin:0 0 8px;padding:12px;background:#fff;border:1px solid #e3e3e3;border-radius:12px;display:none}
-  #connect.show{display:block}
-  .svc{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:6px}
-  .svc button{padding:7px 12px;border:1px solid #ccc;border-radius:20px;background:#fff;cursor:pointer;font-size:12px}
-  .svc button.sel{background:#2b2b2b;color:#fff;border-color:#2b2b2b}
-  .field{margin:8px 0}
-  .field label{display:block;font-weight:600;margin-bottom:4px}
-  .field input{width:100%;box-sizing:border-box;padding:8px 10px;border:1px solid #ccc;border-radius:8px;font-size:13px}
-  .hint{color:#999;font-size:11px;margin-top:3px}
-  .actions{display:flex;gap:8px;margin-top:10px}
-  button.primary{background:#2b2b2b;color:#fff;border:1px solid #2b2b2b;border-radius:8px;padding:8px 14px;cursor:pointer;font-size:13px}
-  button.ghost{background:#fff;border:1px solid #ccc;border-radius:8px;padding:8px 14px;cursor:pointer;font-size:13px}
-  .toggle{display:flex;align-items:center;justify-content:space-between;margin:0 2px;padding:14px 2px;border-bottom:1px solid #ececec;font-weight:600}
-  .toggle:last-child{border-bottom:none}
-  .toggle select{padding:4px 8px;border:1px solid #ccc;border-radius:6px;font-size:12px;background:#fff;cursor:pointer}
-  details{margin-top:12px}
-  summary{cursor:pointer;color:#777;font-size:12px;outline:none}
-  details .field{margin-top:8px}
-  #status{margin-top:10px;min-height:18px;font-size:12px;color:#555;white-space:pre-wrap}
-  #credit{margin-top:18px;padding-top:10px;border-top:1px solid #eee;text-align:center;color:#999;font-size:11px}
-  #credit .heart{color:#e0245e}
-  #credit a{color:#0a66c2;text-decoration:none;cursor:pointer}
-  #credit a:hover{text-decoration:underline}
-  #skins,#wiz-skins{display:grid;grid-template-columns:repeat(auto-fill,minmax(78px,1fr));gap:8px;margin:10px 2px 0}
-  .skin-tile{display:flex;flex-direction:column;align-items:center;gap:5px;padding:8px 6px;border:2px solid #e6e6ec;border-radius:12px;cursor:pointer;background:#fff;font-size:11px;color:#555}
-  .skin-tile:hover{border-color:#b9b9c8}
-  .skin-tile.selected{border-color:#2b2b2b;background:#f3f3fb}
-  .skin-thumb{width:56px;height:56px;border-radius:10px;background:#f1f2f6;display:flex;align-items:flex-end;justify-content:center;overflow:hidden}
-  .skin-thumb img{width:54px;height:54px;object-fit:contain;image-rendering:pixelated}
-  .skin-name{font-weight:600}
-  .more-skins-btn{display:block;width:100%;margin-top:8px;padding:7px 12px;border:1px dashed #b9b9c8;border-radius:8px;background:#fff;color:#0a66c2;font-size:12px;cursor:pointer;text-align:center}
-  .more-skins-btn:hover{background:#f3f3fb}
-  /* 첫 실행 환영 배너 */
-  #onboard-banner{background:#fffbe6;border:1px solid #ffe58f;border-radius:10px;padding:12px 14px;margin-bottom:12px;font-size:13px;font-weight:600;color:#7d4a00}
-  .skill-row{display:flex;align-items:center;gap:8px;padding:8px 10px;border-bottom:1px solid #f0f0f0}
-  .skill-row:last-of-type{border-bottom:none}
-  .skill-info{flex:1;min-width:0}
-  .skill-name{font-weight:600;font-size:13px}
-  .skill-desc{color:#888;font-size:11px;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .skill-badge{font-size:10px;padding:2px 6px;border-radius:10px;background:#e8f4fd;color:#1a7ab5;font-weight:600;white-space:nowrap}
-  .skill-toggle-label{display:flex;align-items:center;gap:4px;font-size:12px;color:#555;cursor:pointer;white-space:nowrap}
-  #skills-section .section-head{font-weight:700;font-size:13px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between}
-  #skills-section .section-body{background:#fff;border:1px solid #e3e3e3;border-radius:10px;overflow:hidden}
-  .skills-folder-btn{font-size:11px;color:#0a66c2;background:none;border:none;cursor:pointer;padding:0}
-  .skills-folder-btn:hover{text-decoration:underline}
-  /* --- depth 네비게이션 --- */
-  .page{display:none}
-  .page.active{display:block}
-  .nav-row{display:flex;align-items:center;gap:11px;padding:13px 12px;margin-bottom:8px;background:#fff;
-    border:1px solid #e3e3e3;border-radius:12px;cursor:pointer}
-  .nav-row:hover{border-color:#b9b9c8;background:#f8f8fc}
-  .nav-row .ico{font-size:19px;line-height:1;width:22px;text-align:center}
-  .nav-row .body{flex:1;min-width:0}
-  .nav-row .title{font-weight:700}
-  .nav-row .sub{color:#999;font-size:11px;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .nav-row .chev{color:#bbb;font-size:18px;font-weight:700}
-  .page-head{display:flex;align-items:center;gap:8px;margin-bottom:14px}
-  .page-head h2{margin:0;flex:1}
-  .back-btn{background:#fff;border:1px solid #ddd;border-radius:8px;padding:6px 11px;cursor:pointer;font-size:12px;color:#444;white-space:nowrap}
-  .back-btn:hover{border-color:#b9b9c8;background:#f3f3fb}
-  .section-note{color:#999;font-size:11px;margin:-6px 2px 12px}
-  /* --- 온보딩 위저드 --- */
-  #wiz-dots{display:flex;gap:6px;justify-content:center;margin:2px 0 16px}
-  .wiz-dot{width:7px;height:7px;border-radius:50%;background:#dcdce4}
-  .wiz-dot.on{background:#2b2b2b}
-  .wiz-hero{font-size:48px;text-align:center;margin:6px 0 4px}
-  .wiz-title{font-size:18px;margin:0 0 8px;text-align:center}
-  .wiz-text{color:#555;font-size:13px;line-height:1.6;margin:0 0 12px;text-align:center}
-  .wiz-perm{display:flex;align-items:center;gap:10px;margin:8px 0}
-  .wiz-perm button{flex:1}
-  .wiz-status{font-size:15px;width:18px;text-align:center}
-  .wiz-tips{list-style:none;padding:0;margin:6px 0}
-  .wiz-tips li{background:#fff;border:1px solid #e3e3e3;border-radius:10px;padding:11px 13px;margin-bottom:8px;font-size:13px}
+  .card .title{font-weight:740;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+  .card .sub{color:var(--muted);font-size:11px;margin-top:1px}
+  .card .meta{display:flex;flex-wrap:wrap;gap:4px;margin-top:5px}
+  .card .badge{font-size:11px;color:var(--ok);font-weight:760;white-space:nowrap;background:var(--ok-bg);padding:4px 7px;border-radius:999px}
+  .card .pick{font-size:12px;color:var(--accent);font-weight:720;white-space:nowrap}
+  #connect{display:none;margin-top:8px;padding:10px}#connect.show{display:block}
+  .connect-head{display:flex;align-items:center;gap:8px;margin-bottom:8px}.connect-title{font-weight:740;flex:1}
+  .icon-btn{width:28px;height:28px;border:1px solid var(--line);background:#fff;color:var(--muted);cursor:pointer}
+  .svc{display:grid;grid-template-columns:1fr;gap:6px;margin-bottom:10px}
+  .svc button{min-height:38px;padding:7px 9px;border:1px solid var(--line);background:#fff;cursor:pointer;font-size:12px;font-weight:650;color:#384150;display:flex;align-items:center;gap:8px;text-align:left}
+  .svc button.sel{background:#22262d;color:#fff;border-color:#22262d}
+  .svc-ico{width:24px;height:24px;border-radius:7px;display:flex;align-items:center;justify-content:center;overflow:hidden;background:#f1f3f6;flex:0 0 auto}.svc .provider-icon{width:24px;height:24px}
+
+  .field{margin:0}.field+.field{margin-top:8px}
+  .field-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .field label{display:block;font-weight:690;margin-bottom:5px;color:#303641}
+  .field input,.field select{width:100%;padding:7px 9px;border:1px solid var(--line-strong);border-radius:var(--radius);background:#fff;color:var(--text);font-size:13px}
+  .field input::placeholder{color:#a0a7b2}.hint{color:var(--subtle);font-size:11px;margin-top:4px}.connect-note{margin:2px 0 10px}
+  .actions,.profile-actions{display:flex;align-items:center;gap:8px;margin-top:10px}
+  button.primary{background:#22262d;color:#fff;border:1px solid #22262d;padding:7px 12px;cursor:pointer;font-weight:710}
+  button.ghost{background:#fff;border:1px solid var(--line-strong);padding:7px 11px;cursor:pointer;color:#303641}
+  button.ghost:hover,.icon-btn:hover,.svc button:hover{border-color:#9aa3b1;background:#fbfcfe}
+
+  .control-grid{display:grid;grid-template-columns:1fr;gap:6px;margin-top:8px}
+  .control-row{display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:44px;padding:8px 10px;background:#fff;border:1px solid var(--line);border-radius:var(--radius)}
+  .control-row.compact{margin-top:8px}
+  .control-title{font-weight:700}.control-body{min-width:0}
+  .switch{display:inline-flex;align-items:center;gap:7px;cursor:pointer;user-select:none;white-space:nowrap}
+  .switch input{position:absolute;opacity:0;pointer-events:none}
+  .slider{position:relative;width:42px;height:24px;border-radius:999px;background:#cbd3de;transition:background .16s ease}
+  .slider:before{content:"";position:absolute;left:3px;top:3px;width:18px;height:18px;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.25);transition:transform .16s ease}
+  .switch input:checked+.slider{background:#22262d}.switch input:checked+.slider:before{transform:translateX(18px)}
+  .small-switch .slider{width:36px;height:21px}.small-switch .slider:before{width:15px;height:15px}.small-switch input:checked+.slider:before{transform:translateX(15px)}
+  .switch-copy{color:var(--muted);font-size:12px;font-weight:680}
+
+  #skins,#wiz-skins{display:grid;grid-template-columns:repeat(auto-fill,minmax(72px,1fr));gap:8px;margin-top:8px}
+  .skin-tile{display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:6px;min-height:88px;padding:8px 6px;border:1px solid var(--line);border-radius:var(--radius);cursor:pointer;background:#fff;font-size:11px;color:#4d5562;box-shadow:var(--shadow)}
+  .skin-tile:hover{border-color:var(--line-strong);background:#fbfcfe}.skin-tile.selected{border-color:#273142;background:#eef4ff}
+  .skin-thumb{width:64px;height:64px;border-radius:var(--radius);background:#f1f3f6;display:flex;align-items:flex-end;justify-content:center;overflow:hidden}
+  .skin-thumb img{width:62px;height:62px;object-fit:contain;image-rendering:pixelated}.skin-name{font-weight:720;text-align:center;line-height:1.2}
+
+  #skills-section .section-head{font-weight:740;font-size:13px;margin-bottom:6px;display:flex;align-items:center;justify-content:space-between}
+  #skills-section .section-body{overflow:hidden}.skills-folder-btn{font-size:11px;color:var(--accent);background:none;border:none;cursor:pointer;padding:0;font-weight:680}
+  .skill-row{display:flex;align-items:center;gap:8px;padding:8px 10px;border-bottom:1px solid #edf0f3}.skill-row:last-of-type{border-bottom:none}
+  .skill-info{flex:1;min-width:0}.skill-name{font-weight:680;font-size:13px}.skill-desc{color:var(--muted);font-size:11px;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .skill-badge{font-size:10px;padding:3px 7px;border-radius:999px;background:#e8f4fd;color:#1a6fa8;font-weight:690;white-space:nowrap}
+  .skill-toggle-label{margin-left:auto}.empty-state{padding:12px;color:var(--subtle);font-size:12px}
+  .save-msg{font-size:12px;color:var(--ok);font-weight:680}
+  #status{position:fixed;top:12px;left:50%;z-index:1000;max-width:calc(100% - 28px);padding:10px 12px;border-radius:8px;background:#111820;color:#fff;font-size:12px;font-weight:690;white-space:pre-wrap;box-shadow:0 10px 28px rgba(0,0,0,.22);opacity:0;pointer-events:none;transform:translate(-50%,-8px);transition:opacity .16s ease,transform .16s ease}
+  #status.show{opacity:1;transform:translate(-50%,0)}
+  #credit{margin-top:12px;padding-top:8px;border-top:1px solid var(--line);text-align:center;color:var(--subtle);font-size:11px}
+  #credit .heart{color:#e0245e}#credit a{color:var(--accent);text-decoration:none;cursor:pointer}
+  #wiz-dots{display:flex;gap:6px;justify-content:center;margin:2px 0 16px}.wiz-dot{width:7px;height:7px;border-radius:50%;background:#d5dae2}.wiz-dot.on{background:#22262d}
+  .wiz-hero{font-size:48px;text-align:center;margin:6px 0 4px}.wiz-title{font-size:18px;margin:0 0 8px;text-align:center}.wiz-text{color:#4d5562;font-size:13px;line-height:1.6;margin:0 0 12px;text-align:center}
+  .wiz-perm{display:flex;align-items:center;gap:10px;margin:8px 0}.wiz-perm button{flex:1}.wiz-status{font-size:15px;width:18px;text-align:center}
+  .wiz-tips{list-style:none;padding:0;margin:6px 0}.wiz-tips li{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:11px 13px;margin-bottom:8px;font-size:13px}
   #wiz-nav{display:flex;align-items:center;gap:8px;margin-top:18px}
+  @media (max-width:520px){.field-grid{grid-template-columns:1fr}.section-top{flex-direction:column}.setting-section{padding:10px}}
 </style></head><body>
 
   <!-- ===== 온보딩 위저드 (첫 실행) ===== -->
@@ -97,121 +111,127 @@
   </section>
 
 
-  <!-- ===== 홈 (메뉴) ===== -->
+  <!-- ===== 통합 설정 ===== -->
   <section class="page active" id="page-home">
-    <h2 id="home-title">⚙️ 설정</h2>
-
-    <!-- 모양 (depth 없이 홈에서 바로 표시) -->
+    <header class="settings-hero">
+      <div class="eyebrow">openNeko</div>
+      <h1 id="home-title">⚙️ 설정</h1>
+      <div class="summary-row">
+        <span class="summary-chip ai" id="current-ai-chip"></span>
+        <span class="summary-chip" id="current-cat-chip"></span>
+        <span class="summary-chip" id="current-lang-chip"></span>
+      </div>
+    </header>
     <div id="onboard-banner" style="display:none"></div>
-    <div class="toggle skin-toggle"><span id="skin-label">🎨 스킨</span></div>
-    <div id="skins"></div>
-    <div class="field" style="margin:10px 2px 0">
-      <label id="cat-name-label" for="cat-name">🐱 고양이 이름</label>
-      <input type="text" id="cat-name" maxlength="64">
-    </div>
 
-    <div id="nav-list" style="margin-top:14px">
-      <div class="nav-row" data-target="page-profile">
-        <span class="ico">🎂</span>
-        <div class="body"><div class="title" id="nav-profile-t"></div><div class="sub" id="nav-profile-s"></div></div>
-        <span class="chev">›</span>
-      </div>
-      <div class="nav-row" data-target="page-ai">
-        <span class="ico">🤖</span>
-        <div class="body"><div class="title" id="nav-ai-t"></div><div class="sub" id="nav-ai-s"></div></div>
-        <span class="chev">›</span>
-      </div>
-      <div class="nav-row" data-target="page-skills">
-        <span class="ico">🧩</span>
-        <div class="body"><div class="title" id="nav-skills-t"></div><div class="sub" id="nav-skills-s"></div></div>
-        <span class="chev">›</span>
-      </div>
-      <div class="nav-row" data-target="page-general">
-        <span class="ico">⚙️</span>
-        <div class="body"><div class="title" id="nav-general-t"></div><div class="sub" id="nav-general-s"></div></div>
-        <span class="chev">›</span>
-      </div>
-    </div>
-    <div id="credit">made by kimtoma with <span class="heart">❤️</span> · <a id="home">kimtoma.com</a></div>
-  </section>
-
-  <!-- ===== AI 답변 ===== -->
-  <section class="page" id="page-ai">
-    <div class="page-head"><button class="back-btn" data-back></button><h2 id="ai-title"></h2></div>
-    <div id="cards"></div>
-    <div id="connect"></div>
-    <div class="toggle"><span id="websearch-label">🔍 웹 검색</span>
-      <label><input type="checkbox" id="websearch-enabled"> <span id="websearch-on-label">켜기</span></label>
-    </div>
-    <div id="websearch-note" class="hint"></div>
-    <details id="advanced">
-      <summary>고급 설정</summary>
-      <div class="field">
+    <section class="setting-section primary" id="section-ai">
+      <div class="section-top">
+        <div>
+          <h2 id="ai-title"></h2>
+          <p class="section-sub" id="ai-sub"></p>
+        </div>
         <button class="ghost" id="adv-test">지금 연결 상태 확인</button>
-        <div class="hint">현재 선택한 AI로 실제 연결되는지 확인해요.</div>
       </div>
-    </details>
-  </section>
-
-  <!-- ===== 스킬 ===== -->
-  <section class="page" id="page-skills">
-    <div class="page-head"><button class="back-btn" data-back></button><h2 id="skills-title"></h2></div>
-    <div id="skills-section"></div>
-  </section>
-
-  <!-- ===== 내 프로필 ===== -->
-  <section class="page" id="page-profile">
-    <div class="page-head"><button class="back-btn" data-back></button><h2 id="profile-title"></h2></div>
-    <div id="profile-section">
-      <div style="background:#fff;border:1px solid #e3e3e3;border-radius:10px;padding:12px">
-        <div class="field">
-          <label id="profile-name-label" for="profile-name" style="display:block;font-weight:600;margin-bottom:4px">이름</label>
-          <input type="text" id="profile-name" placeholder="" style="width:100%;box-sizing:border-box;padding:7px 10px;border:1px solid #ccc;border-radius:8px;font-size:13px">
+      <div id="cards"></div>
+      <div id="connect" class="panel"></div>
+      <div class="control-row compact">
+        <div class="control-body">
+          <div class="control-title" id="websearch-label">🔍 웹 검색</div>
+          <div id="websearch-note" class="hint"></div>
         </div>
-        <div class="field" style="margin-top:8px">
-          <label id="profile-birthdate-label" for="profile-birthdate" style="display:block;font-weight:600;margin-bottom:4px">생년월일</label>
-          <input type="date" id="profile-birthdate" style="width:100%;box-sizing:border-box;padding:7px 10px;border:1px solid #ccc;border-radius:8px;font-size:13px">
-        </div>
-        <div class="field" style="margin-top:8px">
-          <label id="profile-birthtime-label" for="profile-birthtime" style="display:block;font-weight:600;margin-bottom:4px">태어난 시각 (선택)</label>
-          <input type="time" id="profile-birthtime" style="width:100%;box-sizing:border-box;padding:7px 10px;border:1px solid #ccc;border-radius:8px;font-size:13px">
-        </div>
-        <div class="field" style="margin-top:8px">
-          <label id="profile-calendar-label" for="profile-calendar" style="display:block;font-weight:600;margin-bottom:4px">양력/음력</label>
-          <select id="profile-calendar" style="padding:6px 10px;border:1px solid #ccc;border-radius:8px;font-size:13px;background:#fff;cursor:pointer">
-            <option value="solar" id="profile-solar-opt">양력</option>
-            <option value="lunar" id="profile-lunar-opt">음력</option>
-          </select>
-        </div>
-        <div style="margin-top:10px;display:flex;align-items:center;gap:10px">
-          <button id="profile-save" class="primary">저장</button>
-          <span id="profile-saved-msg" style="font-size:12px;color:#2a9d5c;display:none"></span>
-        </div>
-        <div id="profile-privacy" class="hint" style="margin-top:8px"></div>
+        <label class="switch">
+          <input type="checkbox" id="websearch-enabled">
+          <span class="slider"></span>
+          <span class="switch-copy" id="websearch-on-label">켜기</span>
+        </label>
       </div>
-    </div>
-  </section>
+    </section>
 
-  <!-- ===== 일반 (언어 · 연결 확인) ===== -->
-  <section class="page" id="page-general">
-    <div class="page-head"><button class="back-btn" data-back></button><h2 id="general-title"></h2></div>
-    <div class="toggle lang-toggle"><span id="lang-label">🌐 언어 / Language</span>
-      <select id="lang">
-        <option value="ko">한국어</option>
-        <option value="en">English</option>
-        <option value="ja">日本語</option>
-        <option value="zh">简体中文</option>
-      </select>
-    </div>
-    <div class="toggle"><span id="sound-label">🔊 효과음</span>
-      <label><input type="checkbox" id="sound-enabled"> <span id="sound-on-label">켜기</span></label>
-    </div>
-    <div class="toggle"><span id="neighbor-label">🐱 이웃 고양이</span>
-      <input type="checkbox" id="neighbor-enabled"></div>
-    <div class="hint" id="neighbor-notice"></div>
-    <div class="toggle"><span id="rerun-onboard-label">🐾 온보딩 다시 보기</span>
-      <button class="ghost" id="rerun-onboard">시작</button>
-    </div>
+    <section class="setting-section" id="section-cat">
+      <div class="section-top">
+        <div>
+          <h2 id="appearance-title"></h2>
+          <p class="section-sub" id="appearance-sub"></p>
+        </div>
+      </div>
+      <div class="field">
+        <label id="cat-name-label" for="cat-name">🐱 고양이 이름</label>
+        <input type="text" id="cat-name" maxlength="64">
+      </div>
+      <div id="skins"></div>
+      <div class="control-grid">
+        <div class="control-row">
+          <div class="control-body"><div class="control-title" id="sound-label">🔊 효과음</div></div>
+          <label class="switch"><input type="checkbox" id="sound-enabled"><span class="slider"></span><span class="switch-copy" id="sound-on-label">켜기</span></label>
+        </div>
+        <div class="control-row">
+          <div class="control-body">
+            <div class="control-title" id="neighbor-label">🐱 이웃 고양이</div>
+            <div class="hint" id="neighbor-notice"></div>
+          </div>
+          <label class="switch"><input type="checkbox" id="neighbor-enabled"><span class="slider"></span></label>
+        </div>
+      </div>
+    </section>
+
+    <section class="setting-section" id="section-profile">
+      <div class="section-top">
+        <div>
+          <h2 id="profile-title"></h2>
+          <p class="section-sub" id="profile-sub"></p>
+        </div>
+      </div>
+      <div id="profile-section">
+        <div class="field-grid">
+          <div class="field">
+            <label id="profile-name-label" for="profile-name">이름</label>
+            <input type="text" id="profile-name" placeholder="">
+          </div>
+          <div class="field">
+            <label id="profile-birthdate-label" for="profile-birthdate">생년월일</label>
+            <input type="date" id="profile-birthdate">
+          </div>
+          <div class="field">
+            <label id="profile-birthtime-label" for="profile-birthtime">태어난 시각 (선택)</label>
+            <input type="time" id="profile-birthtime">
+          </div>
+          <div class="field">
+            <label id="profile-calendar-label" for="profile-calendar">양력/음력</label>
+            <select id="profile-calendar">
+              <option value="solar" id="profile-solar-opt">양력</option>
+              <option value="lunar" id="profile-lunar-opt">음력</option>
+            </select>
+          </div>
+        </div>
+        <div class="profile-actions"><button id="profile-save" class="primary">저장</button><span id="profile-saved-msg" class="save-msg" style="display:none"></span></div>
+        <div id="profile-privacy" class="hint"></div>
+      </div>
+    </section>
+
+    <section class="setting-section" id="section-skills">
+      <div id="skills-section"></div>
+    </section>
+
+    <section class="setting-section" id="section-general">
+      <div class="section-top">
+        <div>
+          <h2 id="general-title"></h2>
+          <p class="section-sub" id="general-sub"></p>
+        </div>
+        <button class="ghost" id="rerun-onboard">시작</button>
+      </div>
+      <div class="field">
+        <label id="lang-label" for="lang">🌐 언어 / Language</label>
+        <select id="lang">
+          <option value="ko">한국어</option>
+          <option value="en">English</option>
+          <option value="ja">日本語</option>
+          <option value="zh">简体中文</option>
+        </select>
+      </div>
+    </section>
+
+    <div id="credit">made by kimtoma with <span class="heart">❤️</span> · <a id="home">kimtoma.com</a></div>
   </section>
 
   <div id="status"></div>

@@ -1,8 +1,9 @@
 # openNeko
 
 openNeko is an open-source desktop pixel cat for GPT. It is an Electron app
-that lives in a transparent bottom strip, reacts to typing and state bridge
-events, and chats through OpenAI-compatible `/v1/chat/completions` providers.
+that lives in a transparent desktop window, reacts to typing and state bridge
+events, and chats through OpenAI-compatible `/v1/chat/completions` providers
+or the local Codex CLI ChatGPT OAuth session.
 
 ## Commands
 
@@ -22,11 +23,13 @@ Run `npm run build` after changing `src/renderer/cat2d.js` or
 
 ## LLM Design
 
-- Default preset: `openai`
-- Default model: `gpt-4o-mini`
-- Provider implementation: `src/llm/openaiCompat.js`
-- Presets: `openai`, `ollama`, `custom`
-- `OPENAI_API_KEY` is used when no saved key exists.
+- Default preset: `chatgpt-oauth`
+- Default model: selected by the local Codex CLI unless the user enters one
+- Provider implementations: `src/llm/openaiCompat.js`, `src/llm/codexCli.js`,
+  `src/llm/gemini.js`, `src/llm/anthropic.js`
+- Presets: `chatgpt-oauth`, `gemini`, `claude`, `custom`
+- `chatgpt-oauth` uses `codex exec` and requires `codex login`; do not read
+  or parse `~/.codex/auth.json` directly.
 - Saved API keys use Electron `safeStorage` through `src/settings.js`.
 - Skill/profile/persona context is composed in `src/main.js` and sent as the
   system message for chat and skill calls.

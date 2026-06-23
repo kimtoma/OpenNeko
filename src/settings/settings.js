@@ -11,32 +11,88 @@ function fit() {
 }
 
 const ICONS = {
-  openai: '💬',
-  ollama: '💻',
-  custom: '🔧',
+  'chatgpt-oauth': 'icons/openai.svg',
+  'claude-oauth': 'icons/claude.svg',
+  'gemini-oauth': 'icons/gemini.svg',
+  ollama: 'icons/ollama.svg',
+  'local-openai': 'icons/local.svg',
+  gemini: 'icons/gemini.svg',
+  claude: 'icons/claude.svg',
+  custom: 'icons/custom.svg',
 };
-
-// 커뮤니티 스킨 공유 — "스킨 더 받기"가 여는 레포 URL
-const REPO_URL = 'https://github.com/kimtoma/openNeko';
 
 // 웹 검색을 지원하는 preset id 목록
 const WEBSEARCH_SUPPORTED = new Set();
 
 let PRESETS = [];
-let cur = { presetId: 'openai', provider: null, hasKey: false, sound: { enabled: true }, resolvedLang: 'en', skin: 'white', onboarding: false, webSearch: false };
+let cur = { presetId: 'chatgpt-oauth', provider: null, hasKey: false, sound: { enabled: true }, resolvedLang: 'en', skin: 'white', onboarding: false, webSearch: false };
 let detected = [];
 let allSkins = [];
 let presetById = {};
 let t = createI18n('en').t; // 초기값, init에서 cur.resolvedLang으로 갱신
+let statusTimer = null;
 
-function status(msg) { $('status').textContent = msg || ''; }
+function status(msg) {
+  const el = $('status');
+  if (!el) return;
+  clearTimeout(statusTimer);
+  el.textContent = msg || '';
+  el.classList.toggle('show', !!msg);
+  if (msg) {
+    statusTimer = setTimeout(() => {
+      el.textContent = '';
+      el.classList.remove('show');
+    }, 4200);
+  }
+}
+
+function defaultSubForPreset(presetId) {
+  const p = presetById[presetId] || {};
+  if (p.cliBin) return t('settings.subOAuth');
+  if (p.local) return t('settings.subLocal');
+  return t('settings.subConnected');
+}
+
+function sourceLabel(source) {
+  const labels = {
+    oauth: 'OAuth',
+    local: 'Local',
+    env: 'ENV',
+    saved: 'Saved',
+  };
+  return labels[source] || source;
+}
+
+function readySubtitle(card) {
+  if (card.recommended) return t('settings.subRecommendedOAuth');
+  if (card.subtitle && card.subtitle.startsWith('Ready')) return t('settings.subReady');
+  return card.subtitle || defaultSubForPreset(card.presetId);
+}
+
+function cardMeta(card) {
+  const tags = [];
+  if (card.source) tags.push(`<span class="tag source">${esc(sourceLabel(card.source))}</span>`);
+  if (card.models && card.models.length) {
+    tags.push(`<span class="tag model">${esc(card.models.slice(0, 2).join(', '))}</span>`);
+  }
+  return tags.length ? `<div class="meta">${tags.join('')}</div>` : '';
+}
+
+function providerIconImg(presetId, label) {
+  const src = ICONS[presetId] || 'icons/custom.svg';
+  return `<img class="provider-icon" src="${esc(src)}" alt="${esc(label || presetId)}">`;
+}
+
+function providerIcon(presetId, label) {
+  return `<span class="ico">${providerIconImg(presetId, label)}</span>`;
+}
 
 // --- 첫 실행 환영 배너 -------------------------------------------------------------
 function renderOnboardBanner() {
   const banner = $('onboard-banner');
   if (!banner) return;
   if (cur.onboarding) {
-    banner.style.display = '';
+    banner.style.display = 'block';
     banner.textContent = t('onboard.welcome');
   } else {
     banner.style.display = 'none';
@@ -50,17 +106,17 @@ function renderCards() {
   box.innerHTML = '';
   const readyIds = new Set(ready.map((c) => c.presetId));
 
-  // 현재 쓰는 AI가 ready에 없으면(OpenAI 등 키 입력형) 맨 위에 '사용 중' 카드로 표시 —
+  // 현재 쓰는 AI가 ready에 없으면(직접 입력형/로그인 미감지 등) 맨 위에 '사용 중' 카드로 표시 —
   // 안 그러면 일반 유저가 보기에 아무것도 선택 안 된 것처럼 보인다.
   if (!readyIds.has(cur.presetId) && presetById[cur.presetId]) {
     const label = friendlyLabel(cur.presetId, presetById[cur.presetId].label, t);
     const parts = cur.provider ? [cur.provider.model, cur.provider.baseURL].filter(Boolean) : [];
-    const sub = parts.length ? esc(parts.join(' · ')) : t('settings.subConnected');
+    const sub = parts.length ? esc(parts.join(' · ')) : defaultSubForPreset(cur.presetId);
     const card = connect.find((c) => c.presetId === cur.presetId);
     const el = document.createElement('div');
     el.className = 'card current';
     el.innerHTML =
-      `<span class="ico">${esc(ICONS[cur.presetId] || '🐾')}</span>` +
+      providerIcon(cur.presetId, label) +
       `<div class="body"><div class="title">${esc(label)}</div><div class="sub">${sub}</div></div>` +
       `<span class="badge">${esc(t('settings.inUse'))}</span>`;
     if (card) { el.style.cursor = 'pointer'; el.title = t('settings.pick'); el.onclick = () => openConnectFor(card); }
@@ -71,14 +127,14 @@ function renderCards() {
     const isCur = c.presetId === cur.presetId;
     const el = document.createElement('div');
     el.className = 'card' + (isCur ? ' current' : '');
-    const subtitle = c.recommended ? t('settings.subOpenAI')
-      : c.subtitle && c.subtitle.startsWith('Ready') ? t('settings.subReady') + c.subtitle.slice(5) : c.subtitle || '';
+    const subtitle = readySubtitle(c);
+    const label = friendlyLabel(c.presetId, c.label, t);
     el.innerHTML =
-      `<span class="ico">${esc(ICONS[c.presetId] || '🐾')}</span>` +
-      `<div class="body"><div class="title">${esc(friendlyLabel(c.presetId, c.label, t))}${c.recommended ? ` <span style="color:#0a66c2;font-size:11px">${esc(t('settings.recommended'))}</span>` : ''}</div>` +
-      `<div class="sub">${esc(subtitle)}</div></div>` +
+      providerIcon(c.presetId, label) +
+      `<div class="body"><div class="title">${esc(label)}${c.recommended ? ` <span class="tag recommended">${esc(t('settings.recommended'))}</span>` : ''}</div>` +
+      `<div class="sub">${esc(subtitle)}</div>${cardMeta(c)}</div>` +
       (isCur ? `<span class="badge">${esc(t('settings.inUse'))}</span>` : `<span class="pick">${esc(t('settings.pick'))}</span>`);
-    if (!isCur) el.onclick = () => selectReady(c.presetId, friendlyLabel(c.presetId, c.label, t));
+    if (!isCur) el.onclick = () => selectReady(c.presetId, label, c);
     box.appendChild(el);
   }
 
@@ -116,19 +172,17 @@ function renderSkins(targetId = 'skins') {
     };
     box.appendChild(btn);
   }
-
-  // 커뮤니티 스킨 더 받기 — 레포로 안내
-  const moreBtn = document.createElement('button');
-  moreBtn.className = 'more-skins-btn';
-  moreBtn.textContent = t('settings.moreSkins');
-  moreBtn.onclick = () => window.settings.openExternal(REPO_URL);
-  box.appendChild(moreBtn);
   fit();
 }
 
-async function selectReady(presetId, label) {
+async function selectReady(presetId, label, detectedCard) {
   status(t('settings.changing'));
-  const r = await window.settings.save({ presetId, fields: {} });
+  const preset = presetById[presetId] || {};
+  const fields = {};
+  if ((preset.fields || []).includes('model') && detectedCard && (detectedCard.model || (detectedCard.models && detectedCard.models[0]))) {
+    fields.model = detectedCard.model || detectedCard.models[0];
+  }
+  const r = await window.settings.save({ presetId, fields });
   if (r.ok) { await refresh(); status(t('settings.nowAnswers', { name: label })); }
   else status('저장 실패: ' + r.error);
 }
@@ -137,11 +191,16 @@ async function selectReady(presetId, label) {
 function renderConnect(connect, selected) {
   const wrap = $('connect');
   wrap.classList.add('show');
-  wrap.innerHTML = `<div style="font-weight:600;margin-bottom:8px">${esc(t('settings.whichService'))}</div><div class="svc"></div><div id="connect-form"></div>`;
+  wrap.innerHTML =
+    `<div class="connect-head"><div class="connect-title">${esc(t('settings.whichService'))}</div>` +
+    `<button class="icon-btn" id="connect-close" title="${esc(t('settings.cancel'))}" aria-label="${esc(t('settings.cancel'))}">&times;</button></div>` +
+    `<div class="svc"></div><div id="connect-form"></div>`;
+  $('connect-close').onclick = () => { wrap.classList.remove('show'); wrap.innerHTML = ''; fit(); };
   const svc = wrap.querySelector('.svc');
   for (const c of connect) {
     const b = document.createElement('button');
-    b.textContent = friendlyLabel(c.presetId, c.label, t);
+    const label = friendlyLabel(c.presetId, c.label, t);
+    b.innerHTML = `<span class="svc-ico">${providerIconImg(c.presetId, label)}</span><span>${esc(label)}</span>`;
     if (selected && c.presetId === selected.presetId) b.classList.add('sel');
     b.onclick = () => {
       svc.querySelectorAll('button').forEach((x) => x.classList.remove('sel'));
@@ -177,7 +236,7 @@ function renderConnectForm(card) {
     model: t('settings.hintModel'),
   };
   let html = '';
-  if (p.note) html += `<div class="hint" style="margin:2px 0 8px">${esc(p.note)}</div>`;
+  if (p.note) html += `<div class="hint connect-note">${esc(p.note)}</div>`;
   for (const f of card.fields) {
     let val = '';
     if (f === 'apiKey') { if (isCur && cur.hasKey) val = '••••'; }
@@ -209,8 +268,9 @@ function collectFields(card) {
 async function connectSave(card) {
   const fields = collectFields(card);
   const keepsKey = card.presetId === cur.presetId && cur.hasKey;
+  const p = presetById[card.presetId] || {};
   if (card.fields.includes('baseURL') && !fields.baseURL) { status(t('settings.needUrl')); return; }
-  if (card.fields.includes('apiKey') && !fields.apiKey && !keepsKey) { status(t('settings.needKey')); return; }
+  if (p.requiresApiKey && card.fields.includes('apiKey') && !fields.apiKey && !keepsKey) { status(t('settings.needKey')); return; }
   status(t('settings.checking'));
   const r = await window.settings.test({ presetId: card.presetId, fields });
   if (!r.ok) { status('❌ ' + friendlyError(r.error)); return; }
@@ -258,9 +318,9 @@ async function renderSkillsSection() {
     `<button class="skills-folder-btn" id="skills-folder-btn">${esc(t('skills.openFolder'))}</button>` +
     `</div>`;
   if (skills.length === 0) {
-    html += `<div class="section-body"><div style="padding:10px 12px;color:#888;font-size:12px">${esc(t('skills.empty'))}</div></div>`;
+    html += `<div class="section-body panel"><div class="empty-state">${esc(t('skills.empty'))}</div></div>`;
   } else {
-    html += `<div class="section-body">`;
+    html += `<div class="section-body panel">`;
     for (const s of skills) {
       const togId = `skill-tog-${esc(s.id)}`;
       html += `<div class="skill-row">` +
@@ -269,8 +329,9 @@ async function renderSkillsSection() {
         (s.description ? `<div class="skill-desc">${esc(s.description)}</div>` : '') +
         `</div>` +
         `<span class="skill-badge">${esc(inputBadge(s.input))}</span>` +
-        `<label class="skill-toggle-label">` +
+        `<label class="switch small-switch skill-toggle-label">` +
         `<input type="checkbox" id="${togId}" data-id="${esc(s.id)}"${s.enabled ? ' checked' : ''}>` +
+        `<span class="slider"></span>` +
         `</label>` +
         `</div>`;
     }
@@ -324,7 +385,7 @@ async function refresh() {
   // 언어 선택 드롭다운 동기화
   const langEl = $('lang');
   if (langEl) langEl.value = cur.resolvedLang || 'en';
-  updateNavSubs();
+  updateSummaries();
 }
 
 // ===== 온보딩 위저드 =========================================================
@@ -456,11 +517,14 @@ async function renderWizBackend(body) {
     const isCur = c.presetId === cur.presetId;
     const el = document.createElement('div');
     el.className = 'card' + (isCur ? ' current' : '');
+    const subtitle = readySubtitle(c);
+    const label = friendlyLabel(c.presetId, c.label, t);
     el.innerHTML =
-      `<span class="ico">${esc(ICONS[c.presetId] || '🐾')}</span>` +
-      `<div class="body"><div class="title">${esc(friendlyLabel(c.presetId, c.label, t))}</div></div>` +
+      providerIcon(c.presetId, label) +
+      `<div class="body"><div class="title">${esc(label)}</div>` +
+      `<div class="sub">${esc(subtitle)}</div>${cardMeta(c)}</div>` +
       (isCur ? `<span class="badge">${esc(t('settings.inUse'))}</span>` : `<span class="pick">${esc(t('onboard.s4Use'))}</span>`);
-    if (!isCur) el.onclick = async () => { await selectReady(c.presetId, friendlyLabel(c.presetId, c.label, t)); renderWizBackend(body); };
+    if (!isCur) el.onclick = async () => { await selectReady(c.presetId, label, c); renderWizBackend(body); };
     box.appendChild(el);
   }
   if (!ready.length) {
@@ -472,7 +536,13 @@ async function renderWizBackend(body) {
   const other = document.createElement('div');
   other.className = 'card add';
   other.textContent = t('onboard.s4Other');
-  other.onclick = async () => { await finishWizard(); showPage('page-ai'); };
+  other.onclick = async () => {
+    await finishWizard();
+    const { connect } = categorizeProviders({ presets: PRESETS, detected, currentPresetId: cur.presetId });
+    renderConnect(connect, null);
+    const aiSection = $('section-ai');
+    if (aiSection) aiSection.scrollIntoView({ block: 'start' });
+  };
   box.appendChild(other);
   fit();
 }
@@ -510,7 +580,11 @@ async function init() {
   if (soundEl) soundEl.addEventListener('change', () => window.settings.setSound({ enabled: soundEl.checked }));
 
   const cn = $('cat-name');
-  if (cn) cn.onchange = () => { cur.catName = cn.value; window.settings.setCatName({ name: cn.value }); };
+  if (cn) cn.onchange = () => {
+    cur.catName = cn.value;
+    updateSummaries();
+    window.settings.setCatName({ name: cn.value });
+  };
 
   const ne = $('neighbor-enabled');
   if (ne) ne.onchange = () => window.settings.setNeighbor({ enabled: ne.checked });
@@ -540,12 +614,14 @@ async function init() {
     });
   }
 
-  $('adv-test').onclick = testCurrent;
+  const advTest = $('adv-test');
+  if (advTest) advTest.onclick = testCurrent;
   const rerun = $('rerun-onboard');
   if (rerun) rerun.onclick = () => startWizard();
   const home = $('home');
   if (home) home.onclick = (e) => { e.preventDefault(); window.settings.openExternal('https://kimtoma.com'); };
-  $('advanced').addEventListener('toggle', fit);
+  const advanced = $('advanced');
+  if (advanced) advanced.addEventListener('toggle', fit);
   initProfileSection();
   initNav();
   // 첫 실행이면 온보딩 위저드, 아니면 홈
@@ -624,32 +700,20 @@ function initProfileSection() {
 function setText(id, str) { const el = $(id); if (el) el.textContent = str; }
 
 function applyStaticText() {
-  // 홈 메뉴
   setText('home-title', t('settings.navHome'));
-  setText('nav-ai-t', t('settings.navAi'));
-  setText('nav-skills-t', t('settings.navSkills'));
-  setText('nav-profile-t', t('settings.navProfile'));
-  setText('nav-general-t', t('settings.navGeneral'));
-  // 뒤로가기 버튼들
-  document.querySelectorAll('[data-back]').forEach((b) => { b.textContent = t('settings.navBack'); });
-  // 페이지 제목
   setText('ai-title', t('settings.title'));
-  setText('skills-title', t('skills.section'));
+  setText('ai-sub', t('settings.navAiSub'));
+  setText('appearance-title', t('settings.navAppearance'));
+  setText('appearance-sub', t('settings.navAppearanceSub'));
   setText('profile-title', t('profile.section'));
+  setText('profile-sub', t('settings.navProfileSub'));
   setText('general-title', t('settings.navGeneral'));
-  // 고급
-  const advSum = document.querySelector('#advanced summary');
-  if (advSum) advSum.textContent = t('settings.advanced');
+  setText('general-sub', t('settings.navGeneralSub'));
   setText('adv-test', t('settings.testCurrent'));
-  const advHint = document.querySelector('#advanced .hint');
-  if (advHint) advHint.textContent = t('settings.testHint');
-  // 토글 라벨 (ID 기반 — 페이지마다 .toggle이 여러 개라 셀렉터 대신 ID)
   setText('sound-label', t('settings.soundLabel'));
   setText('sound-on-label', t('settings.soundOn'));
   setText('websearch-on-label', t('settings.soundOn'));
   setText('lang-label', t('settings.langLabel'));
-  setText('skin-label', t('settings.skinLabel'));
-  setText('rerun-onboard-label', t('settings.rerunOnboard'));
   setText('rerun-onboard', t('onboard.start'));
   setText('cat-name-label', t('settings.catNameLabel'));
   const cnEl = $('cat-name'); if (cnEl) cnEl.placeholder = t('settings.catNamePlaceholder');
@@ -659,34 +723,29 @@ function applyStaticText() {
   updateWebSearchUI();
   renderSkins();
   renderProfileSection();
-  updateNavSubs();
+  updateSummaries();
 }
 
-// 홈 메뉴 각 행의 현재값 부제 갱신 (지금 쓰는 AI / 스킨 / 언어 등)
-function updateNavSubs() {
+// 상단 요약 칩 갱신 (현재 AI / 고양이 이름 / 언어)
+function updateSummaries() {
   const aiLabel = presetById[cur.presetId]
     ? friendlyLabel(cur.presetId, presetById[cur.presetId].label, t) : cur.presetId;
-  setText('nav-ai-s', aiLabel || t('settings.navAiSub'));
-  setText('nav-skills-s', t('settings.navSkillsSub'));
-  const prof = cur.profile || {};
-  setText('nav-profile-s', prof.name ? prof.name : t('settings.navProfileSub'));
+  setText('current-ai-chip', aiLabel || t('settings.navAiSub'));
+  setText('current-cat-chip', cur.catName ? cur.catName : t('settings.catNamePlaceholder'));
   const langName = { ko: '한국어', en: 'English', ja: '日本語', zh: '简体中文' }[cur.resolvedLang] || '';
-  setText('nav-general-s', langName || t('settings.navGeneralSub'));
+  setText('current-lang-chip', langName || t('settings.navGeneralSub'));
 }
 
 // --- depth 라우터 ------------------------------------------------------------
 function showPage(id) {
   document.querySelectorAll('.page').forEach((p) => p.classList.toggle('active', p.id === id));
   window.scrollTo(0, 0);
-  if (id !== 'page-ai') { const c = $('connect'); if (c) { c.classList.remove('show'); c.innerHTML = ''; } }
+  if (id !== 'page-home') { const c = $('connect'); if (c) { c.classList.remove('show'); c.innerHTML = ''; } }
   status('');
   fit();
 }
 
 function initNav() {
-  document.querySelectorAll('.nav-row[data-target]').forEach((row) => {
-    row.addEventListener('click', () => showPage(row.dataset.target));
-  });
   document.querySelectorAll('[data-back]').forEach((b) => {
     b.addEventListener('click', () => showPage('page-home'));
   });

@@ -2,6 +2,7 @@
 // 인터랙션/리추얼/AgentStatusBridge 로직은 3D 버전 그대로, 렌더링만 스프라이트 애니메이션
 import manifest from './sprites/manifest.json';
 const { createSounds } = require('./sound');
+const { DEFAULT_PIN_OFFSET_Y, clampDraggedCat, dockAwareFloorY, fallY } = require('./dragGeometry');
 const { createI18n } = require('../i18n');
 const { parseSlash, matchCommands } = require('../slash');
 const { skinSpriteBase } = require('./skins');
@@ -48,7 +49,8 @@ window.kat.slashCommands().then((c) => { slashCatalog = c; }).catch(() => {});
 
 function updateChatPlaceholder() {
   const ci = document.getElementById('chatinput');
-  if (ci) ci.placeholder = i18n.t('chat.placeholder');
+  if (!ci) return;
+  ci.placeholder = ci._skillMode ? i18n.t('skills.mode', { name: ci._skillMode }) : i18n.t('chat.placeholder');
 }
 
 window.kat.onLangConfig((lang) => {
@@ -119,41 +121,116 @@ const canvas = document.getElementById('cat');
 const ctx = canvas.getContext('2d');
 const bubble = document.getElementById('bubble');
 const bubbleText = document.getElementById('bubbletext'); // 안쪽 스크롤 텍스트 영역
-canvas.width = window.innerWidth * devicePixelRatio;
-canvas.height = window.innerHeight * devicePixelRatio;
-canvas.style.width = `${window.innerWidth}px`;
-canvas.style.height = `${window.innerHeight}px`;
-ctx.scale(devicePixelRatio, devicePixelRatio);
-ctx.imageSmoothingEnabled = true;
-ctx.imageSmoothingQuality = 'high';
+function resizeCanvas() {
+  const ratio = window.devicePixelRatio || 1;
+  canvas.width = Math.round(window.innerWidth * ratio);
+  canvas.height = Math.round(window.innerHeight * ratio);
+  canvas.style.width = `${window.innerWidth}px`;
+  canvas.style.height = `${window.innerHeight}px`;
+  ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = 'high';
+}
+resizeCanvas();
+window.addEventListener('resize', () => resizeCanvas());
 
-// 전폭 스트립 모드: catX는 창 내 고양이 x 위치(mutable). DX 상수는 제거.
+// 전폭 전체 높이 창 모드: catX/catY는 창 내 고양이 위치(mutable). DX 상수는 제거.
 // 초기값 = 창 중앙 (get-work-area 응답 전 폴백)
 let restX = Math.round((window.innerWidth - SIZE) / 2);
-// 작업영역 정보를 받으면 70% 지점으로 정렬 (화면 x → 창 로컬 좌표 변환)
-window.kat.getWorkArea().then((info) => {
-  if (info && info.workArea) {
-    const wa = info.workArea;
-    restX = Math.round(wa.x + wa.width * 0.7 - info.winX - SIZE / 2);
-    // 경계 클램프
-    restX = Math.max(0, Math.min(restX, window.innerWidth - SIZE));
-    state.catX = restX;
-  }
-}).catch(() => {});
+let initialPositioned = false;
+let screenMetrics = null;
+let floorMotion = null;
+const FLOOR_MOTION_MS = 420;
 
-const DY = window.innerHeight - SIZE - 2;
-// 드래그/낙하 중엔 고양이를 창 위쪽에 그린다
-const DRAG_DY = 8;
+function viewport() {
+  return { width: window.innerWidth, height: window.innerHeight };
+}
+
+function targetRestY(catX = restX) {
+  return dockAwareFloorY({
+    height: window.innerHeight,
+    size: SIZE,
+    workArea: screenMetrics && screenMetrics.workArea,
+    displayBounds: screenMetrics && screenMetrics.displayBounds,
+    dockRect: screenMetrics && screenMetrics.dockRect,
+    catX,
+    winX: screenMetrics ? screenMetrics.winX : 0,
+    winY: screenMetrics ? screenMetrics.winY : 0,
+  });
+}
+
+function sampleFloorMotion(t, target) {
+  if (!floorMotion) return target;
+  const p = Math.min(1, (t - floorMotion.start) / floorMotion.dur);
+  if (p >= 1) {
+    floorMotion = null;
+    return target;
+  }
+  const eased = 1 - Math.pow(1 - p, 3);
+  return floorMotion.from + (floorMotion.to - floorMotion.from) * eased;
+}
+
+function restY(t = performance.now(), catX = restX, animate = true) {
+  const target = targetRestY(catX);
+  if (!animate) return target;
+  if (floorMotion && Math.abs(floorMotion.to - target) > 1) {
+    floorMotion = {
+      from: sampleFloorMotion(t, target),
+      to: target,
+      start: t,
+      dur: FLOOR_MOTION_MS,
+    };
+  }
+  return sampleFloorMotion(t, target);
+}
 
 // 말풍선/입력창 세로 위치를 스프라이트 크기에 맞춰 고양이 머리 위로 정렬.
 // (고양이 윗변 = 창 바닥에서 SIZE+2px) — SCALE을 바꿔도 자동으로 따라온다.
 // 256프레임 기준값(말풍선 272 / 입력창 238)을 SIZE 상대식으로 환산.
-const BUBBLE_BOTTOM = SIZE + 16;        // 평소 말풍선 — 고양이 머리 바로 위
-const CHATBAR_BOTTOM = SIZE + 10;       // 입력창 — 스프라이트 윗변(SIZE+2) 위로 띄움
-                                        // (thinking 생각구름이 입력창과 겹치지 않게)
-bubble.style.bottom = `${BUBBLE_BOTTOM}px`;
+const BUBBLE_GAP = 16;        // 평소 말풍선 — 고양이 머리 바로 위
+const CHATBAR_GAP = 10;       // 입력창 — 스프라이트 윗변(SIZE+2) 위로 띄움
+                              // (thinking 생각구름이 입력창과 겹치지 않게)
 const chatbarEl = document.getElementById('chatbar');
-if (chatbarEl) chatbarEl.style.bottom = `${CHATBAR_BOTTOM}px`;
+
+function catBottomOffset(gap = 0, t = performance.now()) {
+  return Math.round(window.innerHeight - restY(t, state ? state.catX : restX) + gap);
+}
+
+function updateFloatingUiY(t = performance.now()) {
+  const chatBottom = catBottomOffset(CHATBAR_GAP, t);
+  if (chatbarEl) chatbarEl.style.bottom = `${chatBottom}px`;
+  const chatHeight = chatbarEl ? chatbarEl.offsetHeight : 0;
+  bubble.style.bottom = state && state.chatOpen
+    ? `${chatBottom + chatHeight + 8}px`
+    : `${catBottomOffset(BUBBLE_GAP, t)}px`;
+}
+
+function applyScreenMetrics(info) {
+  const t = performance.now();
+  const before = restY(t);
+  screenMetrics = info || null;
+  const after = targetRestY(state ? state.catX : restX);
+  if (Math.abs(after - before) > 1) {
+    floorMotion = { from: before, to: after, start: t, dur: FLOOR_MOTION_MS };
+    if (state.mode !== 'grabbed' && state.mode !== 'falling') {
+      state.catY = before;
+      state.fallStartY = before;
+      setAnim('jump');
+    }
+  }
+  if (info && info.workArea) {
+    const wa = info.workArea;
+    restX = Math.round(wa.x + wa.width * 0.7 - info.winX - SIZE / 2);
+    restX = Math.max(0, Math.min(restX, window.innerWidth - SIZE));
+    if (!initialPositioned) {
+      state.catX = restX;
+      initialPositioned = true;
+    } else if (state.mode !== 'grabbed') {
+      state.catX = Math.max(0, Math.min(state.catX, window.innerWidth - SIZE));
+    }
+  }
+  updateFloatingUiY(t);
+}
 
 // --- 상태 ------------------------------------------------------------------------
 
@@ -165,8 +242,10 @@ const state = {
   modeUntil: 0,
   dir: 1,
   squashUntil: 0,
-  fallEased: 0, // 낙하 진행도(eased). 낙하 중 drawDY를 DRAG_DY→DY로 보간해 착지 스왑 점프 제거
-  catX: restX, // 창 내 고양이 x 위치(전폭 스트립 모드). 산책/드래그는 이 값을 갱신.
+  fallEased: 0, // 낙하 진행도(eased). 놓은 위치→바닥으로 보간해 착지 스왑 점프 제거
+  catX: restX, // 창 내 고양이 x 위치. 산책/드래그는 이 값을 갱신.
+  catY: restY(), // 창 내 고양이 y 위치. 평소엔 바닥, 드래그 중엔 커서를 따라감.
+  fallStartY: restY(),
   cursor: { x: 0, y: 0, winX: 0, winY: 0 },
   grabOffset: { x: 0, y: 0 },
   pressed: null,
@@ -186,6 +265,11 @@ const state = {
 
 const sounds = createSounds({ enabled: true }); // 기본 on, main의 sound-config로 갱신
 window.kat.onSoundConfig((cfg) => sounds.setEnabled(!!(cfg && cfg.enabled)));
+window.kat.onBgmPlay((preset) => sounds.playBgm(preset));
+window.kat.onBgmStop(() => sounds.stopBgm());
+window.kat.getWorkArea().then(applyScreenMetrics).catch(() => updateFloatingUiY());
+window.kat.onScreenMetrics(applyScreenMetrics);
+updateFloatingUiY();
 
 function setAnim(name, revertMs) {
   if (!frames[name] || !frames[name].length) name = 'idle';
@@ -251,7 +335,7 @@ function openChat() {
   if (state.anim === 'nap') setState('idle');
   chatbar.classList.add('show');
   // 채팅 중엔 답변 말풍선을 입력창 위로 올려, 입력창·고양이와 안 겹치게.
-  bubble.style.bottom = `${CHATBAR_BOTTOM + chatbar.offsetHeight + 8}px`;
+  updateFloatingUiY();
   window.kat.setIgnoreMouse(false); // 입력창 클릭/포커스 받도록
   // 스킬 토글 반영을 위해 채팅 열 때 카탈로그 갱신
   window.kat.slashCommands().then((c) => { slashCatalog = c; }).catch(() => {});
@@ -266,8 +350,8 @@ function closeChat() {
   clearInterval(revealTimer);
   clearTimeout(state.bubbleTimer);
   bubble.classList.remove('show');
-  bubble.style.bottom = `${BUBBLE_BOTTOM}px`; // 평소 위치로 복원
   chatbar.classList.remove('show');
+  updateFloatingUiY(); // 평소 위치로 복원
   chatinput.value = '';
   closeSlashMenu(); // 드롭다운도 닫기
   // 스킬 모드 해제 — placeholder 복원
@@ -460,6 +544,13 @@ function dangleFrame(t) {
   return frames.dragging[Math.floor(t / 420) % 2 === 0 ? 0 : 2];
 }
 
+function renderedCatY(t = performance.now()) {
+  const floor = restY(t, state.catX);
+  if (state.mode === 'grabbed') return state.catY;
+  if (state.mode === 'falling') return fallY({ startY: state.fallStartY, floorY: floor, eased: state.fallEased });
+  return floor;
+}
+
 function draw(t) {
   ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
 
@@ -482,10 +573,11 @@ function draw(t) {
 
   // 바닥 그림자 (공중에 뜨면 옅고 작게)
   const catCx = state.catX + SIZE / 2; // 고양이 중앙 x (창 로컬)
+  const platformY = restY(t, state.catX);
   if (!grabbed && !falling) {
     ctx.fillStyle = `rgba(20, 24, 40, ${0.18 * (1 - liftRatio * 0.7)})`;
     ctx.beginPath();
-    ctx.ellipse(catCx, window.innerHeight - 5 * SCALE,
+    ctx.ellipse(catCx, platformY + SIZE - 5 * SCALE,
       SIZE * 0.3 * (1 - liftRatio * 0.35), 4.5 * SCALE * (1 - liftRatio * 0.35), 0, 0, Math.PI * 2);
     ctx.fill();
   }
@@ -500,18 +592,15 @@ function draw(t) {
   // 매달림: 핀치 포인트(상단 중앙)를 축으로 드래그 반대 방향으로 살짝 기운다
   const swing = grabbed ? Math.max(-0.3, Math.min(0.3, -state.dragVx * 0.025)) : 0;
 
-  // 드래그 중엔 창 위쪽(DRAG_DY). 낙하 중엔 DRAG_DY→DY로 보간.
-  const drawDY = grabbed ? DRAG_DY
-    : falling ? DRAG_DY + (DY - DRAG_DY) * state.fallEased
-    : DY;
+  const drawDY = renderedCatY(t);
   ctx.save();
   if (grabbed || falling) {
-    const pivotY = DRAG_DY + 4; // 스프라이트 핀치 포인트(위 정렬). 창 위쪽 기준.
+    const pivotY = drawDY + DEFAULT_PIN_OFFSET_Y; // 스프라이트 핀치 포인트(위 정렬)
     ctx.translate(catCx, pivotY);
     ctx.rotate(swing);
     ctx.translate(-catCx, -pivotY);
   } else {
-    const bottom = window.innerHeight - 2;
+    const bottom = platformY + SIZE;
     ctx.translate(catCx, bottom);
     ctx.scale(sx * flip, sy);
     ctx.translate(-catCx, -bottom);
@@ -519,11 +608,12 @@ function draw(t) {
   ctx.drawImage(img, state.catX, drawDY + bob + jumpLift, SIZE, SIZE);
   ctx.restore();
 
-  // 말풍선·입력창 가로 위치를 고양이 중앙에 맞춘다 (전폭 스트립에서 고양이가 움직이므로)
+  // 말풍선·입력창 가로 위치를 고양이 중앙에 맞춘다.
   // CSS transform(translateX -50% + 팝인 효과)은 그대로 두고 left만 갱신
   const bx = state.catX + SIZE / 2;
   bubble.style.left = `${bx}px`;
   if (chatbarEl) chatbarEl.style.left = `${bx}px`;
+  updateFloatingUiY(t);
 
   // 손님 고양이 렌더 (피어 이벤트가 없으면 guests는 빈 Map → no-op)
   for (const [id, g] of guests) {
@@ -544,16 +634,17 @@ function draw(t) {
     if (gimg && gimg.complete) {
       ctx.save();
       if (g.dir === -1) { ctx.translate(g.x + SIZE / 2, 0); ctx.scale(-1, 1); ctx.translate(-(g.x + SIZE / 2), 0); }
-      ctx.drawImage(gimg, g.x, DY, SIZE, SIZE);
+      const guestY = restY(t, g.x, false);
+      ctx.drawImage(gimg, g.x, guestY, SIZE, SIZE);
       ctx.restore();
-      drawGuestLabel(g);
-      if (g.bubbleText && t < g.bubbleUntil) drawGuestBubble(g);
+      drawGuestLabel(g, guestY);
+      if (g.bubbleText && t < g.bubbleUntil) drawGuestBubble(g, guestY);
     }
   }
 
   // 손님이 모였을 때만 내 고양이도 이름표(평소엔 깔끔)
   if (guests.size > 0 && myCatName) {
-    drawLabelAt(state.catX + SIZE / 2, DY - 4, myCatName);
+    drawLabelAt(state.catX + SIZE / 2, platformY - 4, myCatName);
   }
 }
 
@@ -613,7 +704,7 @@ function tick(t) {
   }
 
   if (state.mode === 'walk') {
-    // 전폭 스트립: 창 고정, state.catX만 이동. 경계에 닿으면 방향 반전.
+    // 창 고정, state.catX만 이동. 경계에 닿으면 방향 반전.
     const newCatX = state.catX + state.dir * 1.6;
     if (newCatX <= 0 || newCatX >= window.innerWidth - SIZE) {
       state.dir = -state.dir; // 경계 반전
@@ -654,22 +745,38 @@ function tick(t) {
 
 function inCat(x, y) {
   // 인셋은 256프레임 기준 24/40 → 크기에 비례(12/20 * SCALE)
-  return x > state.catX + 12 * SCALE && x < state.catX + SIZE - 12 * SCALE && y > DY + 20 * SCALE;
+  const y0 = renderedCatY();
+  return x > state.catX + 12 * SCALE
+    && x < state.catX + SIZE - 12 * SCALE
+    && y > y0 + 20 * SCALE
+    && y < y0 + SIZE;
 }
 
-function guestAt(x) { // 창 로컬 x
-  for (const [id, g] of guests) { if (g.mode !== 'leave' && x >= g.x && x <= g.x + SIZE) return id; }
+function guestAt(x, y) { // 창 로컬 좌표
+  for (const [id, g] of guests) {
+    const y0 = restY(performance.now(), g.x, false);
+    if (g.mode !== 'leave'
+      && x >= g.x
+      && x <= g.x + SIZE
+      && y >= y0 + 20 * SCALE
+      && y <= y0 + SIZE) return id;
+  }
   return null;
+}
+
+function rectContains(el, x, y, pad = 0) {
+  if (!el) return false;
+  const r = el.getBoundingClientRect();
+  return x >= r.left - pad && x <= r.right + pad && y >= r.top - pad && y <= r.bottom + pad;
 }
 
 // 창이 마우스를 무시하면 안 되는 영역: 고양이 몸 / 손님 고양이 / 채팅 열림 / 보이는 말풍선 위
 function overInteractive(x, y) {
   if (inCat(x, y)) return true;
-  if (guestAt(x) !== null) return true;
-  if (state.chatOpen) return true; // 입력창 떠 있으면 그 일대는 클릭 가능해야 함
+  if (guestAt(x, y) !== null) return true;
+  if (state.chatOpen && rectContains(chatbarEl, x, y, 8)) return true; // 입력창만 클릭 가능해야 함
   if (bubble.classList.contains('show')) {
-    const r = bubble.getBoundingClientRect();
-    if (x >= r.left && x <= r.right && y >= r.top && y <= r.bottom) return true;
+    if (rectContains(bubble, x, y)) return true;
   }
   return false;
 }
@@ -688,7 +795,8 @@ canvas.addEventListener('mousedown', (e) => {
   state.pressed = { x: state.cursor.x, y: state.cursor.y, moved: false };
   // 잡는 순간 목덜미(스프라이트 상단 중앙 핀치 포인트)가 커서에 붙는다
   // grabOffset.x = 커서를 잡을 때 catX 중앙에서의 오프셋 (창 로컬 x)
-  state.grabOffset = { x: state.catX + SIZE / 2, y: DRAG_DY + 4 };
+  state.catY = renderedCatY();
+  state.grabOffset = { x: state.catX + SIZE / 2, y: state.catY + DEFAULT_PIN_OFFSET_Y };
 });
 
 window.addEventListener('mouseup', async (e) => {
@@ -703,7 +811,7 @@ window.addEventListener('mouseup', async (e) => {
     if (inCat(localX, e.clientY)) {
       openChat(); // 짧은 클릭 → 채팅 입력창
     } else {
-      const gid = guestAt(localX);
+      const gid = guestAt(localX, e.clientY);
       if (gid) {
         window.kat.neighborWave(gid);
         const g = guests.get(gid);
@@ -741,10 +849,15 @@ window.kat.onCursor((c) => {
       state.mode = 'grabbed';
     }
     if (state.mode === 'grabbed') {
-      // 전폭 스트립: 창은 고정, 고양이 x만 이동. 커서 창 로컬 x에서 핀치 오프셋 빼기
-      const lx = c.x - c.winX;
-      const newCatX = lx - SIZE / 2; // 핀치 포인트를 커서에 맞춤 (상단 중앙)
-      state.catX = Math.max(0, Math.min(Math.round(newCatX), window.innerWidth - SIZE));
+      // 창은 고정, 고양이 좌표만 이동. 핀치 포인트를 커서에 맞춤(상단 중앙).
+      const next = clampDraggedCat({
+        cursorLocal: { x: lx, y: ly },
+        size: SIZE,
+        viewport: viewport(),
+        pinOffsetY: DEFAULT_PIN_OFFSET_Y,
+      });
+      state.catX = next.x;
+      state.catY = next.y;
     }
   }
 });
@@ -752,7 +865,14 @@ window.kat.onCursor((c) => {
 // --- 외부 구동 레이어: AgentStatusBridge + 글로벌 키보드 + 프로세스 폴러 -------------
 
 const SOURCE_LABEL = {
-  codex: 'Codex', antigravity: 'Antigravity', kiro: 'Kiro',
+  cursor: 'Cursor',
+  claude: 'Claude Code',
+  codex: 'Codex',
+  'codex-cli': 'Codex CLI',
+  'codex-app': 'Codex App',
+  antigravity: 'Antigravity',
+  gemini: 'Gemini',
+  kiro: 'Kiro',
   get demo() { return i18n.t('source.demo'); },
 };
 function getStateBubble(st) { return i18n.t('state.' + st); }
@@ -869,9 +989,9 @@ window.kat.onSkillActive(({ name }) => {
   openChat();
   // 입력창 placeholder에 스킬 모드 표시
   if (chatinput) {
-    chatinput.placeholder = `🐾 ${name} 모드…`;
     // 채팅 닫힐 때 placeholder 복원을 위해 원래 값 저장
     chatinput._skillMode = name;
+    updateChatPlaceholder();
   }
 });
 
@@ -902,13 +1022,14 @@ function externalDrive(t) {
 }
 
 window.__setState = setState; // 디버그/캡처용
-window.__grab = (vx = 0) => { state.mode = 'grabbed'; state.dragVx = vx; }; // 캡처용
+window.__grab = (vx = 0, y = 0) => { state.mode = 'grabbed'; state.dragVx = vx; state.catY = y; }; // 캡처용
 
 async function fallToBottom() {
   state.mode = 'falling';
   state.fallEased = 0;
-  // 전폭 스트립: 창은 고정이므로 창 이동 불필요. drawDY를 DRAG_DY→DY로 애니메이션만.
-  const visualDrop = DY - DRAG_DY; // 고양이가 화면상 이동하는 거리
+  state.fallStartY = state.catY;
+  const floor = restY(performance.now(), state.catX);
+  const visualDrop = Math.max(0, floor - state.fallStartY);
   const dur = Math.min(450, Math.max(120, visualDrop * 0.6));
   const t0 = performance.now();
   return new Promise((resolve) => {
@@ -916,10 +1037,13 @@ async function fallToBottom() {
       const p = Math.min(1, (t - t0) / dur);
       const eased = p * p;
       state.fallEased = eased;
+      state.catY = fallY({ startY: state.fallStartY, floorY: floor, eased });
       if (p < 1) {
         requestAnimationFrame(step);
       } else {
-        state.fallEased = 1; // drawDY == DY (idle와 동일)
+        state.fallEased = 1;
+        state.catY = floor;
+        state.fallStartY = floor;
         state.squashUntil = performance.now() + 130;
         sounds.play('land');
         state.mode = 'idle';
@@ -945,12 +1069,12 @@ function drawLabelAt(cx, ly, text) {
   roundRect(cx - w / 2, ly - 14, w, 16, 7); ctx.fill();
   ctx.fillStyle = '#fff'; ctx.fillText(text, cx, ly - 2);
 }
-function drawGuestLabel(g) {
-  drawLabelAt(g.x + SIZE / 2, DY - 4, g.name);
+function drawGuestLabel(g, floor = restY(performance.now(), g.x, false)) {
+  drawLabelAt(g.x + SIZE / 2, floor - 4, g.name);
 }
-function drawGuestBubble(g) {
+function drawGuestBubble(g, floor = restY(performance.now(), g.x, false)) {
   ctx.font = '12px -apple-system, sans-serif'; ctx.textAlign = 'center';
-  const cx = g.x + SIZE / 2, by = DY - 22;
+  const cx = g.x + SIZE / 2, by = floor - 22;
   const w = ctx.measureText(g.bubbleText).width + 18;
   ctx.fillStyle = '#fffef8'; roundRect(cx - w / 2, by - 22, w, 22, 9); ctx.fill();
   ctx.fillStyle = '#222'; ctx.fillText(g.bubbleText, cx, by - 7);

@@ -2,13 +2,14 @@
 
 [English](README.md) · [한국어](README.ko.md) · [简体中文](README.zh.md)
 
-openNeko は GPT と会話するオープンソースのデスクトップ・ピクセル猫です。画面下部に常駐し、タイピングやエージェントの状態シグナルに反応し、短い吹き出しで返事します。
+openNeko は AI Agent と会話するオープンソースのデスクトップ・ピクセル猫です。画面下部に常駐し、タイピングやエージェントの状態シグナルに反応し、選んだAgent、クラウドモデル、ローカルモデルで短い吹き出し返答をします。
 
 ## 機能
 
-- **GPT チャット**: 猫を短くクリックして吹き出し入力欄で会話。
-- **OpenAI 互換 provider**: OpenAI GPT、ローカル Ollama、任意の `/v1/chat/completions` エンドポイント。
-- **状態ブリッジ**: HTTP で `thinking`, `coding`, `success`, `error` などを送信。
+- **AI Agent チャット**: 猫を短くクリックして吹き出し入力欄で会話。
+- **OAuth 優先接続**: OpenAI/Codex、Claude、Gemini CLI ログインを先に使い、必要な場合だけ API キーを入力。
+- **ローカルモデル**: Ollama とローカル OpenAI 互換サーバーをクラウド API キーなしで接続できます。
+- **AI Agent 状態ブリッジ**: HTTP 状態イベントに加え、Cursor、Claude Code CLI、Codex CLI/App、Antigravity、Gemini、Kiro などのエージェントプロセス活動に反応します。
 - **タイピング反応**: キー内容は読まず、入力が発生した事実だけを使います。
 - **スキン**: 5つの同梱スキン、外部スキンフォルダ、スプライト抽出ツール。
 - **スキル**: `SKILL.md` プロンプトをメニューやスラッシュコマンドから実行。
@@ -40,13 +41,18 @@ npm run build
 npm start
 ```
 
-起動前に `OPENAI_API_KEY` を設定するか、設定画面で API キーを保存してください。
+API キーなしで使う場合は、対応 CLI に先にログインしてください: `codex login`, `claude`, `gemini`。Ollama とローカル OpenAI 互換エンドポイントは設定で追加できます。
 
-## Provider
+## AI Provider
 
-- `openai`: `https://api.openai.com/v1`, default model `gpt-4o-mini`.
-- `ollama`: `http://localhost:11434/v1`, default model `llama3.2`.
-- `custom`: 任意の OpenAI 互換エンドポイント。
+- `chatgpt-oauth`: ローカル Codex CLI の OpenAI ログインを使用。`codex login` が必要です。
+- `claude-oauth`: ローカル Claude Code ログインを使用。
+- `gemini-oauth`: ローカル Gemini CLI の Google ログインを使用。
+- `ollama`: ローカル Ollama サーバーを使用。
+- `local-openai`: LM Studio、llama.cpp、vLLM などのローカル OpenAI 互換サーバー。
+- `gemini`: Google AI Studio の Gemini API キーを使用。
+- `claude`: Anthropic API キーを使用。
+- `custom`: 任意の OpenAI 互換エンドポイント。サーバーが必要とする場合だけ API キーを入力します。
 
 ## 状態ブリッジ
 
@@ -66,7 +72,7 @@ curl -X POST http://127.0.0.1:48800/state \
 ~/.openneko/skills/<skill-id>/SKILL.md
 ```
 
-スキル本文は現在の GPT provider の system 指示として注入されます。スクリプトは実行しません。
+スキル本文は現在の AI provider の system 指示として注入されます。スクリプトは実行しません。
 
 ## 開発
 

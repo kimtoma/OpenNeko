@@ -1,0 +1,1094 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>openNeko - AI Agent와 대화하는 오픈소스 데스크탑 픽셀 고양이</title>
+  <meta name="description" content="openNeko는 AI Agent와 대화하고 타이핑과 에이전트 상태에 반응하는 오픈소스 데스크탑 픽셀 고양이입니다.">
+  <meta property="og:title" content="openNeko">
+  <meta property="og:description" content="AI Agent와 대화하는 오픈소스 데스크탑 픽셀 고양이">
+  <meta property="og:type" content="website">
+  <meta name="theme-color" content="#00a8c8">
+  <link rel="icon" type="image/png" href="assets/sprites/black/idle_0.png">
+  <style>
+    :root {
+      --bg: #ffffff;
+      --ink: #111318;
+      --muted: #626a73;
+      --line: #d9e1e8;
+      --soft: #f5f8fa;
+      --cyan: #00a8c8;
+      --cyan-dark: #007e98;
+      --coral: #ff6b57;
+      --yellow: #ffd866;
+      --green: #43b97f;
+      --shadow: 0 18px 48px rgba(17, 19, 24, 0.12);
+      --max: 1120px;
+      color-scheme: light;
+      font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      letter-spacing: 0;
+      word-break: keep-all;
+      overflow-wrap: break-word;
+      line-break: strict;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    button,
+    input {
+      font: inherit;
+    }
+
+    .page {
+      min-height: 100vh;
+      overflow: hidden;
+    }
+
+    .site-header {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      background: rgba(255, 255, 255, 0.92);
+      backdrop-filter: blur(18px);
+      border-bottom: 1px solid rgba(217, 225, 232, 0.78);
+    }
+
+    .nav {
+      width: min(var(--max), calc(100% - 40px));
+      min-height: 68px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+    }
+
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 800;
+      font-size: 18px;
+      word-break: normal;
+      overflow-wrap: normal;
+    }
+
+    .brand img {
+      width: 32px;
+      height: 32px;
+      image-rendering: pixelated;
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 22px;
+      color: var(--muted);
+      font-size: 14px;
+      font-weight: 650;
+    }
+
+    .nav-links a:hover {
+      color: var(--ink);
+    }
+
+    .nav-cta {
+      border: 1px solid var(--ink);
+      border-radius: 8px;
+      padding: 10px 14px;
+      color: var(--ink);
+      box-shadow: 3px 3px 0 var(--ink);
+      transition: transform 150ms ease, box-shadow 150ms ease;
+    }
+
+    .nav-cta:hover {
+      transform: translate(2px, 2px);
+      box-shadow: 1px 1px 0 var(--ink);
+    }
+
+    .hero {
+      width: min(var(--max), calc(100% - 40px));
+      margin: 0 auto;
+      min-height: calc(100vh - 164px);
+      padding: 52px 0 42px;
+      display: grid;
+      grid-template-columns: minmax(480px, 0.92fr) minmax(0, 1.08fr);
+      gap: 48px;
+      align-items: center;
+    }
+
+    .hero-copy h1 {
+      margin: 0;
+      font-size: clamp(58px, 7.2vw, 104px);
+      line-height: 0.88;
+      font-weight: 900;
+      letter-spacing: 0;
+      white-space: nowrap;
+    }
+
+    .hero-copy p {
+      margin: 28px 0 0;
+      max-width: 560px;
+      color: #252b31;
+      font-size: clamp(20px, 2.4vw, 30px);
+      line-height: 1.32;
+      font-weight: 750;
+    }
+
+    .hero-copy .support {
+      margin-top: 18px;
+      color: var(--muted);
+      font-size: 16px;
+      line-height: 1.72;
+      font-weight: 520;
+    }
+
+    .actions {
+      margin-top: 34px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+    }
+
+    .button {
+      min-height: 48px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      border-radius: 8px;
+      padding: 0 20px;
+      border: 2px solid var(--ink);
+      font-size: 15px;
+      font-weight: 800;
+      transition: transform 150ms ease, box-shadow 150ms ease, background 150ms ease;
+      word-break: keep-all;
+      overflow-wrap: normal;
+    }
+
+    .button.primary {
+      background: var(--ink);
+      color: #fff;
+      box-shadow: 4px 4px 0 var(--cyan);
+    }
+
+    .button.secondary {
+      background: #fff;
+      color: var(--ink);
+      box-shadow: 4px 4px 0 var(--coral);
+    }
+
+    .button:hover {
+      transform: translate(2px, 2px);
+      box-shadow: 1px 1px 0 currentColor;
+    }
+
+    .hero-stage {
+      position: relative;
+      min-height: 560px;
+      border: 2px solid var(--ink);
+      border-radius: 8px;
+      background:
+        linear-gradient(90deg, rgba(17, 19, 24, 0.04) 1px, transparent 1px),
+        linear-gradient(180deg, rgba(17, 19, 24, 0.04) 1px, transparent 1px),
+        #f7fbfd;
+      background-size: 34px 34px;
+      box-shadow: var(--shadow), 7px 7px 0 var(--ink);
+      overflow: hidden;
+    }
+
+    .window-bar {
+      height: 42px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 0 18px;
+      border-bottom: 2px solid var(--ink);
+      background: #fff;
+    }
+
+    .dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 999px;
+      border: 2px solid var(--ink);
+      display: inline-block;
+    }
+
+    .dot.red { background: var(--coral); }
+    .dot.yellow { background: var(--yellow); }
+    .dot.green { background: var(--green); }
+
+    .desktop-plane {
+      position: absolute;
+      inset: 42px 0 0;
+    }
+
+    .signal {
+      position: absolute;
+      display: grid;
+      gap: 8px;
+      padding: 14px;
+      border: 2px solid var(--ink);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.94);
+      box-shadow: 4px 4px 0 rgba(17, 19, 24, 0.18);
+      font-size: 13px;
+      font-weight: 750;
+    }
+
+    .signal small {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 650;
+    }
+
+    .signal.one {
+      top: 54px;
+      left: 38px;
+    }
+
+    .signal.two {
+      right: 36px;
+      top: 126px;
+    }
+
+    .signal.three {
+      left: 86px;
+      bottom: 158px;
+    }
+
+    .chat-bubble {
+      position: absolute;
+      right: 78px;
+      bottom: 178px;
+      max-width: 220px;
+      padding: 13px 16px;
+      border: 2px solid var(--ink);
+      border-radius: 8px;
+      background: #fffdf6;
+      box-shadow: 4px 4px 0 rgba(17, 19, 24, 0.2);
+      font-size: 14px;
+      line-height: 1.45;
+      font-weight: 740;
+    }
+
+    .chat-bubble::after {
+      content: "";
+      position: absolute;
+      left: 38px;
+      bottom: -12px;
+      width: 18px;
+      height: 18px;
+      background: #fffdf6;
+      border-right: 2px solid var(--ink);
+      border-bottom: 2px solid var(--ink);
+      transform: rotate(45deg);
+    }
+
+    .dock {
+      position: absolute;
+      left: 28px;
+      right: 28px;
+      bottom: 30px;
+      min-height: 112px;
+      border: 2px solid var(--ink);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.74);
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.7);
+    }
+
+    .dock::before {
+      content: "";
+      position: absolute;
+      left: 18px;
+      right: 18px;
+      top: 18px;
+      height: 18px;
+      border-radius: 8px;
+      background: linear-gradient(90deg, var(--cyan), var(--coral));
+      opacity: 0.7;
+    }
+
+    .dock-icons {
+      position: absolute;
+      left: 30px;
+      right: 30px;
+      bottom: 20px;
+      display: grid;
+      grid-template-columns: repeat(8, 1fr);
+      gap: 12px;
+    }
+
+    .dock-icons span {
+      aspect-ratio: 1;
+      border: 2px solid var(--ink);
+      border-radius: 8px;
+      background: #fff;
+      box-shadow: 3px 3px 0 rgba(17, 19, 24, 0.18);
+    }
+
+    .hero-cat {
+      position: absolute;
+      left: 50%;
+      bottom: 92px;
+      width: 192px;
+      height: 192px;
+      transform: translateX(-50%);
+      image-rendering: pixelated;
+      filter: drop-shadow(0 14px 0 rgba(17, 19, 24, 0.14));
+      animation: cat-hop 1.4s steps(2, end) infinite;
+    }
+
+    .dock-shadow {
+      position: absolute;
+      left: 50%;
+      bottom: 94px;
+      width: 124px;
+      height: 16px;
+      transform: translateX(-50%);
+      border-radius: 999px;
+      background: rgba(17, 19, 24, 0.2);
+      filter: blur(1px);
+    }
+
+    .section {
+      width: min(var(--max), calc(100% - 40px));
+      margin: 0 auto;
+      padding: 92px 0;
+      border-top: 1px solid var(--line);
+    }
+
+    #features {
+      padding-top: 44px;
+    }
+
+    .section-head {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 36px;
+      margin-bottom: 36px;
+    }
+
+    .section h2 {
+      margin: 0;
+      max-width: 720px;
+      font-size: clamp(34px, 5vw, 64px);
+      line-height: 1;
+      font-weight: 900;
+      letter-spacing: 0;
+    }
+
+    .section-head p {
+      margin: 0;
+      max-width: 360px;
+      color: var(--muted);
+      font-size: 15px;
+      line-height: 1.75;
+      font-weight: 520;
+    }
+
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+    }
+
+    .feature {
+      min-height: 220px;
+      padding: 22px;
+      border: 2px solid var(--ink);
+      border-radius: 8px;
+      background: #fff;
+      box-shadow: 4px 4px 0 rgba(17, 19, 24, 0.15);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 22px;
+    }
+
+    .feature img {
+      width: 82px;
+      height: 82px;
+      image-rendering: pixelated;
+      align-self: flex-end;
+    }
+
+    .feature-cat {
+      transform-origin: 50% 100%;
+      animation: feature-cat-bob 1.8s ease-in-out infinite;
+      will-change: transform;
+    }
+
+    .feature:nth-child(2n) .feature-cat {
+      animation-delay: -0.35s;
+    }
+
+    .feature:nth-child(3n) .feature-cat {
+      animation-delay: -0.7s;
+    }
+
+    .feature h3 {
+      margin: 0 0 10px;
+      font-size: 20px;
+      line-height: 1.2;
+    }
+
+    .feature p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.65;
+    }
+
+    .feature.accent-cyan {
+      background: #ecfbff;
+    }
+
+    .feature.accent-coral {
+      background: #fff2ef;
+    }
+
+    .feature.accent-yellow {
+      background: #fff9db;
+    }
+
+    .install-panel {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 280px;
+      gap: 24px;
+      align-items: stretch;
+      padding: 28px;
+      border: 2px solid var(--ink);
+      border-radius: 8px;
+      background: #111318;
+      color: #fff;
+      box-shadow: 7px 7px 0 var(--cyan);
+    }
+
+    .terminal {
+      min-width: 0;
+      display: grid;
+      gap: 14px;
+    }
+
+    .terminal-label {
+      color: #b8c4ce;
+      font-size: 13px;
+      font-weight: 750;
+    }
+
+    .command-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 14px;
+      align-items: center;
+    }
+
+    code {
+      display: block;
+      overflow-x: auto;
+      padding: 16px;
+      border: 1px solid #2b333c;
+      border-radius: 8px;
+      background: #06080b;
+      color: #e7fbff;
+      font-size: 14px;
+      line-height: 1.65;
+      white-space: nowrap;
+      word-break: normal;
+      overflow-wrap: normal;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .copy-button {
+      min-height: 45px;
+      border: 2px solid #fff;
+      border-radius: 8px;
+      background: transparent;
+      color: #fff;
+      padding: 0 16px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 800;
+    }
+
+    .install-note {
+      border-left: 2px solid rgba(255, 255, 255, 0.22);
+      padding-left: 24px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 16px;
+      color: #d4dde5;
+      font-size: 14px;
+      line-height: 1.65;
+    }
+
+    .providers {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+    }
+
+    .provider {
+      padding: 20px;
+      border: 2px solid var(--ink);
+      border-radius: 8px;
+      background: var(--soft);
+      min-height: 170px;
+    }
+
+    .provider strong {
+      display: block;
+      margin-bottom: 12px;
+      font-size: 18px;
+    }
+
+    .provider span {
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    .opensource {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(320px, 0.48fr);
+      gap: 40px;
+      align-items: center;
+      padding: 44px;
+      border: 2px solid var(--ink);
+      border-radius: 8px;
+      background:
+        linear-gradient(135deg, rgba(0, 168, 200, 0.14), transparent 46%),
+        linear-gradient(315deg, rgba(255, 107, 87, 0.16), transparent 42%),
+        #fff;
+      box-shadow: 7px 7px 0 var(--ink);
+    }
+
+    .opensource h2 {
+      font-size: clamp(36px, 5vw, 70px);
+    }
+
+    .opensource p {
+      margin: 22px 0 0;
+      max-width: 680px;
+      color: #252b31;
+      font-size: 18px;
+      line-height: 1.7;
+      font-weight: 560;
+    }
+
+    .skin-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+    }
+
+    .skin-row img {
+      width: 100%;
+      aspect-ratio: 1;
+      object-fit: contain;
+      image-rendering: pixelated;
+      border: 2px solid var(--ink);
+      border-radius: 8px;
+      background: #fff;
+      padding: 10px;
+    }
+
+    .footer {
+      width: min(var(--max), calc(100% - 40px));
+      margin: 0 auto;
+      padding: 42px 0 58px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+      color: var(--muted);
+      font-size: 14px;
+      border-top: 1px solid var(--line);
+    }
+
+    .footer-links {
+      display: flex;
+      gap: 18px;
+      font-weight: 700;
+    }
+
+    @keyframes cat-hop {
+      0%, 100% { transform: translateX(-50%) translateY(0); }
+      50% { transform: translateX(-50%) translateY(-8px); }
+    }
+
+    @keyframes feature-cat-bob {
+      0%, 100% { transform: translateY(0) scale(1); }
+      50% { transform: translateY(-5px) scale(1.02); }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html {
+        scroll-behavior: auto;
+      }
+
+      .hero-cat,
+      .feature-cat {
+        animation: none;
+      }
+
+      .button,
+      .nav-cta {
+        transition: none;
+      }
+    }
+
+    @media (max-width: 960px) {
+      .nav {
+        width: min(var(--max), calc(100% - 28px));
+      }
+
+      .nav-links a:not(.nav-cta) {
+        display: none;
+      }
+
+      .hero {
+        width: min(var(--max), calc(100% - 28px));
+        min-height: auto;
+        padding: 42px 0 34px;
+        grid-template-columns: 1fr;
+        gap: 32px;
+      }
+
+      .hero-stage {
+        min-height: 500px;
+      }
+
+      .section {
+        width: min(var(--max), calc(100% - 28px));
+        padding: 70px 0;
+      }
+
+      #features {
+        padding-top: 24px;
+      }
+
+      .section-head {
+        display: grid;
+        gap: 16px;
+      }
+
+      .feature-grid,
+      .providers {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .install-panel,
+      .opensource {
+        grid-template-columns: 1fr;
+      }
+
+      .install-note {
+        border-left: 0;
+        border-top: 1px solid rgba(255, 255, 255, 0.22);
+        padding-left: 0;
+        padding-top: 22px;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .nav {
+        min-height: 60px;
+      }
+
+      .brand {
+        font-size: 16px;
+      }
+
+      .nav-cta {
+        padding: 9px 11px;
+      }
+
+      .hero {
+        padding: 34px 0 28px;
+        gap: 26px;
+      }
+
+      .hero-copy h1 {
+        font-size: clamp(54px, 16vw, 68px);
+      }
+
+      .hero-copy p {
+        margin-top: 20px;
+        font-size: 20px;
+      }
+
+      .hero-copy .support {
+        margin-top: 14px;
+        font-size: 15px;
+        line-height: 1.6;
+      }
+
+      .actions {
+        display: grid;
+        margin-top: 26px;
+        gap: 12px;
+      }
+
+      .button {
+        min-height: 46px;
+      }
+
+      .hero-stage {
+        min-height: 300px;
+      }
+
+      .window-bar {
+        height: 38px;
+        padding: 0 14px;
+      }
+
+      .desktop-plane {
+        inset: 38px 0 0;
+      }
+
+      .signal {
+        padding: 11px;
+        font-size: 12px;
+      }
+
+      .signal.one {
+        top: 34px;
+        left: 18px;
+      }
+
+      .signal.two {
+        display: none;
+      }
+
+      .signal.three {
+        display: none;
+      }
+
+      .chat-bubble {
+        right: 18px;
+        bottom: 98px;
+        max-width: 156px;
+        padding: 10px 12px;
+        font-size: 12px;
+      }
+
+      .dock {
+        left: 14px;
+        right: 14px;
+        bottom: 14px;
+        min-height: 82px;
+      }
+
+      .dock-icons {
+        grid-template-columns: repeat(4, 1fr);
+        gap: 8px;
+        left: 18px;
+        right: 18px;
+        bottom: 14px;
+      }
+
+      .hero-cat {
+        width: 122px;
+        height: 122px;
+        bottom: 62px;
+      }
+
+      .dock-shadow {
+        width: 86px;
+        bottom: 64px;
+      }
+
+      .feature-grid,
+      .providers {
+        grid-template-columns: 1fr;
+      }
+
+      .command-row {
+        grid-template-columns: 1fr;
+      }
+
+      .copy-button {
+        width: 100%;
+      }
+
+      .opensource {
+        padding: 28px;
+      }
+
+      .skin-row {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .footer {
+        width: min(var(--max), calc(100% - 28px));
+        display: grid;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <header class="site-header">
+      <nav class="nav" aria-label="주요 메뉴">
+        <a class="brand" href="#top" aria-label="openNeko 홈">
+          <img src="assets/sprites/black/idle_0.png" alt="">
+          <span>openNeko</span>
+        </a>
+        <div class="nav-links">
+          <a href="#features">Features</a>
+          <a href="#install">Install</a>
+          <a href="#providers">Providers</a>
+          <a href="#community">Community</a>
+          <a class="nav-cta" href="https://github.com/kimtoma/openNeko">GitHub</a>
+        </div>
+      </nav>
+    </header>
+
+    <main id="top">
+      <section class="hero" aria-labelledby="hero-title">
+        <div class="hero-copy">
+          <h1 id="hero-title">openNeko</h1>
+          <p>AI Agent와 대화하는 오픈소스 데스크탑 픽셀 고양이</p>
+          <p class="support">화면 하단을 사뿐히 걸어다니며 타이핑, 코딩 에이전트 상태, 짧은 질문에 반응합니다. OpenAI/Codex, Claude, Gemini 로그인과 Ollama 같은 로컬 모델을 우선 지원합니다.</p>
+          <div class="actions">
+            <a class="button primary" href="https://github.com/kimtoma/openNeko">GitHub에서 보기</a>
+            <a class="button secondary" href="#install">설치하기</a>
+          </div>
+        </div>
+
+        <div class="hero-stage" aria-label="openNeko 데스크탑 프리뷰">
+          <div class="window-bar" aria-hidden="true">
+            <span class="dot red"></span>
+            <span class="dot yellow"></span>
+            <span class="dot green"></span>
+          </div>
+          <div class="desktop-plane">
+            <div class="signal one"><span>typing</span><small>키 내용은 읽지 않음</small></div>
+            <div class="signal two"><span>coding</span><small>HTTP state bridge</small></div>
+            <div class="signal three"><span>AI Agent Login</span><small>OAuth first</small></div>
+            <div class="chat-bubble">빌드가 끝났어. 다음 작업도 도와줄게냥.</div>
+            <div class="dock" aria-hidden="true">
+              <div class="dock-icons">
+                <span></span><span></span><span></span><span></span>
+                <span></span><span></span><span></span><span></span>
+              </div>
+            </div>
+            <span class="dock-shadow" aria-hidden="true"></span>
+            <img class="hero-cat" id="hero-cat" src="assets/sprites/black/walk_0.png" alt="openNeko pixel cat">
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="features" aria-labelledby="features-title">
+        <div class="section-head">
+          <h2 id="features-title">작업 흐름을 방해하지 않는 작은 AI 동료</h2>
+          <p>openNeko는 데스크탑 위에 가볍게 머무는 반응형 펫입니다. 채팅, 상태 표시, 스킬 실행, 스킨 교체가 모두 로컬 앱 안에서 동작합니다.</p>
+        </div>
+        <div class="feature-grid">
+          <article class="feature accent-cyan">
+            <div>
+              <h3>타이핑 반응</h3>
+              <p>전역 키 입력 발생만 감지해 고양이가 타이핑 애니메이션으로 반응합니다.</p>
+            </div>
+            <img class="feature-cat" src="assets/sprites/black/typing_0.png" alt="" data-frames="assets/sprites/black/typing_0.png|assets/sprites/black/typing_1.png|assets/sprites/black/typing_2.png|assets/sprites/black/typing_3.png" data-interval="150">
+          </article>
+          <article class="feature">
+            <div>
+              <h3>짧은 AI Agent 대화</h3>
+              <p>고양이를 클릭하면 작은 말풍선 입력창이 열리고, 선택한 Agent의 답변이 고양이 말투로 돌아옵니다.</p>
+            </div>
+            <img class="feature-cat" src="assets/sprites/black/success_0.png" alt="" data-frames="assets/sprites/black/success_0.png|assets/sprites/black/success_1.png|assets/sprites/black/success_2.png|assets/sprites/black/success_3.png" data-interval="170">
+          </article>
+          <article class="feature accent-coral">
+            <div>
+              <h3>상태 브리지</h3>
+              <p>HTTP 상태 이벤트와 Cursor, Claude Code CLI, Codex CLI/App, Antigravity, Gemini, Kiro 같은 에이전트 활동을 감지합니다.</p>
+            </div>
+            <img class="feature-cat" src="assets/sprites/black/coding_0.png" alt="" data-frames="assets/sprites/black/coding_0.png|assets/sprites/black/coding_1.png|assets/sprites/black/coding_2.png|assets/sprites/black/coding_3.png" data-interval="165">
+          </article>
+          <article class="feature">
+            <div>
+              <h3>스킬 프롬프트</h3>
+              <p>번들 또는 사용자 SKILL.md를 메뉴와 슬래시 명령으로 실행합니다.</p>
+            </div>
+            <img class="feature-cat" src="assets/sprites/black/idle_0.png" alt="" data-frames="assets/sprites/black/idle_0.png|assets/sprites/black/idle_1.png|assets/sprites/black/idle_2.png|assets/sprites/black/idle_3.png" data-interval="230">
+          </article>
+          <article class="feature accent-yellow">
+            <div>
+              <h3>스킨 시스템</h3>
+              <p>기본 스킨 5종과 외부 스킨 폴더를 지원해 픽셀 고양이를 바꿀 수 있습니다.</p>
+            </div>
+            <img class="feature-cat" src="assets/sprites/orange/idle_0.png" alt="" data-frames="assets/sprites/orange/idle_0.png|assets/sprites/orange/idle_1.png|assets/sprites/orange/idle_2.png|assets/sprites/orange/idle_3.png" data-interval="220">
+          </article>
+          <article class="feature">
+            <div>
+              <h3>이웃 고양이</h3>
+              <p>같은 LAN의 openNeko 인스턴스를 발견해 친구 고양이가 화면에 찾아옵니다.</p>
+            </div>
+            <img class="feature-cat" src="assets/sprites/calico/idle_0.png" alt="" data-frames="assets/sprites/calico/idle_0.png|assets/sprites/calico/idle_1.png|assets/sprites/calico/idle_2.png|assets/sprites/calico/idle_3.png" data-interval="225">
+          </article>
+        </div>
+      </section>
+
+      <section class="section" id="install" aria-labelledby="install-title">
+        <div class="section-head">
+          <h2 id="install-title">소스 그대로 설치하고 실행</h2>
+          <p>GitHub Pages는 소개 페이지를 맡고, 실제 앱 소스와 설치 스크립트는 GitHub 저장소에서 관리합니다.</p>
+        </div>
+        <div class="install-panel">
+          <div class="terminal">
+            <div class="terminal-label">macOS</div>
+            <div class="command-row">
+              <code id="install-command">curl -fsSL https://raw.githubusercontent.com/kimtoma/openNeko/refs/heads/main/scripts/install.sh | bash</code>
+              <button class="copy-button" type="button" data-copy="#install-command">복사</button>
+            </div>
+          </div>
+          <div class="install-note">
+            <span>Node.js 22.12+와 git이 필요합니다.</span>
+            <span>소스 실행은 <strong>npm install</strong>, <strong>npm run build</strong>, <strong>npm start</strong> 순서입니다.</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="providers" aria-labelledby="providers-title">
+        <div class="section-head">
+          <h2 id="providers-title">원하는 AI 연결 방식 선택</h2>
+          <p>기본은 OAuth 로그인 기반 Agent입니다. 필요하면 API 키 provider나 로컬 OpenAI 호환 엔드포인트를 설정에서 추가합니다.</p>
+        </div>
+        <div class="providers">
+          <div class="provider">
+            <strong>OpenAI/Codex 로그인</strong>
+            <span>Codex CLI 로그인 세션을 사용합니다. 앱에 OpenAI API 키를 입력하지 않아도 됩니다.</span>
+          </div>
+          <div class="provider">
+            <strong>Claude / Gemini 로그인</strong>
+            <span>각 CLI의 로컬 OAuth 로그인 세션을 사용해 API 키 입력을 줄입니다.</span>
+          </div>
+          <div class="provider">
+            <strong>Ollama / 로컬 모델</strong>
+            <span>Ollama와 로컬 OpenAI 호환 서버를 클라우드 API 키 없이 연결합니다.</span>
+          </div>
+          <div class="provider">
+            <strong>API 키 provider</strong>
+            <span>필요한 경우 Gemini API 키, Anthropic API 키, 커스텀 엔드포인트를 연결합니다.</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="community" aria-labelledby="community-title">
+        <div class="opensource">
+          <div>
+            <h2 id="community-title">MIT 라이선스로 열어두는 작은 데스크탑 실험</h2>
+            <p>스프라이트, 스킨, 스킬, AI provider adapter, 설치 스크립트까지 모두 저장소에서 함께 개선할 수 있습니다. 귀여운 데스크탑 펫이면서 동시에 에이전트 상태를 표현하는 로컬 UI 실험입니다.</p>
+            <div class="actions">
+              <a class="button primary" href="https://github.com/kimtoma/openNeko">저장소 열기</a>
+              <a class="button secondary" href="https://github.com/kimtoma/openNeko/issues">이슈 제안</a>
+            </div>
+          </div>
+          <div class="skin-row" aria-label="openNeko bundled skins">
+            <img src="assets/sprites/black/idle_0.png" alt="black skin">
+            <img src="assets/sprites/orange/idle_0.png" alt="orange skin">
+            <img src="assets/sprites/calico/idle_0.png" alt="calico skin">
+            <img src="assets/sprites/pink/idle_0.png" alt="pink skin">
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <span>openNeko is released under the MIT License.</span>
+      <div class="footer-links">
+        <a href="https://github.com/kimtoma/openNeko">GitHub</a>
+        <a href="https://github.com/kimtoma/openNeko/blob/main/README.md">README</a>
+        <a href="https://github.com/kimtoma/openNeko/blob/main/LICENSE">License</a>
+      </div>
+    </footer>
+  </div>
+
+  <script>
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    function animateSprite(img, frames, interval = 180, offset = 0) {
+      if (!img || frames.length < 2) return;
+      let frameIndex = offset % frames.length;
+      const preloads = frames.map((src) => new Promise((resolve) => {
+        const preload = new Image();
+        preload.onload = resolve;
+        preload.onerror = resolve;
+        preload.src = src;
+      }));
+      Promise.all(preloads).then(() => {
+        window.setInterval(() => {
+          frameIndex = (frameIndex + 1) % frames.length;
+          img.src = frames[frameIndex];
+        }, interval);
+      });
+    }
+
+    if (!reduceMotion) {
+      animateSprite(document.getElementById('hero-cat'), [
+        'assets/sprites/black/walk_0.png',
+        'assets/sprites/black/walk_1.png',
+        'assets/sprites/black/walk_2.png',
+        'assets/sprites/black/walk_3.png',
+      ], 180);
+
+      document.querySelectorAll('[data-frames]').forEach((img, index) => {
+        const frames = img.dataset.frames.split('|').filter(Boolean);
+        const interval = Number(img.dataset.interval || 200);
+        if (frames.length > 1) animateSprite(img, frames, interval, index);
+      });
+    }
+
+    document.querySelectorAll('[data-copy]').forEach((button) => {
+      button.addEventListener('click', async () => {
+        const target = document.querySelector(button.dataset.copy);
+        if (!target) return;
+        const text = target.textContent.trim();
+        let label = '복사됨';
+        try {
+          if (navigator.clipboard && window.isSecureContext) {
+            await navigator.clipboard.writeText(text);
+          } else {
+            const area = document.createElement('textarea');
+            area.value = text;
+            area.setAttribute('readonly', '');
+            area.style.position = 'fixed';
+            area.style.left = '-9999px';
+            document.body.appendChild(area);
+            area.select();
+            if (!document.execCommand('copy')) label = '선택됨';
+            area.remove();
+          }
+        } catch {
+          label = '선택됨';
+        }
+        button.textContent = label;
+        window.setTimeout(() => { button.textContent = '복사'; }, 1200);
+      });
+    });
+  </script>
+</body>
+</html>

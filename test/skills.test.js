@@ -1,6 +1,7 @@
 const { test } = require('node:test');
 const assert = require('node:assert');
 const { parseSkill, discoverSkills, buildSkillSystem, enabledSkills } = require('../src/skills');
+const { localizeSkill, localizeSkills, isBuiltinSource } = require('../src/skills/i18n');
 
 // --- parseSkill ---
 
@@ -159,4 +160,50 @@ test('enabledSkills: disabledIds 비어있으면 전부 반환', () => {
 test('enabledSkills: 전부 disabled이면 빈 배열', () => {
   const all = [{ id: 'x' }, { id: 'y' }];
   assert.equal(enabledSkills(all, ['x', 'y']).length, 0);
+});
+
+// --- skill i18n ---
+
+test('localizeSkill: 번들 스킬 이름/설명/body를 언어별로 치환', () => {
+  const s = {
+    id: 'clipboard-summary',
+    name: '클립보드 요약',
+    description: '복사한 텍스트를 요약',
+    body: '한국어 본문',
+    source: '/app/src/skills/builtin',
+  };
+  const en = localizeSkill(s, 'en');
+  assert.equal(en.name, 'Clipboard Summary');
+  assert.match(en.description, /3 sentences/);
+  assert.match(en.body, /3 concise sentences/);
+});
+
+test('localizeSkill: 사용자 스킬은 같은 id라도 원문 유지', () => {
+  const s = {
+    id: 'translate',
+    name: '내 번역',
+    description: 'custom',
+    body: 'custom body',
+    source: '/Users/me/.openneko/skills',
+  };
+  assert.deepEqual(localizeSkill(s, 'ja'), s);
+});
+
+test('localizeSkills: ja/zh도 번들 스킬 번역 제공', () => {
+  const skills = localizeSkills([
+    { id: 'daily-fortune', name: '오늘의 운세', body: '', source: '/app/src/skills/builtin' },
+    { id: 'daily-bgm', name: '오늘의 랜덤 BGM', body: '', source: '/app/src/skills/builtin' },
+    { id: 'saju', name: '사주', body: '', source: '/app/src/skills/builtin' },
+    { id: 'youtube-summary', name: '유튜브 링크 요약', body: '', source: '/app/src/skills/builtin' },
+  ], 'zh');
+  assert.equal(skills[0].name, '今日运势');
+  assert.equal(skills[1].name, '今日随机BGM');
+  assert.match(skills[2].body, /出生日期/);
+  assert.match(skills[3].description, /YouTube/);
+});
+
+test('isBuiltinSource: 번들 skills/builtin만 localize 대상으로 판별', () => {
+  assert.equal(isBuiltinSource('/x/src/skills/builtin'), true);
+  assert.equal(isBuiltinSource('/x/src/skills/builtin/saju'), false);
+  assert.equal(isBuiltinSource('/Users/me/.openneko/skills'), false);
 });
