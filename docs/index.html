@@ -10,6 +10,9 @@
   <meta property="og:type" content="website">
   <meta name="theme-color" content="#00a8c8">
   <link rel="icon" type="image/png" href="assets/sprites/black/idle_0.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Doto:wght@400..900&family=Inter:wght@400;520;650;700;800;900&display=swap" rel="stylesheet">
   <style>
     :root {
       --bg: #ffffff;
@@ -24,8 +27,10 @@
       --green: #43b97f;
       --shadow: 0 18px 48px rgba(17, 19, 24, 0.12);
       --max: 1120px;
+      --ui-font: "Inter", ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+      --display-font: "Doto", var(--ui-font);
       color-scheme: light;
-      font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+      font-family: var(--ui-font);
     }
 
     * {
@@ -84,7 +89,8 @@
       display: inline-flex;
       align-items: center;
       gap: 10px;
-      font-weight: 800;
+      font-family: var(--display-font);
+      font-weight: 900;
       font-size: 18px;
       word-break: normal;
       overflow-wrap: normal;
@@ -101,8 +107,9 @@
       align-items: center;
       gap: 22px;
       color: var(--muted);
+      font-family: var(--ui-font);
       font-size: 14px;
-      font-weight: 650;
+      font-weight: 900;
     }
 
     .nav-links a:hover {
@@ -136,11 +143,17 @@
 
     .hero-copy h1 {
       margin: 0;
+      font-family: var(--display-font);
       font-size: clamp(58px, 7.2vw, 104px);
-      line-height: 0.88;
+      line-height: 1;
       font-weight: 900;
       letter-spacing: 0;
       white-space: nowrap;
+    }
+
+    #hero-title {
+      font-family: var(--display-font);
+      font-weight: 900;
     }
 
     .hero-copy p {
@@ -176,8 +189,9 @@
       border-radius: 8px;
       padding: 0 20px;
       border: 2px solid var(--ink);
+      font-family: var(--ui-font);
       font-size: 15px;
-      font-weight: 800;
+      font-weight: 900;
       transition: transform 150ms ease, box-shadow 150ms ease, background 150ms ease;
       word-break: keep-all;
       overflow-wrap: normal;
@@ -239,110 +253,116 @@
     .desktop-plane {
       position: absolute;
       inset: 42px 0 0;
-    }
-
-    .signal {
-      position: absolute;
-      display: grid;
-      gap: 8px;
-      padding: 14px;
-      border: 2px solid var(--ink);
-      border-radius: 8px;
-      background: rgba(255, 255, 255, 0.94);
-      box-shadow: 4px 4px 0 rgba(17, 19, 24, 0.18);
-      font-size: 13px;
-      font-weight: 750;
-    }
-
-    .signal small {
-      color: var(--muted);
-      font-size: 12px;
-      font-weight: 650;
-    }
-
-    .signal.one {
-      top: 54px;
-      left: 38px;
-    }
-
-    .signal.two {
-      right: 36px;
-      top: 126px;
-    }
-
-    .signal.three {
-      left: 86px;
-      bottom: 158px;
+      overflow: hidden;
+      background:
+        radial-gradient(circle at 14% 22%, rgba(255, 255, 255, 0.86) 0 9%, transparent 24%),
+        radial-gradient(circle at 74% 18%, rgba(255, 125, 98, 0.92) 0 13%, transparent 32%),
+        radial-gradient(circle at 88% 74%, rgba(105, 80, 255, 0.92) 0 14%, transparent 34%),
+        radial-gradient(circle at 28% 82%, rgba(0, 180, 216, 0.82) 0 15%, transparent 34%),
+        linear-gradient(135deg, #ffe9cf 0%, #ffb6a7 28%, #7667ff 62%, #1b6fe8 100%);
+      background-size: cover;
     }
 
     .chat-bubble {
       position: absolute;
-      right: 78px;
-      bottom: 178px;
-      max-width: 220px;
-      padding: 13px 16px;
+      left: 50%;
+      top: 138px;
+      width: min(270px, calc(100% - 72px));
+      padding: 14px 17px;
       border: 2px solid var(--ink);
-      border-radius: 8px;
-      background: #fffdf6;
-      box-shadow: 4px 4px 0 rgba(17, 19, 24, 0.2);
+      border-radius: 18px 18px 18px 6px;
+      background: #111318;
+      color: #fff;
+      box-shadow: 6px 6px 0 var(--cyan);
       font-size: 14px;
       line-height: 1.45;
       font-weight: 740;
+      transform: translateX(-8%);
+      z-index: 4;
     }
 
     .chat-bubble::after {
       content: "";
       position: absolute;
-      left: 38px;
-      bottom: -12px;
-      width: 18px;
+      left: 34px;
+      bottom: -16px;
+      width: 24px;
       height: 18px;
-      background: #fffdf6;
-      border-right: 2px solid var(--ink);
+      background: #111318;
+      border-left: 2px solid var(--ink);
       border-bottom: 2px solid var(--ink);
-      transform: rotate(45deg);
+      clip-path: polygon(0 0, 100% 0, 18% 100%);
     }
 
     .dock {
       position: absolute;
-      left: 28px;
-      right: 28px;
+      left: 50%;
       bottom: 30px;
-      min-height: 112px;
-      border: 2px solid var(--ink);
-      border-radius: 8px;
-      background: rgba(255, 255, 255, 0.74);
-      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.7);
-    }
-
-    .dock::before {
-      content: "";
-      position: absolute;
-      left: 18px;
-      right: 18px;
-      top: 18px;
-      height: 18px;
-      border-radius: 8px;
-      background: linear-gradient(90deg, var(--cyan), var(--coral));
-      opacity: 0.7;
+      width: min(76%, 620px);
+      min-height: 92px;
+      transform: translateX(-50%);
+      border: 1px solid rgba(255, 255, 255, 0.58);
+      border-radius: 24px;
+      background: rgba(255, 255, 255, 0.38);
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.72),
+        0 18px 46px rgba(36, 45, 64, 0.24);
+      backdrop-filter: blur(16px) saturate(1.3);
     }
 
     .dock-icons {
       position: absolute;
-      left: 30px;
-      right: 30px;
-      bottom: 20px;
+      left: 18px;
+      right: 18px;
+      bottom: 16px;
       display: grid;
       grid-template-columns: repeat(8, 1fr);
-      gap: 12px;
+      gap: 10px;
+      align-items: end;
     }
 
     .dock-icons span {
+      position: relative;
       aspect-ratio: 1;
-      border: 2px solid var(--ink);
-      border-radius: 8px;
-      background: #fff;
-      box-shadow: 3px 3px 0 rgba(17, 19, 24, 0.18);
+      border: 1px solid rgba(255, 255, 255, 0.58);
+      border-radius: 15px;
+      background: var(--icon-bg, linear-gradient(135deg, #f8fbff, #b7c8ff));
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.7),
+        0 8px 16px rgba(17, 19, 24, 0.22);
+      overflow: hidden;
+    }
+
+    .dock-icons span::before {
+      content: attr(data-icon);
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      color: #fff;
+      font-size: 20px;
+      font-weight: 900;
+      text-shadow: 0 1px 3px rgba(0, 0, 0, 0.28);
+    }
+
+    .dock-icon.finder { --icon-bg: linear-gradient(90deg, #66d1ff 0 49%, #ffffff 50% 100%); }
+    .dock-icon.safari { --icon-bg: radial-gradient(circle at 50% 50%, #fff 0 12%, transparent 13%), conic-gradient(from 18deg, #e6425e, #1a78ff, #19c4ff, #e6425e); }
+    .dock-icon.messages { --icon-bg: linear-gradient(135deg, #66f087, #14b85a); }
+    .dock-icon.mail { --icon-bg: linear-gradient(135deg, #4cc9ff, #2267ff); }
+    .dock-icon.photos { --icon-bg: conic-gradient(#ff4e60, #ffa63d, #ffe66d, #52d273, #4fc3ff, #8b6bff, #ff4e60); }
+    .dock-icon.music { --icon-bg: linear-gradient(135deg, #ff6aa2, #ff244f); }
+    .dock-icon.terminal { --icon-bg: linear-gradient(135deg, #1b2028, #030507); }
+    .dock-icon.settings { --icon-bg: linear-gradient(135deg, #cbd3de, #6f7f91); }
+
+    .dock-icons span::after {
+      content: "";
+      position: absolute;
+      left: 17%;
+      right: 17%;
+      top: 12%;
+      height: 22%;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.3);
     }
 
     .hero-cat {
@@ -391,8 +411,9 @@
     .section h2 {
       margin: 0;
       max-width: 720px;
+      font-family: var(--ui-font);
       font-size: clamp(34px, 5vw, 64px);
-      line-height: 1;
+      line-height: 1.08;
       font-weight: 900;
       letter-spacing: 0;
     }
@@ -432,6 +453,14 @@
       align-self: flex-end;
     }
 
+    .feature-scene {
+      min-height: 96px;
+      display: flex;
+      align-items: flex-end;
+      justify-content: flex-end;
+      gap: 10px;
+    }
+
     .feature-cat {
       transform-origin: 50% 100%;
       animation: feature-cat-bob 1.8s ease-in-out infinite;
@@ -459,6 +488,140 @@
       line-height: 1.65;
     }
 
+    .slash-demo {
+      width: 100%;
+      max-width: 236px;
+      margin-left: auto;
+      padding: 10px;
+      border: 2px solid var(--ink);
+      border-radius: 8px;
+      background: #111318;
+      box-shadow: 4px 4px 0 rgba(17, 19, 24, 0.14);
+    }
+
+    .slash-list {
+      height: 34px;
+      overflow: hidden;
+      border-radius: 6px;
+    }
+
+    .slash-list-track {
+      display: grid;
+      gap: 7px;
+      animation: slash-roll 7.2s steps(1, end) infinite;
+    }
+
+    .slash-line {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-height: 34px;
+      padding: 0 10px;
+      border-radius: 6px;
+      background: #fff;
+      color: var(--ink);
+      font-size: 13px;
+      font-weight: 760;
+      white-space: nowrap;
+    }
+
+    .slash-line span {
+      color: var(--cyan-dark);
+    }
+
+    .slash-demo img {
+      width: 48px;
+      height: 48px;
+      margin-top: 6px;
+      margin-left: auto;
+      display: block;
+      image-rendering: pixelated;
+    }
+
+    .skin-stack {
+      position: relative;
+      min-height: 112px;
+      width: 100%;
+    }
+
+    .skin-stack img {
+      position: absolute;
+      bottom: 0;
+      width: 68px;
+      height: 68px;
+      object-fit: contain;
+      object-position: center bottom;
+      image-rendering: pixelated;
+    }
+
+    .skin-stack img:nth-child(1) {
+      left: 10px;
+    }
+
+    .skin-stack img:nth-child(2) {
+      left: 58px;
+    }
+
+    .skin-stack img:nth-child(3) {
+      left: 106px;
+    }
+
+    .skin-stack img:nth-child(4) {
+      left: 154px;
+    }
+
+    .skin-stack img:nth-child(5) {
+      left: 202px;
+    }
+
+    .neighbor-scene {
+      position: relative;
+      width: 100%;
+      min-height: 100px;
+      overflow: hidden;
+      border-bottom: 3px solid var(--ink);
+    }
+
+    .neighbor-scene img {
+      position: absolute;
+      bottom: 0;
+      width: 72px;
+      height: 72px;
+      image-rendering: pixelated;
+    }
+
+    .neighbor-scene .home-cat {
+      right: 26px;
+    }
+
+    .cat-label {
+      position: absolute;
+      bottom: 70px;
+      padding: 4px 7px;
+      border: 2px solid var(--ink);
+      border-radius: 8px;
+      background: #fff;
+      font-size: 11px;
+      font-weight: 850;
+      box-shadow: 2px 2px 0 rgba(17, 19, 24, 0.14);
+      white-space: nowrap;
+      z-index: 2;
+    }
+
+    .cat-label.mine {
+      right: 30px;
+    }
+
+    .cat-label.friend {
+      left: 18px;
+      animation: friend-label-visit 2.6s ease-in-out infinite;
+    }
+
+    .neighbor-scene .friend-cat {
+      left: 8px;
+      animation: friend-visit 2.6s ease-in-out infinite;
+    }
+
     .feature.accent-cyan {
       background: #ecfbff;
     }
@@ -473,8 +636,8 @@
 
     .install-panel {
       display: grid;
-      grid-template-columns: minmax(0, 1fr) 280px;
-      gap: 24px;
+      grid-template-columns: 1fr;
+      gap: 18px;
       align-items: stretch;
       padding: 28px;
       border: 2px solid var(--ink);
@@ -499,45 +662,59 @@
     .command-row {
       display: grid;
       grid-template-columns: minmax(0, 1fr) auto;
-      gap: 14px;
+      gap: 12px;
       align-items: center;
     }
 
     code {
       display: block;
-      overflow-x: auto;
+      min-width: 0;
+      overflow-x: hidden;
       padding: 16px;
       border: 1px solid #2b333c;
       border-radius: 8px;
       background: #06080b;
       color: #e7fbff;
+      font-family: var(--ui-font);
       font-size: 14px;
       line-height: 1.65;
-      white-space: nowrap;
-      word-break: normal;
-      overflow-wrap: normal;
-      -webkit-overflow-scrolling: touch;
+      white-space: normal;
+      word-break: break-word;
+      overflow-wrap: anywhere;
     }
 
     .copy-button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
       min-height: 45px;
-      border: 2px solid #fff;
+      border: 2px solid #111318;
       border-radius: 8px;
-      background: transparent;
-      color: #fff;
-      padding: 0 16px;
+      background: #ffd866;
+      color: #111318;
+      padding: 0 20px;
       cursor: pointer;
+      font-family: var(--ui-font);
       font-size: 14px;
-      font-weight: 800;
+      font-weight: 900;
+      box-shadow: 4px 4px 0 #00a8c8;
+      transition: transform 150ms ease, box-shadow 150ms ease, background 150ms ease;
+    }
+
+    .copy-button:hover,
+    .copy-button:focus-visible {
+      background: #fff;
+      transform: translate(2px, 2px);
+      box-shadow: 2px 2px 0 #00a8c8;
     }
 
     .install-note {
-      border-left: 2px solid rgba(255, 255, 255, 0.22);
-      padding-left: 24px;
+      border-top: 1px solid rgba(255, 255, 255, 0.22);
+      padding-top: 18px;
       display: flex;
-      flex-direction: column;
-      justify-content: center;
-      gap: 16px;
+      flex-wrap: wrap;
+      gap: 10px 18px;
       color: #d4dde5;
       font-size: 14px;
       line-height: 1.65;
@@ -555,6 +732,20 @@
       border-radius: 8px;
       background: var(--soft);
       min-height: 170px;
+    }
+
+    .provider-icons {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-height: 36px;
+      margin-bottom: 14px;
+    }
+
+    .provider-icons img {
+      width: 30px;
+      height: 30px;
+      object-fit: contain;
     }
 
     .provider strong {
@@ -633,6 +824,16 @@
       font-weight: 700;
     }
 
+    .footer-made {
+      display: block;
+      margin-top: 6px;
+    }
+
+    .footer-made a {
+      color: var(--ink);
+      font-weight: 800;
+    }
+
     @keyframes cat-hop {
       0%, 100% { transform: translateX(-50%) translateY(0); }
       50% { transform: translateX(-50%) translateY(-8px); }
@@ -643,13 +844,38 @@
       50% { transform: translateY(-5px) scale(1.02); }
     }
 
+    @keyframes friend-visit {
+      0%, 100% { transform: translateX(0) translateY(0); }
+      42% { transform: translateX(132px) translateY(0); }
+      55% { transform: translateX(144px) translateY(-9px); }
+      68% { transform: translateX(132px) translateY(0); }
+    }
+
+    @keyframes friend-label-visit {
+      0%, 100% { transform: translateX(0); }
+      42%, 68% { transform: translateX(132px); }
+      55% { transform: translateX(144px); }
+    }
+
+    @keyframes slash-roll {
+      0%, 28% { transform: translateY(0); }
+      33%, 61% { transform: translateY(-41px); }
+      66%, 94% { transform: translateY(-82px); }
+      100% { transform: translateY(0); }
+    }
+
     @media (prefers-reduced-motion: reduce) {
       html {
         scroll-behavior: auto;
       }
 
       .hero-cat,
-      .feature-cat {
+      .feature-cat,
+      .neighbor-scene .friend-cat {
+        animation: none;
+      }
+
+      .slash-list-track {
         animation: none;
       }
 
@@ -680,6 +906,11 @@
         min-height: 500px;
       }
 
+      .chat-bubble {
+        top: 128px;
+        transform: translateX(-18%);
+      }
+
       .section {
         width: min(var(--max), calc(100% - 28px));
         padding: 70px 0;
@@ -699,16 +930,8 @@
         grid-template-columns: repeat(2, 1fr);
       }
 
-      .install-panel,
       .opensource {
         grid-template-columns: 1fr;
-      }
-
-      .install-note {
-        border-left: 0;
-        border-top: 1px solid rgba(255, 255, 255, 0.22);
-        padding-left: 0;
-        padding-top: 22px;
       }
     }
 
@@ -768,45 +991,37 @@
         inset: 38px 0 0;
       }
 
-      .signal {
-        padding: 11px;
-        font-size: 12px;
-      }
-
-      .signal.one {
-        top: 34px;
-        left: 18px;
-      }
-
-      .signal.two {
-        display: none;
-      }
-
-      .signal.three {
-        display: none;
-      }
-
       .chat-bubble {
-        right: 18px;
-        bottom: 98px;
-        max-width: 156px;
+        left: 48%;
+        top: 72px;
+        width: min(210px, calc(100% - 42px));
         padding: 10px 12px;
         font-size: 12px;
+        transform: translateX(-18%);
       }
 
       .dock {
-        left: 14px;
-        right: 14px;
+        left: 50%;
+        right: auto;
+        width: calc(100% - 28px);
         bottom: 14px;
-        min-height: 82px;
+        min-height: 64px;
       }
 
       .dock-icons {
-        grid-template-columns: repeat(4, 1fr);
-        gap: 8px;
-        left: 18px;
-        right: 18px;
-        bottom: 14px;
+        grid-template-columns: repeat(8, 1fr);
+        gap: 5px;
+        left: 10px;
+        right: 10px;
+        bottom: 10px;
+      }
+
+      .dock-icons span {
+        border-radius: 10px;
+      }
+
+      .dock-icons span::before {
+        font-size: 14px;
       }
 
       .hero-cat {
@@ -839,6 +1054,16 @@
 
       .skin-row {
         grid-template-columns: repeat(2, 1fr);
+      }
+
+      .skin-stack {
+        padding-right: 16px;
+      }
+
+      .skin-stack img {
+        width: 64px;
+        height: 64px;
+        margin-right: -20px;
       }
 
       .footer {
@@ -874,7 +1099,7 @@
           <p class="support">화면 하단을 사뿐히 걸어다니며 타이핑, 코딩 에이전트 상태, 짧은 질문에 반응합니다. OpenAI/Codex, Claude, Gemini 로그인과 Ollama 같은 로컬 모델을 우선 지원합니다.</p>
           <div class="actions">
             <a class="button primary" href="https://github.com/kimtoma/openNeko">GitHub에서 보기</a>
-            <a class="button secondary" href="#install">설치하기</a>
+            <a class="button secondary" href="#install"><span aria-hidden="true">🐾</span> 설치하기</a>
           </div>
         </div>
 
@@ -885,14 +1110,17 @@
             <span class="dot green"></span>
           </div>
           <div class="desktop-plane">
-            <div class="signal one"><span>typing</span><small>키 내용은 읽지 않음</small></div>
-            <div class="signal two"><span>coding</span><small>HTTP state bridge</small></div>
-            <div class="signal three"><span>AI Agent Login</span><small>OAuth first</small></div>
-            <div class="chat-bubble">빌드가 끝났어. 다음 작업도 도와줄게냥.</div>
+            <div class="chat-bubble">반갑다냥~ 오늘도 같이 작업하자냥.</div>
             <div class="dock" aria-hidden="true">
               <div class="dock-icons">
-                <span></span><span></span><span></span><span></span>
-                <span></span><span></span><span></span><span></span>
+                <span class="dock-icon finder" data-icon="📁"></span>
+                <span class="dock-icon safari" data-icon="🌐"></span>
+                <span class="dock-icon messages" data-icon="💬"></span>
+                <span class="dock-icon mail" data-icon="✉"></span>
+                <span class="dock-icon photos" data-icon="✹"></span>
+                <span class="dock-icon music" data-icon="♪"></span>
+                <span class="dock-icon terminal" data-icon="›_"></span>
+                <span class="dock-icon settings" data-icon="⚙"></span>
               </div>
             </div>
             <span class="dock-shadow" aria-hidden="true"></span>
@@ -910,44 +1138,70 @@
           <article class="feature accent-cyan">
             <div>
               <h3>타이핑 반응</h3>
-              <p>전역 키 입력 발생만 감지해 고양이가 타이핑 애니메이션으로 반응합니다.</p>
+              <p>키보드를 타이핑할 때마다 고양이가 타이핑 애니메이션으로 반응합니다. 키 내용은 읽지 않습니다.</p>
             </div>
-            <img class="feature-cat" src="assets/sprites/black/typing_0.png" alt="" data-frames="assets/sprites/black/typing_0.png|assets/sprites/black/typing_1.png|assets/sprites/black/typing_2.png|assets/sprites/black/typing_3.png" data-interval="150">
+            <div class="feature-scene">
+              <img class="feature-cat" src="assets/sprites/black/typing_0.png" alt="" data-frames="assets/sprites/black/typing_0.png|assets/sprites/black/typing_1.png|assets/sprites/black/typing_2.png|assets/sprites/black/typing_3.png" data-interval="150">
+            </div>
           </article>
           <article class="feature">
             <div>
               <h3>짧은 AI Agent 대화</h3>
               <p>고양이를 클릭하면 작은 말풍선 입력창이 열리고, 선택한 Agent의 답변이 고양이 말투로 돌아옵니다.</p>
             </div>
-            <img class="feature-cat" src="assets/sprites/black/success_0.png" alt="" data-frames="assets/sprites/black/success_0.png|assets/sprites/black/success_1.png|assets/sprites/black/success_2.png|assets/sprites/black/success_3.png" data-interval="170">
+            <div class="feature-scene">
+              <img class="feature-cat" src="assets/sprites/black/success_0.png" alt="" data-frames="assets/sprites/black/success_0.png|assets/sprites/black/success_1.png|assets/sprites/black/success_2.png|assets/sprites/black/success_3.png" data-interval="170">
+            </div>
           </article>
           <article class="feature accent-coral">
             <div>
-              <h3>상태 브리지</h3>
-              <p>HTTP 상태 이벤트와 Cursor, Claude Code CLI, Codex CLI/App, Antigravity, Gemini, Kiro 같은 에이전트 활동을 감지합니다.</p>
+              <h3>에이전트 상태 브리지</h3>
+              <p>Codex, Claude Code, Gemini, Cursor 등과 같은 에이전트 활동에 따라 다양한 모션으로 반응합니다.</p>
             </div>
-            <img class="feature-cat" src="assets/sprites/black/coding_0.png" alt="" data-frames="assets/sprites/black/coding_0.png|assets/sprites/black/coding_1.png|assets/sprites/black/coding_2.png|assets/sprites/black/coding_3.png" data-interval="165">
+            <div class="feature-scene">
+              <img class="feature-cat" src="assets/sprites/black/coding_0.png" alt="" data-frames="assets/sprites/black/coding_0.png|assets/sprites/black/coding_1.png|assets/sprites/black/coding_2.png|assets/sprites/black/coding_3.png" data-interval="165">
+            </div>
           </article>
           <article class="feature">
             <div>
               <h3>스킬 프롬프트</h3>
               <p>번들 또는 사용자 SKILL.md를 메뉴와 슬래시 명령으로 실행합니다.</p>
             </div>
-            <img class="feature-cat" src="assets/sprites/black/idle_0.png" alt="" data-frames="assets/sprites/black/idle_0.png|assets/sprites/black/idle_1.png|assets/sprites/black/idle_2.png|assets/sprites/black/idle_3.png" data-interval="230">
+            <div class="slash-demo" aria-label="openNeko slash command preview">
+              <div class="slash-list">
+                <div class="slash-list-track">
+                  <div class="slash-line"><span>/</span> translate 이거 얼마에요?</div>
+                  <div class="slash-line"><span>/</span> daily-fortune 오늘의 운세</div>
+                  <div class="slash-line"><span>/</span> daily-bgm 초집중 열공모드</div>
+                </div>
+              </div>
+              <img src="assets/sprites/black/idle_0.png" alt="" data-frames="assets/sprites/black/idle_0.png|assets/sprites/black/idle_1.png|assets/sprites/black/idle_2.png|assets/sprites/black/idle_3.png" data-interval="230">
+            </div>
           </article>
           <article class="feature accent-yellow">
             <div>
-              <h3>스킨 시스템</h3>
+              <h3>다양한 모습의 싸이버네꼬</h3>
               <p>기본 스킨 5종과 외부 스킨 폴더를 지원해 픽셀 고양이를 바꿀 수 있습니다.</p>
             </div>
-            <img class="feature-cat" src="assets/sprites/orange/idle_0.png" alt="" data-frames="assets/sprites/orange/idle_0.png|assets/sprites/orange/idle_1.png|assets/sprites/orange/idle_2.png|assets/sprites/orange/idle_3.png" data-interval="220">
+            <div class="skin-stack" aria-label="openNeko skin variants">
+              <img src="assets/sprites/jump_0.png" alt="" data-frames="assets/sprites/jump_0.png|assets/sprites/jump_1.png|assets/sprites/jump_2.png|assets/sprites/jump_3.png" data-interval="160">
+              <img src="assets/sprites/black/jump_0.png" alt="" data-frames="assets/sprites/black/jump_0.png|assets/sprites/black/jump_1.png|assets/sprites/black/jump_2.png|assets/sprites/black/jump_3.png" data-interval="160">
+              <img src="assets/sprites/orange/jump_0.png" alt="" data-frames="assets/sprites/orange/jump_0.png|assets/sprites/orange/jump_1.png|assets/sprites/orange/jump_2.png|assets/sprites/orange/jump_3.png" data-interval="160">
+              <img src="assets/sprites/calico/jump_0.png" alt="" data-frames="assets/sprites/calico/jump_0.png|assets/sprites/calico/jump_1.png|assets/sprites/calico/jump_2.png|assets/sprites/calico/jump_3.png" data-interval="160">
+              <img src="assets/sprites/pink/jump_0.png" alt="" data-frames="assets/sprites/pink/jump_0.png|assets/sprites/pink/jump_1.png|assets/sprites/pink/jump_2.png|assets/sprites/pink/jump_3.png" data-interval="160">
+            </div>
           </article>
           <article class="feature">
             <div>
-              <h3>이웃 고양이</h3>
-              <p>같은 LAN의 openNeko 인스턴스를 발견해 친구 고양이가 화면에 찾아옵니다.</p>
+              <h3>이웃집 고양이 방문</h3>
+              <p>근처에 같은 Wi-Fi로 접속한 openNeko 친구를 발견해 화면에 찾아오게 합니다.</p>
             </div>
-            <img class="feature-cat" src="assets/sprites/calico/idle_0.png" alt="" data-frames="assets/sprites/calico/idle_0.png|assets/sprites/calico/idle_1.png|assets/sprites/calico/idle_2.png|assets/sprites/calico/idle_3.png" data-interval="225">
+            <div class="neighbor-scene" aria-label="neighbor cat visiting">
+              <span class="cat-label friend">모찌</span>
+              <span class="cat-label mine">네꼬</span>
+              <img class="friend-cat" src="assets/sprites/calico/walk_0.png" alt="" data-frames="assets/sprites/calico/walk_0.png|assets/sprites/calico/walk_1.png|assets/sprites/calico/walk_2.png|assets/sprites/calico/walk_3.png" data-interval="150">
+              <img class="home-cat" src="assets/sprites/black/idle_0.png" alt="" data-frames="assets/sprites/black/idle_0.png|assets/sprites/black/idle_1.png|assets/sprites/black/idle_2.png|assets/sprites/black/idle_3.png" data-interval="225">
+            </div>
           </article>
         </div>
       </section>
@@ -962,7 +1216,7 @@
             <div class="terminal-label">macOS</div>
             <div class="command-row">
               <code id="install-command">curl -fsSL https://raw.githubusercontent.com/kimtoma/openNeko/refs/heads/main/scripts/install.sh | bash</code>
-              <button class="copy-button" type="button" data-copy="#install-command">복사</button>
+              <button class="copy-button" type="button" data-copy="#install-command"><span aria-hidden="true">🐾</span> 복사</button>
             </div>
           </div>
           <div class="install-note">
@@ -979,20 +1233,32 @@
         </div>
         <div class="providers">
           <div class="provider">
-            <strong>OpenAI/Codex 로그인</strong>
-            <span>Codex CLI 로그인 세션을 사용합니다. 앱에 OpenAI API 키를 입력하지 않아도 됩니다.</span>
+            <div class="provider-icons" aria-hidden="true">
+              <img src="assets/icons/openai.svg" alt="">
+            </div>
+            <strong>ChatGPT 로그인</strong>
+            <span>ChatGPT나 Codex 로그인 세션을 사용합니다. 앱에 OpenAI API 키를 입력하지 않아도 됩니다.</span>
           </div>
           <div class="provider">
-            <strong>Claude / Gemini 로그인</strong>
-            <span>각 CLI의 로컬 OAuth 로그인 세션을 사용해 API 키 입력을 줄입니다.</span>
+            <div class="provider-icons" aria-hidden="true">
+              <img src="assets/icons/claude.svg" alt="">
+            </div>
+            <strong>Claude 로그인</strong>
+            <span>Claude Code CLI의 로컬 OAuth 로그인 세션을 사용해 API 키 입력을 줄입니다.</span>
           </div>
           <div class="provider">
-            <strong>Ollama / 로컬 모델</strong>
-            <span>Ollama와 로컬 OpenAI 호환 서버를 클라우드 API 키 없이 연결합니다.</span>
+            <div class="provider-icons" aria-hidden="true">
+              <img src="assets/icons/gemini.svg" alt="">
+            </div>
+            <strong>Gemini 로그인</strong>
+            <span>Gemini CLI의 로컬 OAuth 로그인 세션을 사용해 대화할 수 있습니다.</span>
           </div>
           <div class="provider">
-            <strong>API 키 provider</strong>
-            <span>필요한 경우 Gemini API 키, Anthropic API 키, 커스텀 엔드포인트를 연결합니다.</span>
+            <div class="provider-icons" aria-hidden="true">
+              <img src="assets/icons/ollama.svg" alt="">
+            </div>
+            <strong>Ollama 로컬 모델 / API 키 설정</strong>
+            <span>Ollama, 로컬 OpenAI 호환 서버, Gemini API 키, Anthropic API 키를 설정할 수 있습니다.</span>
           </div>
         </div>
       </section>
@@ -1018,7 +1284,10 @@
     </main>
 
     <footer class="footer">
-      <span>openNeko is released under the MIT License.</span>
+      <span>
+        openNeko is released under the MIT License.
+        <span class="footer-made">made by <a href="https://kimtoma.com">kimtoma</a> with ❤️</span>
+      </span>
       <div class="footer-links">
         <a href="https://github.com/kimtoma/openNeko">GitHub</a>
         <a href="https://github.com/kimtoma/openNeko/blob/main/README.md">README</a>
@@ -1058,7 +1327,8 @@
       document.querySelectorAll('[data-frames]').forEach((img, index) => {
         const frames = img.dataset.frames.split('|').filter(Boolean);
         const interval = Number(img.dataset.interval || 200);
-        if (frames.length > 1) animateSprite(img, frames, interval, index);
+        const offset = img.closest('.skin-stack') ? 0 : index;
+        if (frames.length > 1) animateSprite(img, frames, interval, offset);
       });
     }
 
@@ -1085,10 +1355,13 @@
         } catch {
           label = '선택됨';
         }
-        button.textContent = label;
-        window.setTimeout(() => { button.textContent = '복사'; }, 1200);
+        button.innerHTML = `<span aria-hidden="true">🐾</span> ${label}`;
+        window.setTimeout(() => {
+          button.innerHTML = '<span aria-hidden="true">🐾</span> 복사';
+        }, 1200);
       });
     });
+
   </script>
 </body>
 </html>

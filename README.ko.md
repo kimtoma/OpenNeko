@@ -29,7 +29,14 @@ Windows PowerShell:
 irm https://raw.githubusercontent.com/kimtoma/openNeko/refs/heads/main/scripts/install.ps1 | iex
 ```
 
-두 설치 스크립트 모두 `git`과 Node.js `22.12+`가 필요합니다. 로그인 자동시작을 건너뛰려면 실행 전에 `OPENNEKO_NO_AUTOSTART=1`을 설정하세요.
+두 설치 스크립트 모두 `git`과 Node.js `22.12+`가 필요합니다. 로그인 자동시작을 건너뛰려면 실행 전에 `OPENNEKO_NO_AUTOSTART=1`을 설정하세요. 온보딩에서도 **컴퓨터 켤 때 자동 실행**을 켜거나 끌 수 있고, 나중에 설정에서 다시 바꿀 수 있습니다.
+
+앱 형태로 배포하려면 네이티브 설치 파일을 빌드하세요:
+
+```bash
+npm run dist      # macOS DMG
+npm run dist:win  # Windows NSIS 설치 파일
+```
 
 ## 소스에서 실행
 

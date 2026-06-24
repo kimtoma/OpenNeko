@@ -329,6 +329,35 @@ function store() {
   return settingsStore;
 }
 
+function loginItemOptions(openAtLogin) {
+  return {
+    openAtLogin: !!openAtLogin,
+    openAsHidden: false,
+    path: process.execPath,
+    args: app.isPackaged ? [] : [app.getAppPath()],
+  };
+}
+
+function systemLaunchAtLogin() {
+  try {
+    return app.getLoginItemSettings(loginItemOptions(false)).openAtLogin === true;
+  } catch {
+    return false;
+  }
+}
+
+function setLaunchAtLogin(enabled) {
+  const next = !!enabled;
+  try {
+    app.setLoginItemSettings(loginItemOptions(next));
+  } catch (e) {
+    console.error('[openneko] setLoginItemSettings failed:', e && e.message || e);
+  }
+  const cur = store().load();
+  store().save({ ...cur, launchAtLogin: next });
+  return { ok: true, enabled: next, systemEnabled: systemLaunchAtLogin() };
+}
+
 // 보강된 PATH에서 실행파일 존재 확인 (login 셸 spawn 없이 동기).
 function whichBin(bin) {
   const isWin = process.platform === 'win32';
@@ -470,7 +499,7 @@ function keyForTest(presetId, fields) {
 }
 
 ipcMain.handle('settings-get', () => {
-  const { provider, apiKey, sound, lang, onboarded, webSearch, profile, neighbor, catName } = store().load();
+  const { provider, apiKey, sound, lang, onboarded, webSearch, profile, neighbor, catName, launchAtLogin } = store().load();
   const savedProvider = validProvider(provider) ? provider : null;
   return {
     provider: savedProvider, hasKey: !!(savedProvider && providerNeedsKey(savedProvider.preset) && apiKey),
@@ -481,6 +510,7 @@ ipcMain.handle('settings-get', () => {
     profile: profile || {},
     neighbor,
     catName,
+    launchAtLogin: !!launchAtLogin || systemLaunchAtLogin(),
   };
 });
 
@@ -518,6 +548,9 @@ ipcMain.handle('websearch-set', (_e, { enabled }) => {
   llmProvider = null;
   return { ok: true };
 });
+
+ipcMain.handle('launch-at-login-set', (_e, { enabled }) => setLaunchAtLogin(enabled));
+
 ipcMain.handle('settings-save', (_e, { presetId, fields }) => {
   const provider = presetConfig(presetId, stripKey(fields));
   try {
@@ -1091,6 +1124,7 @@ if (!gotSingleInstanceLock) {
     startProcPoller();
     startKeyboardWatch();
     startNeighbor();
+    if (store().load().launchAtLogin) setLaunchAtLogin(true);
 
     // 첫 실행 환영: onboarded가 아직 아니면 설정창(온보딩 위저드) 자동 열기 + 고양이 인사 말풍선
     if (!store().load().onboarded) {

@@ -12,3 +12,18 @@ assets/gen/pink/
 assets/gen/calico/
 # 로컬 도구 venv
 .venv-tools/
+
+# Local MCP/editor integration artifacts
+.codex/
+.cursor/
+.gemini/
+.mcp.json
+.vscode/
+.zed/
+config/
+opencode.json
+
+# Local Agentation review artifacts
+docs/agentation-entry.jsx
+docs/agentation.bundle.js
+docs/backups/

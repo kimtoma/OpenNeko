@@ -17,7 +17,20 @@ function makeStore({ dir, safeStorage }) {
   function load() {
     let raw;
     try { raw = JSON.parse(fs.readFileSync(file, 'utf8')); }
-    catch { return { provider: null, apiKey: '', sound: { enabled: true }, skin: 'white', onboarded: false, neighbor: { enabled: true, displayName: '' }, peerId: '', catName: '', webSearch: false }; }
+    catch {
+      return {
+        provider: null,
+        apiKey: '',
+        sound: { enabled: true },
+        skin: 'white',
+        onboarded: false,
+        neighbor: { enabled: true, displayName: '' },
+        peerId: '',
+        catName: '',
+        webSearch: false,
+        launchAtLogin: false,
+      };
+    }
     let apiKey = '';
     if (raw.secret && safeStorage && safeStorage.isEncryptionAvailable()) {
       try { apiKey = safeStorage.decryptString(Buffer.from(raw.secret, 'base64')); } catch { apiKey = ''; }
@@ -37,10 +50,11 @@ function makeStore({ dir, safeStorage }) {
       catName: (typeof raw.catName === 'string' && raw.catName)
         ? raw.catName
         : ((raw.neighbor && typeof raw.neighbor.displayName === 'string') ? raw.neighbor.displayName : ''),
+      launchAtLogin: raw.launchAtLogin === true,
     };
   }
 
-  function save({ provider, apiKey, sound, lang, skin, onboarded, disabledSkills, webSearch, profile, neighbor, peerId, catName }) {
+  function save({ provider, apiKey, sound, lang, skin, onboarded, disabledSkills, webSearch, profile, neighbor, peerId, catName, launchAtLogin }) {
     const out = { provider };
     if (apiKey) {
       if (!safeStorage || !safeStorage.isEncryptionAvailable()) throw new Error('safeStorage 사용 불가 — 키를 저장할 수 없다냥');
@@ -56,6 +70,7 @@ function makeStore({ dir, safeStorage }) {
     if (neighbor != null) out.neighbor = sanitizeNeighbor(neighbor);
     if (peerId != null) out.peerId = String(peerId);
     if (catName != null) out.catName = String(catName).slice(0, 64);
+    if (launchAtLogin != null) out.launchAtLogin = !!launchAtLogin;
     fs.mkdirSync(dir, { recursive: true });
     fs.writeFileSync(file, JSON.stringify(out, null, 2));
   }

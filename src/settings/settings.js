@@ -25,7 +25,7 @@ const ICONS = {
 const WEBSEARCH_SUPPORTED = new Set();
 
 let PRESETS = [];
-let cur = { presetId: 'chatgpt-oauth', provider: null, hasKey: false, sound: { enabled: true }, resolvedLang: 'en', skin: 'white', onboarding: false, webSearch: false };
+let cur = { presetId: 'chatgpt-oauth', provider: null, hasKey: false, sound: { enabled: true }, resolvedLang: 'en', skin: 'white', onboarding: false, webSearch: false, launchAtLogin: false };
 let detected = [];
 let allSkins = [];
 let presetById = {};
@@ -362,6 +362,17 @@ function updateWebSearchUI() {
   }
 }
 
+async function setLaunchAtLogin(enabled) {
+  cur.launchAtLogin = !!enabled;
+  const r = await window.settings.setLaunchAtLogin({ enabled: cur.launchAtLogin });
+  if (r && r.ok) {
+    cur.launchAtLogin = !!r.enabled;
+  }
+  const launchEl = $('launch-at-login');
+  if (launchEl) launchEl.checked = cur.launchAtLogin;
+  return r;
+}
+
 async function refresh() {
   cur = await window.settings.get();
   if (!cur.sound) cur.sound = { enabled: true };
@@ -382,6 +393,8 @@ async function refresh() {
   const ne = $('neighbor-enabled'); if (ne) ne.checked = nb.enabled !== false;
   // 웹 검색 토글 동기화
   updateWebSearchUI();
+  const launchEl = $('launch-at-login');
+  if (launchEl) launchEl.checked = cur.launchAtLogin === true;
   // 언어 선택 드롭다운 동기화
   const langEl = $('lang');
   if (langEl) langEl.value = cur.resolvedLang || 'en';
@@ -389,7 +402,7 @@ async function refresh() {
 }
 
 // ===== 온보딩 위저드 =========================================================
-const WIZ_STEPS = ['welcome', 'skin', 'name', 'perms', 'backend', 'cheats'];
+const WIZ_STEPS = ['welcome', 'skin', 'name', 'perms', 'startup', 'backend', 'cheats'];
 let wizIdx = 0;
 let wizPermTimer = null;
 
@@ -413,6 +426,7 @@ function renderWizard() {
   else if (step === 'skin') renderWizSkin(body);
   else if (step === 'name') renderWizName(body);
   else if (step === 'perms') renderWizPerms(body);
+  else if (step === 'startup') renderWizStartup(body);
   else if (step === 'backend') renderWizBackend(body);
   else if (step === 'cheats') renderWizCheats(body);
   renderWizNav();
@@ -505,6 +519,23 @@ async function renderWizPerms(body) {
   }, 2500);
 }
 
+function renderWizStartup(body) {
+  body.innerHTML =
+    `<h2 class="wiz-title">${esc(t('onboard.startupTitle'))}</h2>` +
+    `<p class="wiz-text">${esc(t('onboard.startupBody'))}</p>` +
+    `<div class="control-row">` +
+    `<div class="control-body"><div class="control-title">${esc(t('settings.launchAtLoginLabel'))}</div>` +
+    `<div class="hint">${esc(t('settings.launchAtLoginNote'))}</div></div>` +
+    `<label class="switch"><input type="checkbox" id="wiz-launch-at-login"><span class="slider"></span><span class="switch-copy">${esc(t('settings.soundOn'))}</span></label>` +
+    `</div>`;
+  const el = $('wiz-launch-at-login');
+  if (!el) return;
+  const defaultOn = cur.onboarding ? true : cur.launchAtLogin === true;
+  el.checked = defaultOn;
+  if (cur.launchAtLogin !== defaultOn) setLaunchAtLogin(defaultOn);
+  el.onchange = () => setLaunchAtLogin(el.checked);
+}
+
 async function renderWizBackend(body) {
   try { detected = await window.settings.detect(); } catch { /* keep prior */ }
   const { ready } = categorizeProviders({ presets: PRESETS, detected, currentPresetId: cur.presetId });
@@ -588,6 +619,9 @@ async function init() {
 
   const ne = $('neighbor-enabled');
   if (ne) ne.onchange = () => window.settings.setNeighbor({ enabled: ne.checked });
+
+  const launchEl = $('launch-at-login');
+  if (launchEl) launchEl.onchange = () => setLaunchAtLogin(launchEl.checked);
 
   const wsEl = $('websearch-enabled');
   if (wsEl) wsEl.addEventListener('change', async () => {
@@ -712,6 +746,9 @@ function applyStaticText() {
   setText('adv-test', t('settings.testCurrent'));
   setText('sound-label', t('settings.soundLabel'));
   setText('sound-on-label', t('settings.soundOn'));
+  setText('launch-label', t('settings.launchAtLoginLabel'));
+  setText('launch-note', t('settings.launchAtLoginNote'));
+  setText('launch-on-label', t('settings.soundOn'));
   setText('websearch-on-label', t('settings.soundOn'));
   setText('lang-label', t('settings.langLabel'));
   setText('rerun-onboard', t('onboard.start'));

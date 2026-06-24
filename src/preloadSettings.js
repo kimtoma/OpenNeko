@@ -11,6 +11,7 @@ contextBridge.exposeInMainWorld('settings', {
   setSkin: (cfg) => ipcRenderer.invoke('skin-set', cfg),
   setCatName: (cfg) => ipcRenderer.invoke('cat-name-set', cfg),
   setNeighbor: (cfg) => ipcRenderer.invoke('neighbor-set', cfg),
+  setLaunchAtLogin: (cfg) => ipcRenderer.invoke('launch-at-login-set', cfg),
   resize: (height) => ipcRenderer.send('settings-resize', height),
   openExternal: (url) => ipcRenderer.invoke('open-external', url),
   onboardPick: (cfg) => ipcRenderer.invoke('onboard-pick', cfg),

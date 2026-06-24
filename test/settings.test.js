@@ -97,6 +97,16 @@ test('catName 저장/로드', () => {
   assert.strictEqual(store.load().catName, '나비');
 });
 
+test('launchAtLogin 기본값과 저장/로드', () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'cn-launch-login-'));
+  const store = makeStore({ dir, safeStorage: null });
+  assert.strictEqual(store.load().launchAtLogin, false);
+  store.save({ ...store.load(), launchAtLogin: true });
+  assert.strictEqual(store.load().launchAtLogin, true);
+  store.save({ ...store.load(), launchAtLogin: false });
+  assert.strictEqual(store.load().launchAtLogin, false);
+});
+
 test('마이그레이션: catName 비고 neighbor.displayName 있으면 그 값', () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'cn-mig-'));
   fs.writeFileSync(path.join(dir, 'settings.json'), JSON.stringify({ neighbor: { enabled: true, displayName: '치즈' } }));
