@@ -1,7 +1,7 @@
 # openNeko Windows installer (source checkout + bundled Electron).
 #
 # One-liner:
-#   irm https://raw.githubusercontent.com/kimtoma/openNeko/refs/heads/main/scripts/install.ps1 | iex
+#   irm https://github.com/kimtoma/openNeko/releases/latest/download/openneko-install.ps1 | iex
 #
 # Options:
 #   $env:OPENNEKO_REF              default: main

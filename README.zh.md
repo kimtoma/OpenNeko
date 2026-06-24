@@ -20,13 +20,13 @@ openNeko 是一个面向 AI Agent 的开源桌面像素猫。它常驻屏幕底�
 macOS:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/kimtoma/openNeko/refs/heads/main/scripts/install.sh | bash
+curl -fsSL https://github.com/kimtoma/openNeko/releases/latest/download/openneko-install.sh | bash
 ```
 
 Windows PowerShell:
 
 ```powershell
-irm https://raw.githubusercontent.com/kimtoma/openNeko/refs/heads/main/scripts/install.ps1 | iex
+irm https://github.com/kimtoma/openNeko/releases/latest/download/openneko-install.ps1 | iex
 ```
 
 需要 `git` 和 Node.js `22.12+`。如需跳过登录自动启动，请在安装前设置 `OPENNEKO_NO_AUTOSTART=1`。

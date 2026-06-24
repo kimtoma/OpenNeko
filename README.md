@@ -54,16 +54,22 @@ It can also answer short messages through ChatGPT/Codex, Claude, Gemini, Ollama,
 macOS:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/kimtoma/openNeko/refs/heads/main/scripts/install.sh | bash
+curl -fsSL https://github.com/kimtoma/openNeko/releases/latest/download/openneko-install.sh | bash
 ```
 
 Windows PowerShell:
 
 ```powershell
-irm https://raw.githubusercontent.com/kimtoma/openNeko/refs/heads/main/scripts/install.ps1 | iex
+irm https://github.com/kimtoma/openNeko/releases/latest/download/openneko-install.ps1 | iex
 ```
 
 Both installers need `git` and Node.js `22.12+`. To skip login autostart, set `OPENNEKO_NO_AUTOSTART=1` before running the installer. The onboarding wizard also includes a **Launch when computer starts** toggle, and the same option is available later in Settings.
+
+Installer downloads are served through GitHub Releases so maintainers can track install interest from release asset download counts. With GitHub CLI access, run:
+
+```bash
+bash scripts/metrics.sh
+```
 
 For app-style distribution, build native installers:
 

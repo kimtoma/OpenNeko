@@ -20,13 +20,13 @@ openNeko は AI Agent と会話するオープンソースのデスクトップ�
 macOS:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/kimtoma/openNeko/refs/heads/main/scripts/install.sh | bash
+curl -fsSL https://github.com/kimtoma/openNeko/releases/latest/download/openneko-install.sh | bash
 ```
 
 Windows PowerShell:
 
 ```powershell
-irm https://raw.githubusercontent.com/kimtoma/openNeko/refs/heads/main/scripts/install.ps1 | iex
+irm https://github.com/kimtoma/openNeko/releases/latest/download/openneko-install.ps1 | iex
 ```
 
 `git` と Node.js `22.12+` が必要です。ログイン時の自動起動を無効にするには、実行前に `OPENNEKO_NO_AUTOSTART=1` を設定してください。

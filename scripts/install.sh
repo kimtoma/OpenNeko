@@ -2,7 +2,7 @@
 # openNeko macOS installer (source checkout + bundled Electron).
 #
 # One-liner:
-#   curl -fsSL https://raw.githubusercontent.com/kimtoma/openNeko/refs/heads/main/scripts/install.sh | bash
+#   curl -fsSL https://github.com/kimtoma/openNeko/releases/latest/download/openneko-install.sh | bash
 #
 # Options:
 #   OPENNEKO_REF=<branch/tag>       default: main

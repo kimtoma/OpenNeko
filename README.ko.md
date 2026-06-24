@@ -20,16 +20,22 @@ openNeko는 AI Agent와 대화하는 오픈소스 데스크탑 픽셀 고양이�
 macOS:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/kimtoma/openNeko/refs/heads/main/scripts/install.sh | bash
+curl -fsSL https://github.com/kimtoma/openNeko/releases/latest/download/openneko-install.sh | bash
 ```
 
 Windows PowerShell:
 
 ```powershell
-irm https://raw.githubusercontent.com/kimtoma/openNeko/refs/heads/main/scripts/install.ps1 | iex
+irm https://github.com/kimtoma/openNeko/releases/latest/download/openneko-install.ps1 | iex
 ```
 
 두 설치 스크립트 모두 `git`과 Node.js `22.12+`가 필요합니다. 로그인 자동시작을 건너뛰려면 실행 전에 `OPENNEKO_NO_AUTOSTART=1`을 설정하세요. 온보딩에서도 **컴퓨터 켤 때 자동 실행**을 켜거나 끌 수 있고, 나중에 설정에서 다시 바꿀 수 있습니다.
+
+설치 스크립트는 GitHub Releases 자산으로 배포되어 다운로드 수로 설치 관심도를 볼 수 있습니다. GitHub CLI 권한이 있으면 아래 명령으로 확인하세요:
+
+```bash
+bash scripts/metrics.sh
+```
 
 앱 형태로 배포하려면 네이티브 설치 파일을 빌드하세요:
 
