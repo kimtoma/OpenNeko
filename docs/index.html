@@ -112,6 +112,20 @@
       font-weight: 900;
     }
 
+    .language-select {
+      height: 38px;
+      border: 1px solid var(--ink);
+      border-radius: 8px;
+      background: #fff;
+      color: var(--ink);
+      padding: 0 30px 0 10px;
+      font-family: var(--ui-font);
+      font-size: 13px;
+      font-weight: 900;
+      cursor: pointer;
+      box-shadow: 2px 2px 0 rgba(17, 19, 24, 0.16);
+    }
+
     .nav-links a:hover {
       color: var(--ink);
     }
@@ -948,6 +962,10 @@
         padding: 9px 11px;
       }
 
+      .language-select {
+        max-width: 104px;
+      }
+
       .hero {
         padding: 34px 0 28px;
         gap: 26px;
@@ -1076,16 +1094,22 @@
 <body>
   <div class="page">
     <header class="site-header">
-      <nav class="nav" aria-label="주요 메뉴">
-        <a class="brand" href="#top" aria-label="openNeko 홈">
+      <nav class="nav" aria-label="주요 메뉴" data-i18n-attr="aria-label:navAria">
+        <a class="brand" href="#top" aria-label="openNeko 홈" data-i18n-attr="aria-label:brandAria">
           <img src="assets/sprites/black/idle_0.png" alt="">
           <span>openNeko</span>
         </a>
         <div class="nav-links">
-          <a href="#features">Features</a>
-          <a href="#install">Install</a>
-          <a href="#providers">Providers</a>
-          <a href="#community">Community</a>
+          <a href="#features" data-i18n="navFeatures">Features</a>
+          <a href="#install" data-i18n="navInstall">Install</a>
+          <a href="#providers" data-i18n="navProviders">Providers</a>
+          <a href="#community" data-i18n="navCommunity">Community</a>
+          <select class="language-select" id="language-select" aria-label="Language">
+            <option value="ko">한국어</option>
+            <option value="en">English</option>
+            <option value="ja">日本語</option>
+            <option value="zh">简体中文</option>
+          </select>
           <a class="nav-cta" href="https://github.com/kimtoma/openNeko">GitHub</a>
         </div>
       </nav>
@@ -1095,22 +1119,22 @@
       <section class="hero" aria-labelledby="hero-title">
         <div class="hero-copy">
           <h1 id="hero-title">openNeko</h1>
-          <p>AI Agent와 대화하는 오픈소스 데스크탑 픽셀 고양이</p>
-          <p class="support">화면 하단을 사뿐히 걸어다니며 타이핑, 코딩 에이전트 상태, 짧은 질문에 반응합니다. OpenAI/Codex, Claude, Gemini 로그인과 Ollama 같은 로컬 모델을 우선 지원합니다.</p>
+          <p data-i18n="heroLead">AI Agent와 대화하는 오픈소스 데스크탑 픽셀 고양이</p>
+          <p class="support" data-i18n="heroSupport">화면 하단을 사뿐히 걸어다니며 타이핑, 코딩 에이전트 상태, 짧은 질문에 반응합니다. OpenAI/Codex, Claude, Gemini 로그인과 Ollama 같은 로컬 모델을 우선 지원합니다.</p>
           <div class="actions">
-            <a class="button primary" href="https://github.com/kimtoma/openNeko">GitHub에서 보기</a>
-            <a class="button secondary" href="#install"><span aria-hidden="true">🐾</span> 설치하기</a>
+            <a class="button primary" href="https://github.com/kimtoma/openNeko" data-i18n="heroGithub">GitHub에서 보기</a>
+            <a class="button secondary" href="#install"><span aria-hidden="true">🐾</span> <span data-i18n="heroInstall">설치하기</span></a>
           </div>
         </div>
 
-        <div class="hero-stage" aria-label="openNeko 데스크탑 프리뷰">
+        <div class="hero-stage" aria-label="openNeko 데스크탑 프리뷰" data-i18n-attr="aria-label:heroPreviewAria">
           <div class="window-bar" aria-hidden="true">
             <span class="dot red"></span>
             <span class="dot yellow"></span>
             <span class="dot green"></span>
           </div>
           <div class="desktop-plane">
-            <div class="chat-bubble">반갑다냥~ 오늘도 같이 작업하자냥.</div>
+            <div class="chat-bubble" data-i18n="heroBubble">반갑다냥~ 오늘도 같이 작업하자냥.</div>
             <div class="dock" aria-hidden="true">
               <div class="dock-icons">
                 <span class="dock-icon finder" data-icon="📁"></span>
@@ -1131,14 +1155,14 @@
 
       <section class="section" id="features" aria-labelledby="features-title">
         <div class="section-head">
-          <h2 id="features-title">작업 흐름을 방해하지 않는 작은 AI 동료</h2>
-          <p>openNeko는 데스크탑 위에 가볍게 머무는 반응형 펫입니다. 채팅, 상태 표시, 스킬 실행, 스킨 교체가 모두 로컬 앱 안에서 동작합니다.</p>
+          <h2 id="features-title" data-i18n="featuresTitle">작업 흐름을 방해하지 않는 작은 AI 동료</h2>
+          <p data-i18n="featuresBody">openNeko는 데스크탑 위에 가볍게 머무는 반응형 펫입니다. 채팅, 상태 표시, 스킬 실행, 스킨 교체가 모두 로컬 앱 안에서 동작합니다.</p>
         </div>
         <div class="feature-grid">
           <article class="feature accent-cyan">
             <div>
-              <h3>타이핑 반응</h3>
-              <p>키보드를 타이핑할 때마다 고양이가 타이핑 애니메이션으로 반응합니다. 키 내용은 읽지 않습니다.</p>
+              <h3 data-i18n="featureTypingTitle">타이핑 반응</h3>
+              <p data-i18n="featureTypingBody">키보드를 타이핑할 때마다 고양이가 타이핑 애니메이션으로 반응합니다. 키 내용은 읽지 않습니다.</p>
             </div>
             <div class="feature-scene">
               <img class="feature-cat" src="assets/sprites/black/typing_0.png" alt="" data-frames="assets/sprites/black/typing_0.png|assets/sprites/black/typing_1.png|assets/sprites/black/typing_2.png|assets/sprites/black/typing_3.png" data-interval="150">
@@ -1146,8 +1170,8 @@
           </article>
           <article class="feature">
             <div>
-              <h3>짧은 AI Agent 대화</h3>
-              <p>고양이를 클릭하면 작은 말풍선 입력창이 열리고, 선택한 Agent의 답변이 고양이 말투로 돌아옵니다.</p>
+              <h3 data-i18n="featureChatTitle">짧은 AI Agent 대화</h3>
+              <p data-i18n="featureChatBody">고양이를 클릭하면 작은 말풍선 입력창이 열리고, 선택한 Agent의 답변이 고양이 말투로 돌아옵니다.</p>
             </div>
             <div class="feature-scene">
               <img class="feature-cat" src="assets/sprites/black/success_0.png" alt="" data-frames="assets/sprites/black/success_0.png|assets/sprites/black/success_1.png|assets/sprites/black/success_2.png|assets/sprites/black/success_3.png" data-interval="170">
@@ -1155,8 +1179,8 @@
           </article>
           <article class="feature accent-coral">
             <div>
-              <h3>에이전트 상태 브리지</h3>
-              <p>Codex, Claude Code, Gemini, Cursor 등과 같은 에이전트 활동에 따라 다양한 모션으로 반응합니다.</p>
+              <h3 data-i18n="featureBridgeTitle">에이전트 상태 브리지</h3>
+              <p data-i18n="featureBridgeBody">Codex, Claude Code, Gemini, Cursor 등과 같은 에이전트 활동에 따라 다양한 모션으로 반응합니다.</p>
             </div>
             <div class="feature-scene">
               <img class="feature-cat" src="assets/sprites/black/coding_0.png" alt="" data-frames="assets/sprites/black/coding_0.png|assets/sprites/black/coding_1.png|assets/sprites/black/coding_2.png|assets/sprites/black/coding_3.png" data-interval="165">
@@ -1164,15 +1188,15 @@
           </article>
           <article class="feature">
             <div>
-              <h3>스킬 프롬프트</h3>
-              <p>번들 또는 사용자 SKILL.md를 메뉴와 슬래시 명령으로 실행합니다.</p>
+              <h3 data-i18n="featureSkillTitle">스킬 프롬프트</h3>
+              <p data-i18n="featureSkillBody">번들 또는 사용자 SKILL.md를 메뉴와 슬래시 명령으로 실행합니다.</p>
             </div>
             <div class="slash-demo" aria-label="openNeko slash command preview">
               <div class="slash-list">
                 <div class="slash-list-track">
-                  <div class="slash-line"><span>/</span> translate 이거 얼마에요?</div>
-                  <div class="slash-line"><span>/</span> daily-fortune 오늘의 운세</div>
-                  <div class="slash-line"><span>/</span> daily-bgm 초집중 열공모드</div>
+                  <div class="slash-line"><span>/</span> <span data-i18n="slashTranslate">translate 이거 얼마에요?</span></div>
+                  <div class="slash-line"><span>/</span> <span data-i18n="slashFortune">daily-fortune 오늘의 운세</span></div>
+                  <div class="slash-line"><span>/</span> <span data-i18n="slashBgm">daily-bgm 초집중 열공모드</span></div>
                 </div>
               </div>
               <img src="assets/sprites/black/idle_0.png" alt="" data-frames="assets/sprites/black/idle_0.png|assets/sprites/black/idle_1.png|assets/sprites/black/idle_2.png|assets/sprites/black/idle_3.png" data-interval="230">
@@ -1180,8 +1204,8 @@
           </article>
           <article class="feature accent-yellow">
             <div>
-              <h3>다양한 모습의 싸이버네꼬</h3>
-              <p>기본 스킨 5종과 외부 스킨 폴더를 지원해 픽셀 고양이를 바꿀 수 있습니다.</p>
+              <h3 data-i18n="featureSkinTitle">다양한 모습의 싸이버네꼬</h3>
+              <p data-i18n="featureSkinBody">기본 스킨 5종과 외부 스킨 폴더를 지원해 픽셀 고양이를 바꿀 수 있습니다.</p>
             </div>
             <div class="skin-stack" aria-label="openNeko skin variants">
               <img src="assets/sprites/jump_0.png" alt="" data-frames="assets/sprites/jump_0.png|assets/sprites/jump_1.png|assets/sprites/jump_2.png|assets/sprites/jump_3.png" data-interval="160">
@@ -1193,12 +1217,12 @@
           </article>
           <article class="feature">
             <div>
-              <h3>이웃집 고양이 방문</h3>
-              <p>근처에 같은 Wi-Fi로 접속한 openNeko 친구를 발견해 화면에 찾아오게 합니다.</p>
+              <h3 data-i18n="featureNeighborTitle">이웃집 고양이 방문</h3>
+              <p data-i18n="featureNeighborBody">근처에 같은 Wi-Fi로 접속한 openNeko 친구를 발견해 화면에 찾아오게 합니다.</p>
             </div>
             <div class="neighbor-scene" aria-label="neighbor cat visiting">
-              <span class="cat-label friend">모찌</span>
-              <span class="cat-label mine">네꼬</span>
+              <span class="cat-label friend" data-i18n="catFriend">모찌</span>
+              <span class="cat-label mine" data-i18n="catMine">네꼬</span>
               <img class="friend-cat" src="assets/sprites/calico/walk_0.png" alt="" data-frames="assets/sprites/calico/walk_0.png|assets/sprites/calico/walk_1.png|assets/sprites/calico/walk_2.png|assets/sprites/calico/walk_3.png" data-interval="150">
               <img class="home-cat" src="assets/sprites/black/idle_0.png" alt="" data-frames="assets/sprites/black/idle_0.png|assets/sprites/black/idle_1.png|assets/sprites/black/idle_2.png|assets/sprites/black/idle_3.png" data-interval="225">
             </div>
@@ -1208,57 +1232,57 @@
 
       <section class="section" id="install" aria-labelledby="install-title">
         <div class="section-head">
-          <h2 id="install-title">소스 그대로 설치하고 실행</h2>
-          <p>GitHub Pages는 소개 페이지를 맡고, 실제 앱 소스와 설치 스크립트는 GitHub 저장소에서 관리합니다.</p>
+          <h2 id="install-title" data-i18n="installTitle">소스 그대로 설치하고 실행</h2>
+          <p data-i18n="installBody">GitHub Pages는 소개 페이지를 맡고, 실제 앱 소스와 설치 스크립트는 GitHub 저장소에서 관리합니다.</p>
         </div>
         <div class="install-panel">
           <div class="terminal">
             <div class="terminal-label">macOS</div>
             <div class="command-row">
               <code id="install-command">curl -fsSL https://raw.githubusercontent.com/kimtoma/openNeko/refs/heads/main/scripts/install.sh | bash</code>
-              <button class="copy-button" type="button" data-copy="#install-command"><span aria-hidden="true">🐾</span> 복사</button>
+              <button class="copy-button" type="button" data-copy="#install-command"><span aria-hidden="true">🐾</span> <span data-i18n="copy">복사</span></button>
             </div>
           </div>
           <div class="install-note">
-            <span>Node.js 22.12+와 git이 필요합니다.</span>
-            <span>소스 실행은 <strong>npm install</strong>, <strong>npm run build</strong>, <strong>npm start</strong> 순서입니다.</span>
+            <span data-i18n="installReq">Node.js 22.12+와 git이 필요합니다.</span>
+            <span data-i18n-html="installSteps">소스 실행은 <strong>npm install</strong>, <strong>npm run build</strong>, <strong>npm start</strong> 순서입니다.</span>
           </div>
         </div>
       </section>
 
       <section class="section" id="providers" aria-labelledby="providers-title">
         <div class="section-head">
-          <h2 id="providers-title">원하는 AI 연결 방식 선택</h2>
-          <p>기본은 OAuth 로그인 기반 Agent입니다. 필요하면 API 키 provider나 로컬 OpenAI 호환 엔드포인트를 설정에서 추가합니다.</p>
+          <h2 id="providers-title" data-i18n="providersTitle">원하는 AI 연결 방식 선택</h2>
+          <p data-i18n="providersBody">기본은 OAuth 로그인 기반 Agent입니다. 필요하면 API 키 provider나 로컬 OpenAI 호환 엔드포인트를 설정에서 추가합니다.</p>
         </div>
         <div class="providers">
           <div class="provider">
             <div class="provider-icons" aria-hidden="true">
               <img src="assets/icons/openai.svg" alt="">
             </div>
-            <strong>ChatGPT 로그인</strong>
-            <span>ChatGPT나 Codex 로그인 세션을 사용합니다. 앱에 OpenAI API 키를 입력하지 않아도 됩니다.</span>
+            <strong data-i18n="providerOpenAITitle">ChatGPT 로그인</strong>
+            <span data-i18n="providerOpenAIBody">ChatGPT나 Codex 로그인 세션을 사용합니다. 앱에 OpenAI API 키를 입력하지 않아도 됩니다.</span>
           </div>
           <div class="provider">
             <div class="provider-icons" aria-hidden="true">
               <img src="assets/icons/claude.svg" alt="">
             </div>
-            <strong>Claude 로그인</strong>
-            <span>Claude Code CLI의 로컬 OAuth 로그인 세션을 사용해 API 키 입력을 줄입니다.</span>
+            <strong data-i18n="providerClaudeTitle">Claude 로그인</strong>
+            <span data-i18n="providerClaudeBody">Claude Code CLI의 로컬 OAuth 로그인 세션을 사용해 API 키 입력을 줄입니다.</span>
           </div>
           <div class="provider">
             <div class="provider-icons" aria-hidden="true">
               <img src="assets/icons/gemini.svg" alt="">
             </div>
-            <strong>Gemini 로그인</strong>
-            <span>Gemini CLI의 로컬 OAuth 로그인 세션을 사용해 대화할 수 있습니다.</span>
+            <strong data-i18n="providerGeminiTitle">Gemini 로그인</strong>
+            <span data-i18n="providerGeminiBody">Gemini CLI의 로컬 OAuth 로그인 세션을 사용해 대화할 수 있습니다.</span>
           </div>
           <div class="provider">
             <div class="provider-icons" aria-hidden="true">
               <img src="assets/icons/ollama.svg" alt="">
             </div>
-            <strong>Ollama 로컬 모델 / API 키 설정</strong>
-            <span>Ollama, 로컬 OpenAI 호환 서버, Gemini API 키, Anthropic API 키를 설정할 수 있습니다.</span>
+            <strong data-i18n="providerLocalTitle">Ollama 로컬 모델 / API 키 설정</strong>
+            <span data-i18n="providerLocalBody">Ollama, 로컬 OpenAI 호환 서버, Gemini API 키, Anthropic API 키를 설정할 수 있습니다.</span>
           </div>
         </div>
       </section>
@@ -1266,11 +1290,11 @@
       <section class="section" id="community" aria-labelledby="community-title">
         <div class="opensource">
           <div>
-            <h2 id="community-title">MIT 라이선스로 열어두는 작은 데스크탑 실험</h2>
-            <p>스프라이트, 스킨, 스킬, AI provider adapter, 설치 스크립트까지 모두 저장소에서 함께 개선할 수 있습니다. 귀여운 데스크탑 펫이면서 동시에 에이전트 상태를 표현하는 로컬 UI 실험입니다.</p>
+            <h2 id="community-title" data-i18n="communityTitle">MIT 라이선스로 열어두는 작은 데스크탑 실험</h2>
+            <p data-i18n="communityBody">스프라이트, 스킨, 스킬, AI provider adapter, 설치 스크립트까지 모두 저장소에서 함께 개선할 수 있습니다. 귀여운 데스크탑 펫이면서 동시에 에이전트 상태를 표현하는 로컬 UI 실험입니다.</p>
             <div class="actions">
-              <a class="button primary" href="https://github.com/kimtoma/openNeko">저장소 열기</a>
-              <a class="button secondary" href="https://github.com/kimtoma/openNeko/issues">이슈 제안</a>
+              <a class="button primary" href="https://github.com/kimtoma/openNeko" data-i18n="communityRepo">저장소 열기</a>
+              <a class="button secondary" href="https://github.com/kimtoma/openNeko/issues" data-i18n="communityIssue">이슈 제안</a>
             </div>
           </div>
           <div class="skin-row" aria-label="openNeko bundled skins">
@@ -1285,8 +1309,8 @@
 
     <footer class="footer">
       <span>
-        openNeko is released under the MIT License.
-        <span class="footer-made">made by <a href="https://kimtoma.com">kimtoma</a> with ❤️</span>
+        <span data-i18n="footerLicense">openNeko is released under the MIT License.</span>
+        <span class="footer-made"><span data-i18n="footerMadePrefix">made by</span> <a href="https://kimtoma.com">kimtoma</a> <span data-i18n="footerMadeSuffix">with ❤️</span></span>
       </span>
       <div class="footer-links">
         <a href="https://github.com/kimtoma/openNeko">GitHub</a>
@@ -1298,6 +1322,304 @@
 
   <script>
     const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const LANG_KEY = 'openneko.site.lang';
+    const SUPPORTED_LANGS = ['ko', 'en', 'ja', 'zh'];
+    const I18N = {
+      ko: {
+        title: 'openNeko - AI Agent와 대화하는 오픈소스 데스크탑 픽셀 고양이',
+        description: 'openNeko는 AI Agent와 대화하고 타이핑과 에이전트 상태에 반응하는 오픈소스 데스크탑 픽셀 고양이입니다.',
+        navAria: '주요 메뉴',
+        brandAria: 'openNeko 홈',
+        navFeatures: 'Features',
+        navInstall: 'Install',
+        navProviders: 'Providers',
+        navCommunity: 'Community',
+        heroLead: 'AI Agent와 대화하는 오픈소스 데스크탑 픽셀 고양이',
+        heroSupport: '화면 하단을 사뿐히 걸어다니며 타이핑, 코딩 에이전트 상태, 짧은 질문에 반응합니다. OpenAI/Codex, Claude, Gemini 로그인과 Ollama 같은 로컬 모델을 우선 지원합니다.',
+        heroGithub: 'GitHub에서 보기',
+        heroInstall: '설치하기',
+        heroPreviewAria: 'openNeko 데스크탑 프리뷰',
+        heroBubble: '반갑다냥~ 오늘도 같이 작업하자냥.',
+        featuresTitle: '작업 흐름을 방해하지 않는 작은 AI 동료',
+        featuresBody: 'openNeko는 데스크탑 위에 가볍게 머무는 반응형 펫입니다. 채팅, 상태 표시, 스킬 실행, 스킨 교체가 모두 로컬 앱 안에서 동작합니다.',
+        featureTypingTitle: '타이핑 반응',
+        featureTypingBody: '키보드를 타이핑할 때마다 고양이가 타이핑 애니메이션으로 반응합니다. 키 내용은 읽지 않습니다.',
+        featureChatTitle: '짧은 AI Agent 대화',
+        featureChatBody: '고양이를 클릭하면 작은 말풍선 입력창이 열리고, 선택한 Agent의 답변이 고양이 말투로 돌아옵니다.',
+        featureBridgeTitle: '에이전트 상태 브리지',
+        featureBridgeBody: 'Codex, Claude Code, Gemini, Cursor 등과 같은 에이전트 활동에 따라 다양한 모션으로 반응합니다.',
+        featureSkillTitle: '스킬 프롬프트',
+        featureSkillBody: '번들 또는 사용자 SKILL.md를 메뉴와 슬래시 명령으로 실행합니다.',
+        slashTranslate: 'translate 이거 얼마에요?',
+        slashFortune: 'daily-fortune 오늘의 운세',
+        slashBgm: 'daily-bgm 초집중 열공모드',
+        featureSkinTitle: '다양한 모습의 싸이버네꼬',
+        featureSkinBody: '기본 스킨 5종과 외부 스킨 폴더를 지원해 픽셀 고양이를 바꿀 수 있습니다.',
+        featureNeighborTitle: '이웃집 고양이 방문',
+        featureNeighborBody: '근처에 같은 Wi-Fi로 접속한 openNeko 친구를 발견해 화면에 찾아오게 합니다.',
+        catFriend: '모찌',
+        catMine: '네꼬',
+        installTitle: '소스 그대로 설치하고 실행',
+        installBody: 'GitHub Pages는 소개 페이지를 맡고, 실제 앱 소스와 설치 스크립트는 GitHub 저장소에서 관리합니다.',
+        copy: '복사',
+        copied: '복사됨',
+        selected: '선택됨',
+        installReq: 'Node.js 22.12+와 git이 필요합니다.',
+        installSteps: '소스 실행은 <strong>npm install</strong>, <strong>npm run build</strong>, <strong>npm start</strong> 순서입니다.',
+        providersTitle: '원하는 AI 연결 방식 선택',
+        providersBody: '기본은 OAuth 로그인 기반 Agent입니다. 필요하면 API 키 provider나 로컬 OpenAI 호환 엔드포인트를 설정에서 추가합니다.',
+        providerOpenAITitle: 'ChatGPT 로그인',
+        providerOpenAIBody: 'ChatGPT나 Codex 로그인 세션을 사용합니다. 앱에 OpenAI API 키를 입력하지 않아도 됩니다.',
+        providerClaudeTitle: 'Claude 로그인',
+        providerClaudeBody: 'Claude Code CLI의 로컬 OAuth 로그인 세션을 사용해 API 키 입력을 줄입니다.',
+        providerGeminiTitle: 'Gemini 로그인',
+        providerGeminiBody: 'Gemini CLI의 로컬 OAuth 로그인 세션을 사용해 대화할 수 있습니다.',
+        providerLocalTitle: 'Ollama 로컬 모델 / API 키 설정',
+        providerLocalBody: 'Ollama, 로컬 OpenAI 호환 서버, Gemini API 키, Anthropic API 키를 설정할 수 있습니다.',
+        communityTitle: 'MIT 라이선스로 열어두는 작은 데스크탑 실험',
+        communityBody: '스프라이트, 스킨, 스킬, AI provider adapter, 설치 스크립트까지 모두 저장소에서 함께 개선할 수 있습니다. 귀여운 데스크탑 펫이면서 동시에 에이전트 상태를 표현하는 로컬 UI 실험입니다.',
+        communityRepo: '저장소 열기',
+        communityIssue: '이슈 제안',
+        footerLicense: 'openNeko is released under the MIT License.',
+        footerMadePrefix: 'made by',
+        footerMadeSuffix: 'with ❤️',
+      },
+      en: {
+        title: 'openNeko - Open-source desktop pixel cat for AI Agents',
+        description: 'openNeko is an open-source desktop pixel cat that chats with AI Agents and reacts to typing and agent activity.',
+        navAria: 'Primary navigation',
+        brandAria: 'openNeko home',
+        navFeatures: 'Features',
+        navInstall: 'Install',
+        navProviders: 'Providers',
+        navCommunity: 'Community',
+        heroLead: 'An open-source desktop pixel cat for talking with AI Agents',
+        heroSupport: 'It quietly walks along the bottom of your screen and reacts to typing, coding-agent activity, and quick questions. It prioritizes OpenAI/Codex, Claude, Gemini sign-in flows and local models such as Ollama.',
+        heroGithub: 'View on GitHub',
+        heroInstall: 'Install',
+        heroPreviewAria: 'openNeko desktop preview',
+        heroBubble: 'Hi nya~ let us work together today.',
+        featuresTitle: 'A small AI companion that stays out of your flow',
+        featuresBody: 'openNeko is a lightweight reactive pet for your desktop. Chat, status signals, skill runs, and skin switching all work inside the local app.',
+        featureTypingTitle: 'Typing reaction',
+        featureTypingBody: 'The cat switches to a typing animation whenever you type. It does not read the contents of your keystrokes.',
+        featureChatTitle: 'Short AI Agent chats',
+        featureChatBody: 'Click the cat to open a small bubble input. Replies come back from your selected Agent in a cat-like tone.',
+        featureBridgeTitle: 'Agent status bridge',
+        featureBridgeBody: 'It reacts with different motions to activity from agents such as Codex, Claude Code, Gemini, and Cursor.',
+        featureSkillTitle: 'Skill prompts',
+        featureSkillBody: 'Run bundled or user SKILL.md files from the menu or slash commands.',
+        slashTranslate: 'translate how much is this?',
+        slashFortune: 'daily-fortune today',
+        slashBgm: 'daily-bgm deep focus mode',
+        featureSkinTitle: 'Many looks for cyber neko',
+        featureSkinBody: 'Switch between five bundled skins or add more through an external skins folder.',
+        featureNeighborTitle: 'Neighbor cats can visit',
+        featureNeighborBody: 'Discover openNeko friends on the same Wi-Fi and let them visit your screen.',
+        catFriend: 'Mochi',
+        catMine: 'Neko',
+        installTitle: 'Install and run from source',
+        installBody: 'GitHub Pages hosts this project page, while the app source and install scripts live in the GitHub repository.',
+        copy: 'Copy',
+        copied: 'Copied',
+        selected: 'Selected',
+        installReq: 'Node.js 22.12+ and git are required.',
+        installSteps: 'To run from source: <strong>npm install</strong>, <strong>npm run build</strong>, then <strong>npm start</strong>.',
+        providersTitle: 'Choose the AI connection you want',
+        providersBody: 'The default path is an OAuth-based Agent login. Add API-key providers or local OpenAI-compatible endpoints only when needed.',
+        providerOpenAITitle: 'ChatGPT sign-in',
+        providerOpenAIBody: 'Use your ChatGPT or Codex login session without entering an OpenAI API key in the app.',
+        providerClaudeTitle: 'Claude sign-in',
+        providerClaudeBody: 'Use the local OAuth session from Claude Code CLI to reduce API-key setup.',
+        providerGeminiTitle: 'Gemini sign-in',
+        providerGeminiBody: 'Talk through the local OAuth session provided by Gemini CLI.',
+        providerLocalTitle: 'Ollama local models / API keys',
+        providerLocalBody: 'Configure Ollama, local OpenAI-compatible servers, Gemini API keys, or Anthropic API keys.',
+        communityTitle: 'A small MIT-licensed desktop experiment',
+        communityBody: 'Sprites, skins, skills, AI provider adapters, and install scripts can all evolve in the repository. It is both a cute desktop pet and a local UI experiment for expressing agent state.',
+        communityRepo: 'Open repository',
+        communityIssue: 'Suggest an issue',
+        footerLicense: 'openNeko is released under the MIT License.',
+        footerMadePrefix: 'made by',
+        footerMadeSuffix: 'with ❤️',
+      },
+      ja: {
+        title: 'openNeko - AI Agentと話せるオープンソースのデスクトップピクセル猫',
+        description: 'openNekoは、AI Agentと会話し、タイピングやエージェント状態に反応するオープンソースのデスクトップピクセル猫です。',
+        navAria: 'メインナビゲーション',
+        brandAria: 'openNeko ホーム',
+        navFeatures: '機能',
+        navInstall: 'インストール',
+        navProviders: '連携',
+        navCommunity: 'コミュニティ',
+        heroLead: 'AI Agentと話せるオープンソースのデスクトップピクセル猫',
+        heroSupport: '画面下をそっと歩きながら、タイピング、コーディングエージェントの状態、短い質問に反応します。OpenAI/Codex、Claude、Geminiのログインと、Ollamaなどのローカルモデルを優先してサポートします。',
+        heroGithub: 'GitHubで見る',
+        heroInstall: 'インストール',
+        heroPreviewAria: 'openNeko デスクトッププレビュー',
+        heroBubble: 'こんにちはにゃ~ 今日も一緒に作業するにゃ。',
+        featuresTitle: '作業の流れを邪魔しない小さなAI相棒',
+        featuresBody: 'openNekoはデスクトップに軽く常駐するリアクティブなペットです。チャット、状態表示、スキル実行、スキン変更がすべてローカルアプリ内で動きます。',
+        featureTypingTitle: 'タイピング反応',
+        featureTypingBody: 'キーボードを打つたびに猫がタイピングアニメーションで反応します。キーの内容は読みません。',
+        featureChatTitle: '短いAI Agent会話',
+        featureChatBody: '猫をクリックすると小さな吹き出し入力が開き、選んだAgentの返答が猫らしい口調で返ってきます。',
+        featureBridgeTitle: 'エージェント状態ブリッジ',
+        featureBridgeBody: 'Codex、Claude Code、Gemini、Cursorなどのエージェント活動に合わせて、さまざまな動きで反応します。',
+        featureSkillTitle: 'スキルプロンプト',
+        featureSkillBody: '同梱またはユーザーのSKILL.mdを、メニューやスラッシュコマンドから実行できます。',
+        slashTranslate: 'translate これはいくらですか?',
+        slashFortune: 'daily-fortune 今日の運勢',
+        slashBgm: 'daily-bgm 集中作業モード',
+        featureSkinTitle: 'いろいろな姿のサイバーネコ',
+        featureSkinBody: '5種類の同梱スキンと外部スキンフォルダに対応し、ピクセル猫の見た目を変えられます。',
+        featureNeighborTitle: 'ご近所猫の訪問',
+        featureNeighborBody: '同じWi-Fi上のopenNeko友だちを見つけて、画面に遊びに来てもらえます。',
+        catFriend: 'もち',
+        catMine: 'ねこ',
+        installTitle: 'ソースからインストールして実行',
+        installBody: 'GitHub Pagesは紹介ページを担当し、実際のアプリソースとインストールスクリプトはGitHubリポジトリで管理します。',
+        copy: 'コピー',
+        copied: 'コピー済み',
+        selected: '選択済み',
+        installReq: 'Node.js 22.12+ と git が必要です。',
+        installSteps: 'ソース実行は <strong>npm install</strong>、<strong>npm run build</strong>、<strong>npm start</strong> の順です。',
+        providersTitle: '好みのAI接続方法を選択',
+        providersBody: '基本はOAuthログインベースのAgentです。必要な場合だけ、APIキープロバイダーやローカルOpenAI互換エンドポイントを設定で追加します。',
+        providerOpenAITitle: 'ChatGPTログイン',
+        providerOpenAIBody: 'ChatGPTまたはCodexのログインセッションを使います。アプリにOpenAI APIキーを入力する必要はありません。',
+        providerClaudeTitle: 'Claudeログイン',
+        providerClaudeBody: 'Claude Code CLIのローカルOAuthログインセッションを使い、APIキー入力を減らします。',
+        providerGeminiTitle: 'Geminiログイン',
+        providerGeminiBody: 'Gemini CLIのローカルOAuthログインセッションを使って会話できます。',
+        providerLocalTitle: 'Ollamaローカルモデル / APIキー設定',
+        providerLocalBody: 'Ollama、ローカルOpenAI互換サーバー、Gemini APIキー、Anthropic APIキーを設定できます。',
+        communityTitle: 'MITライセンスで開く小さなデスクトップ実験',
+        communityBody: 'スプライト、スキン、スキル、AI provider adapter、インストールスクリプトまで、すべてリポジトリで一緒に改善できます。かわいいデスクトップペットであり、エージェント状態を表現するローカルUI実験でもあります。',
+        communityRepo: 'リポジトリを開く',
+        communityIssue: 'Issueを提案',
+        footerLicense: 'openNeko is released under the MIT License.',
+        footerMadePrefix: 'made by',
+        footerMadeSuffix: 'with ❤️',
+      },
+      zh: {
+        title: 'openNeko - 可与 AI Agent 对话的开源桌面像素猫',
+        description: 'openNeko 是一只开源桌面像素猫，可以与 AI Agent 对话，并响应打字和 Agent 状态。',
+        navAria: '主导航',
+        brandAria: 'openNeko 首页',
+        navFeatures: '功能',
+        navInstall: '安装',
+        navProviders: '连接',
+        navCommunity: '社区',
+        heroLead: '可与 AI Agent 对话的开源桌面像素猫',
+        heroSupport: '它会轻轻走在屏幕底部，响应打字、编程 Agent 状态和简短问题。优先支持 OpenAI/Codex、Claude、Gemini 登录，以及 Ollama 等本地模型。',
+        heroGithub: '在 GitHub 查看',
+        heroInstall: '安装',
+        heroPreviewAria: 'openNeko 桌面预览',
+        heroBubble: '你好喵~ 今天也一起工作喵。',
+        featuresTitle: '不打断工作流的小小 AI 伙伴',
+        featuresBody: 'openNeko 是一个轻量的桌面响应式宠物。聊天、状态显示、技能运行和皮肤切换都在本地应用内完成。',
+        featureTypingTitle: '打字响应',
+        featureTypingBody: '每当你打字时，小猫会切换到打字动画。它不会读取按键内容。',
+        featureChatTitle: '简短 AI Agent 对话',
+        featureChatBody: '点击小猫即可打开小气泡输入框，所选 Agent 会用猫咪语气回复。',
+        featureBridgeTitle: 'Agent 状态桥接',
+        featureBridgeBody: '它会根据 Codex、Claude Code、Gemini、Cursor 等 Agent 活动做出不同动作。',
+        featureSkillTitle: '技能提示词',
+        featureSkillBody: '可通过菜单或斜杠命令运行内置或用户的 SKILL.md。',
+        slashTranslate: 'translate 这个多少钱?',
+        slashFortune: 'daily-fortune 今日运势',
+        slashBgm: 'daily-bgm 深度专注模式',
+        featureSkinTitle: '多种 cyber neko 外观',
+        featureSkinBody: '支持 5 种内置皮肤，也可以通过外部皮肤文件夹添加更多像素猫外观。',
+        featureNeighborTitle: '邻居小猫来访',
+        featureNeighborBody: '发现同一 Wi-Fi 上的 openNeko 朋友，并让它们来到你的屏幕上。',
+        catFriend: '麻糬',
+        catMine: '猫猫',
+        installTitle: '直接从源码安装运行',
+        installBody: 'GitHub Pages 用于项目介绍页，实际应用源码和安装脚本由 GitHub 仓库管理。',
+        copy: '复制',
+        copied: '已复制',
+        selected: '已选中',
+        installReq: '需要 Node.js 22.12+ 和 git。',
+        installSteps: '源码运行顺序为 <strong>npm install</strong>、<strong>npm run build</strong>、<strong>npm start</strong>。',
+        providersTitle: '选择你想要的 AI 连接方式',
+        providersBody: '默认使用基于 OAuth 登录的 Agent。只有需要时，才在设置中添加 API Key provider 或本地 OpenAI 兼容端点。',
+        providerOpenAITitle: 'ChatGPT 登录',
+        providerOpenAIBody: '使用 ChatGPT 或 Codex 登录会话，无需在应用中输入 OpenAI API Key。',
+        providerClaudeTitle: 'Claude 登录',
+        providerClaudeBody: '使用 Claude Code CLI 的本地 OAuth 登录会话，减少 API Key 配置。',
+        providerGeminiTitle: 'Gemini 登录',
+        providerGeminiBody: '可通过 Gemini CLI 的本地 OAuth 登录会话进行对话。',
+        providerLocalTitle: 'Ollama 本地模型 / API Key 设置',
+        providerLocalBody: '可配置 Ollama、本地 OpenAI 兼容服务器、Gemini API Key 和 Anthropic API Key。',
+        communityTitle: '以 MIT 许可证开放的小型桌面实验',
+        communityBody: '精灵图、皮肤、技能、AI provider adapter 和安装脚本都可以在仓库中共同改进。它既是可爱的桌面宠物，也是表达 Agent 状态的本地 UI 实验。',
+        communityRepo: '打开仓库',
+        communityIssue: '提出 Issue',
+        footerLicense: 'openNeko is released under the MIT License.',
+        footerMadePrefix: 'made by',
+        footerMadeSuffix: 'with ❤️',
+      },
+    };
+
+    function normalizeLang(lang) {
+      const lower = String(lang || '').toLowerCase();
+      if (lower.startsWith('ko')) return 'ko';
+      if (lower.startsWith('ja')) return 'ja';
+      if (lower.startsWith('zh')) return 'zh';
+      return 'en';
+    }
+
+    function initialLang() {
+      const params = new URLSearchParams(window.location.search);
+      const queryLang = params.get('lang');
+      const storedLang = window.localStorage.getItem(LANG_KEY);
+      const candidate = queryLang || storedLang || navigator.language;
+      const normalized = normalizeLang(candidate);
+      return SUPPORTED_LANGS.includes(normalized) ? normalized : 'en';
+    }
+
+    function setCopyButtonLabel(button, key) {
+      const label = button.querySelector('[data-i18n]');
+      if (label) label.textContent = I18N[currentLang][key];
+    }
+
+    let currentLang = initialLang();
+
+    function applyLang(lang) {
+      currentLang = SUPPORTED_LANGS.includes(lang) ? lang : 'en';
+      const strings = I18N[currentLang];
+      document.documentElement.lang = currentLang;
+      document.title = strings.title;
+      document.querySelector('meta[name="description"]')?.setAttribute('content', strings.description);
+      document.querySelector('meta[property="og:description"]')?.setAttribute('content', strings.heroLead);
+
+      document.querySelectorAll('[data-i18n]').forEach((node) => {
+        const value = strings[node.dataset.i18n];
+        if (value) node.textContent = value;
+      });
+      document.querySelectorAll('[data-i18n-html]').forEach((node) => {
+        const value = strings[node.dataset.i18nHtml];
+        if (value) node.innerHTML = value;
+      });
+      document.querySelectorAll('[data-i18n-attr]').forEach((node) => {
+        node.dataset.i18nAttr.split(',').forEach((pair) => {
+          const [attr, key] = pair.split(':').map((part) => part.trim());
+          if (attr && key && strings[key]) node.setAttribute(attr, strings[key]);
+        });
+      });
+
+      const selector = document.getElementById('language-select');
+      if (selector) selector.value = currentLang;
+      window.localStorage.setItem(LANG_KEY, currentLang);
+    }
+
+    document.getElementById('language-select')?.addEventListener('change', (event) => {
+      applyLang(event.target.value);
+    });
+
+    applyLang(currentLang);
 
     function animateSprite(img, frames, interval = 180, offset = 0) {
       if (!img || frames.length < 2) return;
@@ -1337,7 +1659,7 @@
         const target = document.querySelector(button.dataset.copy);
         if (!target) return;
         const text = target.textContent.trim();
-        let label = '복사됨';
+        let labelKey = 'copied';
         try {
           if (navigator.clipboard && window.isSecureContext) {
             await navigator.clipboard.writeText(text);
@@ -1349,15 +1671,15 @@
             area.style.left = '-9999px';
             document.body.appendChild(area);
             area.select();
-            if (!document.execCommand('copy')) label = '선택됨';
+            if (!document.execCommand('copy')) labelKey = 'selected';
             area.remove();
           }
         } catch {
-          label = '선택됨';
+          labelKey = 'selected';
         }
-        button.innerHTML = `<span aria-hidden="true">🐾</span> ${label}`;
+        setCopyButtonLabel(button, labelKey);
         window.setTimeout(() => {
-          button.innerHTML = '<span aria-hidden="true">🐾</span> 복사';
+          setCopyButtonLabel(button, 'copy');
         }, 1200);
       });
     });
