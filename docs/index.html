@@ -1,13 +1,29 @@
 <!doctype html>
-<html lang="ko">
+<html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>openNeko - AI Agent와 대화하는 오픈소스 데스크탑 픽셀 고양이</title>
-  <meta name="description" content="openNeko는 AI Agent와 대화하고 타이핑과 에이전트 상태에 반응하는 오픈소스 데스크탑 픽셀 고양이입니다.">
+  <title>openNeko - Open-source desktop pixel cat for AI Agents</title>
+  <meta name="description" content="openNeko is an open-source desktop pixel cat that chats with AI Agents and reacts to typing and agent activity.">
+  <link rel="canonical" href="https://kimtoma.github.io/openNeko/">
   <meta property="og:title" content="openNeko">
-  <meta property="og:description" content="AI Agent와 대화하는 오픈소스 데스크탑 픽셀 고양이">
+  <meta property="og:description" content="An open-source desktop pixel cat for talking with AI Agents">
   <meta property="og:type" content="website">
+  <meta property="og:url" content="https://kimtoma.github.io/openNeko/">
+  <meta property="og:image" content="https://kimtoma.github.io/openNeko/assets/og/openneko-og.png">
+  <meta property="og:image:secure_url" content="https://kimtoma.github.io/openNeko/assets/og/openneko-og.png">
+  <meta property="og:image:type" content="image/png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="openNeko desktop pixel cat walking above a dock">
+  <meta property="og:locale" content="en_US">
+  <meta property="og:locale:alternate" content="ko_KR">
+  <meta property="og:locale:alternate" content="ja_JP">
+  <meta property="og:locale:alternate" content="zh_CN">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="openNeko">
+  <meta name="twitter:description" content="An open-source desktop pixel cat for talking with AI Agents">
+  <meta name="twitter:image" content="https://kimtoma.github.io/openNeko/assets/og/openneko-og.png">
   <meta name="theme-color" content="#00a8c8">
   <link rel="icon" type="image/png" href="assets/sprites/black/idle_0.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -1410,7 +1426,6 @@
 
   <script>
     const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    const LANG_KEY = 'openneko.site.lang';
     const SUPPORTED_LANGS = ['ko', 'en', 'ja', 'zh'];
     const LANG_LABELS = {
       ko: '🇰🇷 한국어',
@@ -1668,10 +1683,14 @@
     function initialLang() {
       const params = new URLSearchParams(window.location.search);
       const queryLang = params.get('lang');
-      const storedLang = window.localStorage.getItem(LANG_KEY);
-      const candidate = queryLang || storedLang || navigator.language;
-      const normalized = normalizeLang(candidate);
-      return SUPPORTED_LANGS.includes(normalized) ? normalized : 'en';
+      const candidates = queryLang
+        ? [queryLang]
+        : (navigator.languages && navigator.languages.length ? navigator.languages : [navigator.language]);
+      for (const candidate of candidates) {
+        const normalized = normalizeLang(candidate);
+        if (SUPPORTED_LANGS.includes(normalized)) return normalized;
+      }
+      return 'en';
     }
 
     function setCopyButtonLabel(button, key) {
@@ -1695,7 +1714,6 @@
       document.documentElement.lang = currentLang;
       document.title = strings.title;
       document.querySelector('meta[name="description"]')?.setAttribute('content', strings.description);
-      document.querySelector('meta[property="og:description"]')?.setAttribute('content', strings.heroLead);
 
       document.querySelectorAll('[data-i18n]').forEach((node) => {
         const value = strings[node.dataset.i18n];
@@ -1718,7 +1736,6 @@
         const selected = option.dataset.lang === currentLang;
         option.setAttribute('aria-selected', String(selected));
       });
-      window.localStorage.setItem(LANG_KEY, currentLang);
     }
 
     document.getElementById('language-toggle')?.addEventListener('click', () => {
