@@ -64,11 +64,14 @@
     .page {
       min-height: 100vh;
       overflow: hidden;
+      padding-top: 68px;
     }
 
     .site-header {
-      position: sticky;
+      position: fixed;
       top: 0;
+      left: 0;
+      right: 0;
       z-index: 20;
       background: rgba(255, 255, 255, 0.92);
       backdrop-filter: blur(18px);
@@ -112,13 +115,23 @@
       font-weight: 900;
     }
 
-    .language-select {
+    .language-menu {
+      position: relative;
+      z-index: 30;
+    }
+
+    .language-toggle {
       height: 42px;
+      min-width: 142px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
       border: 2px solid var(--ink);
       border-radius: 8px;
       background: #fff;
       color: var(--ink);
-      padding: 0 32px 0 12px;
+      padding: 0 11px 0 12px;
       font-family: var(--ui-font);
       font-size: 14px;
       font-weight: 900;
@@ -127,10 +140,76 @@
       transition: transform 150ms ease, box-shadow 150ms ease;
     }
 
-    .language-select:hover,
-    .language-select:focus-visible {
+    .language-toggle:hover,
+    .language-toggle:focus-visible,
+    .language-menu.open .language-toggle {
       transform: translate(2px, 2px);
       box-shadow: 2px 2px 0 var(--ink);
+      outline: none;
+    }
+
+    .language-current {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      white-space: nowrap;
+    }
+
+    .chevron {
+      width: 15px;
+      height: 15px;
+      flex: 0 0 auto;
+      transition: transform 150ms ease;
+    }
+
+    .language-menu.open .chevron {
+      transform: rotate(180deg);
+    }
+
+    .language-options {
+      position: absolute;
+      top: calc(100% + 10px);
+      right: 0;
+      width: 180px;
+      display: grid;
+      gap: 6px;
+      padding: 8px;
+      border: 2px solid var(--ink);
+      border-radius: 8px;
+      background: #fff;
+      box-shadow: 4px 4px 0 var(--ink);
+      opacity: 0;
+      transform: translateY(-4px);
+      pointer-events: none;
+      transition: opacity 150ms ease, transform 150ms ease;
+    }
+
+    .language-menu.open .language-options {
+      opacity: 1;
+      transform: translateY(0);
+      pointer-events: auto;
+    }
+
+    .language-option {
+      min-height: 38px;
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      border: 0;
+      border-radius: 6px;
+      background: transparent;
+      color: var(--ink);
+      padding: 0 9px;
+      text-align: left;
+      font-size: 14px;
+      font-weight: 850;
+      cursor: pointer;
+    }
+
+    .language-option:hover,
+    .language-option:focus-visible,
+    .language-option[aria-selected="true"] {
+      background: var(--soft);
       outline: none;
     }
 
@@ -888,7 +967,8 @@
       }
 
       .button,
-      .language-select {
+      .language-toggle,
+      .language-options {
         transition: none;
       }
     }
@@ -948,14 +1028,23 @@
         min-height: 60px;
       }
 
+      .page {
+        padding-top: 60px;
+      }
+
       .brand {
         font-size: 16px;
       }
 
-      .language-select {
+      .language-toggle {
         height: 40px;
-        max-width: 132px;
+        min-width: 124px;
         padding-left: 10px;
+        font-size: 13px;
+      }
+
+      .language-options {
+        width: 168px;
       }
 
       .hero {
@@ -1096,12 +1185,20 @@
           <a href="#install" data-i18n="navInstall">Install</a>
           <a href="#providers" data-i18n="navProviders">Providers</a>
           <a href="#community" data-i18n="navCommunity">Community</a>
-          <select class="language-select" id="language-select" aria-label="Language">
-            <option value="ko">🇰🇷 한국어</option>
-            <option value="en">🇺🇸 English</option>
-            <option value="ja">🇯🇵 日本語</option>
-            <option value="zh">🇨🇳 简体中文</option>
-          </select>
+          <div class="language-menu" id="language-menu">
+            <button class="language-toggle" id="language-toggle" type="button" aria-haspopup="listbox" aria-expanded="false" aria-label="Language">
+              <span class="language-current" id="language-current">🇰🇷 한국어</span>
+              <svg class="chevron" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"></path>
+              </svg>
+            </button>
+            <div class="language-options" id="language-options" role="listbox" aria-label="Language">
+              <button class="language-option" type="button" role="option" data-lang="ko">🇰🇷 한국어</button>
+              <button class="language-option" type="button" role="option" data-lang="en">🇺🇸 English</button>
+              <button class="language-option" type="button" role="option" data-lang="ja">🇯🇵 日本語</button>
+              <button class="language-option" type="button" role="option" data-lang="zh">🇨🇳 简体中文</button>
+            </div>
+          </div>
         </div>
       </nav>
     </header>
@@ -1315,6 +1412,12 @@
     const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     const LANG_KEY = 'openneko.site.lang';
     const SUPPORTED_LANGS = ['ko', 'en', 'ja', 'zh'];
+    const LANG_LABELS = {
+      ko: '🇰🇷 한국어',
+      en: '🇺🇸 English',
+      ja: '🇯🇵 日本語',
+      zh: '🇨🇳 简体中文',
+    };
     const I18N = {
       ko: {
         title: 'openNeko - AI Agent와 대화하는 오픈소스 데스크탑 픽셀 고양이',
@@ -1578,6 +1681,14 @@
 
     let currentLang = initialLang();
 
+    function setLanguageMenuOpen(open) {
+      const menu = document.getElementById('language-menu');
+      const toggle = document.getElementById('language-toggle');
+      if (!menu || !toggle) return;
+      menu.classList.toggle('open', open);
+      toggle.setAttribute('aria-expanded', String(open));
+    }
+
     function applyLang(lang) {
       currentLang = SUPPORTED_LANGS.includes(lang) ? lang : 'en';
       const strings = I18N[currentLang];
@@ -1601,13 +1712,45 @@
         });
       });
 
-      const selector = document.getElementById('language-select');
-      if (selector) selector.value = currentLang;
+      const current = document.getElementById('language-current');
+      if (current) current.textContent = LANG_LABELS[currentLang];
+      document.querySelectorAll('.language-option').forEach((option) => {
+        const selected = option.dataset.lang === currentLang;
+        option.setAttribute('aria-selected', String(selected));
+      });
       window.localStorage.setItem(LANG_KEY, currentLang);
     }
 
-    document.getElementById('language-select')?.addEventListener('change', (event) => {
-      applyLang(event.target.value);
+    document.getElementById('language-toggle')?.addEventListener('click', () => {
+      const menu = document.getElementById('language-menu');
+      setLanguageMenuOpen(!menu?.classList.contains('open'));
+    });
+
+    document.querySelectorAll('.language-option').forEach((option) => {
+      option.addEventListener('click', () => {
+        applyLang(option.dataset.lang);
+        setLanguageMenuOpen(false);
+        document.getElementById('language-toggle')?.focus();
+      });
+    });
+
+    document.addEventListener('click', (event) => {
+      const menu = document.getElementById('language-menu');
+      if (menu && !menu.contains(event.target)) setLanguageMenuOpen(false);
+    });
+
+    document.addEventListener('keydown', (event) => {
+      const menu = document.getElementById('language-menu');
+      if (!menu) return;
+      if (event.key === 'Escape') {
+        setLanguageMenuOpen(false);
+        document.getElementById('language-toggle')?.focus();
+      }
+      if ((event.key === 'ArrowDown' || event.key === 'Enter' || event.key === ' ') && document.activeElement?.id === 'language-toggle') {
+        event.preventDefault();
+        setLanguageMenuOpen(true);
+        menu.querySelector('.language-option[aria-selected="true"]')?.focus();
+      }
     });
 
     applyLang(currentLang);
