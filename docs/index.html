@@ -113,35 +113,29 @@
     }
 
     .language-select {
-      height: 38px;
-      border: 1px solid var(--ink);
+      height: 42px;
+      border: 2px solid var(--ink);
       border-radius: 8px;
       background: #fff;
       color: var(--ink);
-      padding: 0 30px 0 10px;
+      padding: 0 32px 0 12px;
       font-family: var(--ui-font);
-      font-size: 13px;
+      font-size: 14px;
       font-weight: 900;
       cursor: pointer;
-      box-shadow: 2px 2px 0 rgba(17, 19, 24, 0.16);
+      box-shadow: 4px 4px 0 var(--ink);
+      transition: transform 150ms ease, box-shadow 150ms ease;
+    }
+
+    .language-select:hover,
+    .language-select:focus-visible {
+      transform: translate(2px, 2px);
+      box-shadow: 2px 2px 0 var(--ink);
+      outline: none;
     }
 
     .nav-links a:hover {
       color: var(--ink);
-    }
-
-    .nav-cta {
-      border: 1px solid var(--ink);
-      border-radius: 8px;
-      padding: 10px 14px;
-      color: var(--ink);
-      box-shadow: 3px 3px 0 var(--ink);
-      transition: transform 150ms ease, box-shadow 150ms ease;
-    }
-
-    .nav-cta:hover {
-      transform: translate(2px, 2px);
-      box-shadow: 1px 1px 0 var(--ink);
     }
 
     .hero {
@@ -894,7 +888,7 @@
       }
 
       .button,
-      .nav-cta {
+      .language-select {
         transition: none;
       }
     }
@@ -904,7 +898,7 @@
         width: min(var(--max), calc(100% - 28px));
       }
 
-      .nav-links a:not(.nav-cta) {
+      .nav-links > a {
         display: none;
       }
 
@@ -958,12 +952,10 @@
         font-size: 16px;
       }
 
-      .nav-cta {
-        padding: 9px 11px;
-      }
-
       .language-select {
-        max-width: 104px;
+        height: 40px;
+        max-width: 132px;
+        padding-left: 10px;
       }
 
       .hero {
@@ -1105,12 +1097,11 @@
           <a href="#providers" data-i18n="navProviders">Providers</a>
           <a href="#community" data-i18n="navCommunity">Community</a>
           <select class="language-select" id="language-select" aria-label="Language">
-            <option value="ko">한국어</option>
-            <option value="en">English</option>
-            <option value="ja">日本語</option>
-            <option value="zh">简体中文</option>
+            <option value="ko">🇰🇷 한국어</option>
+            <option value="en">🇺🇸 English</option>
+            <option value="ja">🇯🇵 日本語</option>
+            <option value="zh">🇨🇳 简体中文</option>
           </select>
-          <a class="nav-cta" href="https://github.com/kimtoma/openNeko">GitHub</a>
         </div>
       </nav>
     </header>
