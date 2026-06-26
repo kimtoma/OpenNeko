@@ -21,7 +21,7 @@ public final class SkinManager {
     public func availableSkinIDs() -> [String] {
         var ids: Set<String> = [Self.defaultID]
         for root in [bundledRoot, externalRoot].compactMap({ $0 }) {
-            let subdirs = (try? fm.contentsOfDirectory(at: root, includingPropertiesForKeys: [.isDirectoryKey])) ?? []
+            let subdirs = (try? fm.contentsOfDirectory(at: root, includingPropertiesForKeys: nil)) ?? []
             for url in subdirs {
                 var isDir: ObjCBool = false
                 if fm.fileExists(atPath: url.path, isDirectory: &isDir), isDir.boolValue {

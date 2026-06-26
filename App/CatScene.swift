@@ -13,7 +13,6 @@ final class CatScene: SKScene {
         scaleMode = .aspectFit
         sprite.anchorPoint = CGPoint(x: 0.5, y: 0.5)
         sprite.position = CGPoint(x: size.width / 2, y: size.height / 2)
-        sprite.texture?.filteringMode = .nearest   // 픽셀아트 선명하게
         addChild(sprite)
     }
 
