@@ -1,0 +1,29 @@
+name: OpenNeko
+options:
+  bundleIdPrefix: com.kimtoma
+  deploymentTarget:
+    macOS: "14.0"
+packages:
+  OpenNekoKit:
+    path: .
+targets:
+  OpenNeko:
+    type: application
+    platform: macOS
+    sources:
+      - path: App
+        excludes:
+          - Resources/sprites/**
+      - path: App/Resources/sprites
+        type: folder
+        buildPhase: resources
+    dependencies:
+      - package: OpenNekoKit
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.kimtoma.openneko
+        MARKETING_VERSION: "0.1.0"
+        CURRENT_PROJECT_VERSION: "1"
+        GENERATE_INFOPLIST_FILE: NO
+        INFOPLIST_FILE: App/Resources/Info.plist
+        ENABLE_HARDENED_RUNTIME: YES
