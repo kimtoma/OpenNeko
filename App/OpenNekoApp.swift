@@ -1,4 +1,5 @@
 import SwiftUI
+import OpenNekoKit
 
 @main
 struct OpenNekoApp: App {
@@ -12,11 +13,20 @@ struct OpenNekoApp: App {
 
 final class AppDelegate: NSObject, NSApplicationDelegate {
     private var menuBar: MenuBarController?
+    private var catWindow: CatWindow?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.setActivationPolicy(.accessory)
+
+        let cat = CatWindow()
+        catWindow = cat
+
+        let spritesURL = Bundle.main.resourceURL!.appendingPathComponent("sprites")
+        let manager = SkinManager(bundledRoot: spritesURL, externalRoot: nil)
+        cat.showCat(skin: manager.loadDefault())
+
         menuBar = MenuBarController(
-            onToggleCat: { /* Task 8에서 연결 */ },
+            onToggleCat: { [weak cat] in cat?.toggle() },
             onQuit: { NSApp.terminate(nil) }
         )
     }
