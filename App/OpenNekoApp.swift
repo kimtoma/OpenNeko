@@ -11,7 +11,13 @@ struct OpenNekoApp: App {
 }
 
 final class AppDelegate: NSObject, NSApplicationDelegate {
+    private var menuBar: MenuBarController?
+
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.setActivationPolicy(.accessory)
+        menuBar = MenuBarController(
+            onToggleCat: { /* Task 8에서 연결 */ },
+            onQuit: { NSApp.terminate(nil) }
+        )
     }
 }
