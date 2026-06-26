@@ -11,7 +11,9 @@ final class MenuBarController {
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
 
         if let button = statusItem.button {
-            button.image = NSImage(systemSymbolName: "cat.fill", accessibilityDescription: "openNeko")
+            let image = NSImage(systemSymbolName: "cat.fill", accessibilityDescription: "openNeko")
+                ?? NSImage(systemSymbolName: "pawprint.fill", accessibilityDescription: "openNeko")
+            button.image = image
             button.image?.isTemplate = true
         }
 
