@@ -750,6 +750,56 @@
       box-shadow: 7px 7px 0 var(--cyan);
     }
 
+    .download-card {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 24px;
+      align-items: center;
+      padding: 22px;
+      border: 2px solid #fff;
+      border-radius: 8px;
+      background: #fff;
+      color: var(--ink);
+      box-shadow: 5px 5px 0 var(--yellow);
+    }
+
+    .download-card h3 {
+      margin: 7px 0 8px;
+      font-size: clamp(24px, 3vw, 34px);
+      line-height: 1.1;
+      font-weight: 900;
+    }
+
+    .download-card p {
+      margin: 0;
+      max-width: 600px;
+      color: #414a53;
+      font-size: 15px;
+      line-height: 1.65;
+      font-weight: 650;
+    }
+
+    .download-actions {
+      display: grid;
+      gap: 12px;
+      min-width: 190px;
+    }
+
+    .download-button {
+      min-width: 190px;
+      white-space: nowrap;
+    }
+
+    .source-install {
+      border-top: 1px solid rgba(255, 255, 255, 0.22);
+      padding-top: 18px;
+    }
+
+    .source-note {
+      border-top: 0;
+      padding-top: 12px;
+    }
+
     .terminal {
       min-width: 0;
       display: grid;
@@ -1159,6 +1209,18 @@
         grid-template-columns: 1fr;
       }
 
+      .download-card {
+        grid-template-columns: 1fr;
+      }
+
+      .download-actions {
+        grid-template-columns: 1fr;
+      }
+
+      .download-button {
+        width: 100%;
+      }
+
       .copy-button {
         width: 100%;
       }
@@ -1227,7 +1289,7 @@
           <p class="support" data-i18n="heroSupport">화면 하단을 사뿐히 걸어다니며 타이핑, 코딩 에이전트 상태, 짧은 질문에 반응합니다. OpenAI/Codex, Claude, Gemini 로그인과 Ollama 같은 로컬 모델을 우선 지원합니다.</p>
           <div class="actions">
             <a class="button primary" href="https://github.com/kimtoma/openNeko" data-i18n="heroGithub">GitHub에서 보기</a>
-            <a class="button secondary" href="#install"><span aria-hidden="true">🐾</span> <span data-i18n="heroInstall">설치하기</span></a>
+            <a class="button secondary" href="#install"><span aria-hidden="true">🐾</span> <span data-i18n="heroInstall">Mac용 다운로드</span></a>
           </div>
         </div>
 
@@ -1336,20 +1398,37 @@
 
       <section class="section" id="install" aria-labelledby="install-title">
         <div class="section-head">
-          <h2 id="install-title" data-i18n="installTitle">소스 그대로 설치하고 실행</h2>
-          <p data-i18n="installBody">GitHub Pages는 소개 페이지를 맡고, 실제 앱 소스와 설치 스크립트는 GitHub 저장소에서 관리합니다.</p>
+          <h2 id="install-title" data-i18n="installTitle">Mac용 앱 다운로드</h2>
+          <p data-i18n="installBody">DMG를 내려받아 Applications 폴더에 넣으면 바로 시작할 수 있습니다. 개발자는 소스 설치 명령도 사용할 수 있습니다.</p>
         </div>
         <div class="install-panel">
-          <div class="terminal">
-            <div class="terminal-label">macOS</div>
-            <div class="command-row">
-              <code id="install-command">curl -fsSL https://github.com/kimtoma/openNeko/releases/latest/download/openneko-install.sh | bash</code>
-              <button class="copy-button" type="button" data-copy="#install-command"><span aria-hidden="true">🐾</span> <span data-i18n="copy">복사</span></button>
+          <div class="download-card">
+            <div>
+              <div class="terminal-label" data-i18n="downloadLabel">macOS 14+</div>
+              <h3 data-i18n="downloadTitle">openNeko for Mac</h3>
+              <p data-i18n="downloadBody">가장 쉬운 방법은 DMG를 내려받아 openNeko를 Applications로 옮기는 것입니다.</p>
+            </div>
+            <div class="download-actions">
+              <a class="button primary download-button" href="https://github.com/kimtoma/openNeko/releases/latest/download/openNeko-macOS-Release.dmg" data-i18n="downloadDmg">DMG 다운로드</a>
+              <a class="button secondary download-button" href="https://github.com/kimtoma/openNeko/releases/latest/download/openNeko-macOS-Release.zip" data-i18n="downloadZip">ZIP 다운로드</a>
             </div>
           </div>
           <div class="install-note">
-            <span data-i18n="installReq">Node.js 22.12+와 git이 필요합니다.</span>
-            <span data-i18n-html="installSteps">소스 실행은 <strong>npm install</strong>, <strong>npm run build</strong>, <strong>npm start</strong> 순서입니다.</span>
+            <span data-i18n="downloadReq">macOS 14 이상이 필요합니다.</span>
+            <span data-i18n="downloadSecurity">현재 빌드는 미공증 preview라 처음 실행할 때 macOS 보안 확인이 표시될 수 있습니다.</span>
+          </div>
+          <div class="source-install">
+            <div class="terminal">
+              <div class="terminal-label" data-i18n="sourceInstallLabel">소스에서 실행</div>
+              <div class="command-row">
+                <code id="install-command">curl -fsSL https://github.com/kimtoma/openNeko/releases/latest/download/openneko-install.sh | bash</code>
+                <button class="copy-button" type="button" data-copy="#install-command"><span aria-hidden="true">🐾</span> <span data-i18n="copy">복사</span></button>
+              </div>
+            </div>
+            <div class="install-note source-note">
+              <span data-i18n="sourceReq">소스 설치에는 Node.js 22.12+와 git이 필요합니다.</span>
+              <span data-i18n-html="sourceSteps">소스 실행은 <strong>npm install</strong>, <strong>npm run build</strong>, <strong>npm start</strong> 순서입니다.</span>
+            </div>
           </div>
         </div>
       </section>
@@ -1446,7 +1525,7 @@
         heroLead: 'AI Agent와 대화하는 오픈소스 데스크탑 픽셀 고양이',
         heroSupport: '화면 하단을 사뿐히 걸어다니며 타이핑, 코딩 에이전트 상태, 짧은 질문에 반응합니다. OpenAI/Codex, Claude, Gemini 로그인과 Ollama 같은 로컬 모델을 우선 지원합니다.',
         heroGithub: 'GitHub에서 보기',
-        heroInstall: '설치하기',
+        heroInstall: 'Mac용 다운로드',
         heroPreviewAria: 'openNeko 데스크탑 프리뷰',
         heroBubble: '반갑다냥~ 오늘도 같이 작업하자냥.',
         featuresTitle: '작업 흐름을 방해하지 않는 작은 AI 동료',
@@ -1468,13 +1547,21 @@
         featureNeighborBody: '근처에 같은 Wi-Fi로 접속한 openNeko 친구를 발견해 화면에 찾아오게 합니다.',
         catFriend: '모찌',
         catMine: '네꼬',
-        installTitle: '소스 그대로 설치하고 실행',
-        installBody: 'GitHub Pages는 소개 페이지를 맡고, 실제 앱 소스와 설치 스크립트는 GitHub 저장소에서 관리합니다.',
+        installTitle: 'Mac용 앱 다운로드',
+        installBody: 'DMG를 내려받아 Applications 폴더에 넣으면 바로 시작할 수 있습니다. 개발자는 소스 설치 명령도 사용할 수 있습니다.',
         copy: '복사',
         copied: '복사됨',
         selected: '선택됨',
-        installReq: 'Node.js 22.12+와 git이 필요합니다.',
-        installSteps: '소스 실행은 <strong>npm install</strong>, <strong>npm run build</strong>, <strong>npm start</strong> 순서입니다.',
+        downloadLabel: 'macOS 14+',
+        downloadTitle: 'openNeko for Mac',
+        downloadBody: '가장 쉬운 방법은 DMG를 내려받아 openNeko를 Applications로 옮기는 것입니다.',
+        downloadDmg: 'DMG 다운로드',
+        downloadZip: 'ZIP 다운로드',
+        downloadReq: 'macOS 14 이상이 필요합니다.',
+        downloadSecurity: '현재 빌드는 미공증 preview라 처음 실행할 때 macOS 보안 확인이 표시될 수 있습니다.',
+        sourceInstallLabel: '소스에서 실행',
+        sourceReq: '소스 설치에는 Node.js 22.12+와 git이 필요합니다.',
+        sourceSteps: '소스 실행은 <strong>npm install</strong>, <strong>npm run build</strong>, <strong>npm start</strong> 순서입니다.',
         providersTitle: '원하는 AI 연결 방식 선택',
         providersBody: '기본은 OAuth 로그인 기반 Agent입니다. 필요하면 API 키 provider나 로컬 OpenAI 호환 엔드포인트를 설정에서 추가합니다.',
         providerOpenAITitle: 'ChatGPT 로그인',
@@ -1505,7 +1592,7 @@
         heroLead: 'An open-source desktop pixel cat for talking with AI Agents',
         heroSupport: 'It quietly walks along the bottom of your screen and reacts to typing, coding-agent activity, and quick questions. It prioritizes OpenAI/Codex, Claude, Gemini sign-in flows and local models such as Ollama.',
         heroGithub: 'View on GitHub',
-        heroInstall: 'Install',
+        heroInstall: 'Download for Mac',
         heroPreviewAria: 'openNeko desktop preview',
         heroBubble: 'Hi nya~ let us work together today.',
         featuresTitle: 'A small AI companion that stays out of your flow',
@@ -1527,13 +1614,21 @@
         featureNeighborBody: 'Discover openNeko friends on the same Wi-Fi and let them visit your screen.',
         catFriend: 'Mochi',
         catMine: 'Neko',
-        installTitle: 'Install and run from source',
-        installBody: 'GitHub Pages hosts this project page, while the app source and install scripts live in the GitHub repository.',
+        installTitle: 'Download the Mac app',
+        installBody: 'Download the DMG, move openNeko to Applications, and start it like a regular Mac app. Developers can still use the source install command.',
         copy: 'Copy',
         copied: 'Copied',
         selected: 'Selected',
-        installReq: 'Node.js 22.12+ and git are required.',
-        installSteps: 'To run from source: <strong>npm install</strong>, <strong>npm run build</strong>, then <strong>npm start</strong>.',
+        downloadLabel: 'macOS 14+',
+        downloadTitle: 'openNeko for Mac',
+        downloadBody: 'The easiest path is the DMG: open it, drag openNeko into Applications, then launch it.',
+        downloadDmg: 'Download DMG',
+        downloadZip: 'Download ZIP',
+        downloadReq: 'Requires macOS 14 or later.',
+        downloadSecurity: 'This preview build is not notarized yet, so macOS may show a security confirmation on first launch.',
+        sourceInstallLabel: 'Run from source',
+        sourceReq: 'Source install requires Node.js 22.12+ and git.',
+        sourceSteps: 'To run from source: <strong>npm install</strong>, <strong>npm run build</strong>, then <strong>npm start</strong>.',
         providersTitle: 'Choose the AI connection you want',
         providersBody: 'The default path is an OAuth-based Agent login. Add API-key providers or local OpenAI-compatible endpoints only when needed.',
         providerOpenAITitle: 'ChatGPT sign-in',
@@ -1564,7 +1659,7 @@
         heroLead: 'AI Agentと話せるオープンソースのデスクトップピクセル猫',
         heroSupport: '画面下をそっと歩きながら、タイピング、コーディングエージェントの状態、短い質問に反応します。OpenAI/Codex、Claude、Geminiのログインと、Ollamaなどのローカルモデルを優先してサポートします。',
         heroGithub: 'GitHubで見る',
-        heroInstall: 'インストール',
+        heroInstall: 'Mac版をダウンロード',
         heroPreviewAria: 'openNeko デスクトッププレビュー',
         heroBubble: 'こんにちはにゃ~ 今日も一緒に作業するにゃ。',
         featuresTitle: '作業の流れを邪魔しない小さなAI相棒',
@@ -1586,13 +1681,21 @@
         featureNeighborBody: '同じWi-Fi上のopenNeko友だちを見つけて、画面に遊びに来てもらえます。',
         catFriend: 'もち',
         catMine: 'ねこ',
-        installTitle: 'ソースからインストールして実行',
-        installBody: 'GitHub Pagesは紹介ページを担当し、実際のアプリソースとインストールスクリプトはGitHubリポジトリで管理します。',
+        installTitle: 'Macアプリをダウンロード',
+        installBody: 'DMGをダウンロードしてopenNekoをApplicationsに移せば、通常のMacアプリのように起動できます。開発者向けにソース実行コマンドも残しています。',
         copy: 'コピー',
         copied: 'コピー済み',
         selected: '選択済み',
-        installReq: 'Node.js 22.12+ と git が必要です。',
-        installSteps: 'ソース実行は <strong>npm install</strong>、<strong>npm run build</strong>、<strong>npm start</strong> の順です。',
+        downloadLabel: 'macOS 14+',
+        downloadTitle: 'openNeko for Mac',
+        downloadBody: 'いちばん簡単な方法はDMGです。開いて、openNekoをApplicationsにドラッグして起動します。',
+        downloadDmg: 'DMGをダウンロード',
+        downloadZip: 'ZIPをダウンロード',
+        downloadReq: 'macOS 14以降が必要です。',
+        downloadSecurity: '現在のビルドは未公証のpreviewのため、初回起動時にmacOSのセキュリティ確認が表示される場合があります。',
+        sourceInstallLabel: 'ソースから実行',
+        sourceReq: 'ソース実行にはNode.js 22.12+ と git が必要です。',
+        sourceSteps: 'ソース実行は <strong>npm install</strong>、<strong>npm run build</strong>、<strong>npm start</strong> の順です。',
         providersTitle: '好みのAI接続方法を選択',
         providersBody: '基本はOAuthログインベースのAgentです。必要な場合だけ、APIキープロバイダーやローカルOpenAI互換エンドポイントを設定で追加します。',
         providerOpenAITitle: 'ChatGPTログイン',
@@ -1623,7 +1726,7 @@
         heroLead: '可与 AI Agent 对话的开源桌面像素猫',
         heroSupport: '它会轻轻走在屏幕底部，响应打字、编程 Agent 状态和简短问题。优先支持 OpenAI/Codex、Claude、Gemini 登录，以及 Ollama 等本地模型。',
         heroGithub: '在 GitHub 查看',
-        heroInstall: '安装',
+        heroInstall: '下载 Mac 版',
         heroPreviewAria: 'openNeko 桌面预览',
         heroBubble: '你好喵~ 今天也一起工作喵。',
         featuresTitle: '不打断工作流的小小 AI 伙伴',
@@ -1645,13 +1748,21 @@
         featureNeighborBody: '发现同一 Wi-Fi 上的 openNeko 朋友，并让它们来到你的屏幕上。',
         catFriend: '麻糬',
         catMine: '猫猫',
-        installTitle: '直接从源码安装运行',
-        installBody: 'GitHub Pages 用于项目介绍页，实际应用源码和安装脚本由 GitHub 仓库管理。',
+        installTitle: '下载 Mac 应用',
+        installBody: '下载 DMG 后把 openNeko 移到 Applications，就可以像普通 Mac 应用一样启动。开发者仍可使用源码安装命令。',
         copy: '复制',
         copied: '已复制',
         selected: '已选中',
-        installReq: '需要 Node.js 22.12+ 和 git。',
-        installSteps: '源码运行顺序为 <strong>npm install</strong>、<strong>npm run build</strong>、<strong>npm start</strong>。',
+        downloadLabel: 'macOS 14+',
+        downloadTitle: 'openNeko for Mac',
+        downloadBody: '最简单的方式是下载 DMG，打开后把 openNeko 拖到 Applications 再启动。',
+        downloadDmg: '下载 DMG',
+        downloadZip: '下载 ZIP',
+        downloadReq: '需要 macOS 14 或更高版本。',
+        downloadSecurity: '当前构建是未公证的 preview，首次启动时 macOS 可能会显示安全确认。',
+        sourceInstallLabel: '从源码运行',
+        sourceReq: '源码安装需要 Node.js 22.12+ 和 git。',
+        sourceSteps: '源码运行顺序为 <strong>npm install</strong>、<strong>npm run build</strong>、<strong>npm start</strong>。',
         providersTitle: '选择你想要的 AI 连接方式',
         providersBody: '默认使用基于 OAuth 登录的 Agent。只有需要时，才在设置中添加 API Key provider 或本地 OpenAI 兼容端点。',
         providerOpenAITitle: 'ChatGPT 登录',
