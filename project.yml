@@ -14,7 +14,11 @@ targets:
       - path: App
         excludes:
           - Resources/sprites/**
+          - Resources/skills/**
       - path: App/Resources/sprites
+        type: folder
+        buildPhase: resources
+      - path: App/Resources/skills
         type: folder
         buildPhase: resources
     dependencies:
@@ -26,4 +30,6 @@ targets:
         CURRENT_PROJECT_VERSION: "1"
         GENERATE_INFOPLIST_FILE: NO
         INFOPLIST_FILE: App/Resources/Info.plist
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         ENABLE_HARDENED_RUNTIME: YES
+        CODE_SIGN_INJECT_BASE_ENTITLEMENTS: NO

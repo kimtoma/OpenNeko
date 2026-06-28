@@ -42,7 +42,7 @@ public final class SkinManager {
     /// id가 가리키는 스킨 디렉터리 URL (default면 루트)
     private func directory(for id: String) -> URL? {
         if id == Self.defaultID { return bundledRoot }
-        for root in [bundledRoot, externalRoot].compactMap({ $0 }) {
+        for root in [externalRoot, bundledRoot].compactMap({ $0 }) {
             let dir = root.appendingPathComponent(id)
             var isDir: ObjCBool = false
             if fm.fileExists(atPath: dir.path, isDirectory: &isDir), isDir.boolValue { return dir }

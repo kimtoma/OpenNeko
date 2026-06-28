@@ -47,6 +47,25 @@ final class SkinManagerTests: XCTestCase {
         XCTAssertEqual(skin.frameURLs(for: "idle").first?.deletingLastPathComponent().lastPathComponent, "black")
     }
 
+    func testExternalSkinRootIsAvailableAndPreferred() throws {
+        try writeManifest(tmp, #"{ "idle": ["idle_0.png"] }"#)
+        let bundledBlack = tmp.appendingPathComponent("black")
+        try FileManager.default.createDirectory(at: bundledBlack, withIntermediateDirectories: true)
+
+        let external = tmp.appendingPathComponent("external")
+        let externalBlack = external.appendingPathComponent("black")
+        try FileManager.default.createDirectory(at: externalBlack, withIntermediateDirectories: true)
+        try "external".write(to: externalBlack.appendingPathComponent("idle_0.png"), atomically: true, encoding: .utf8)
+
+        let mgr = SkinManager(bundledRoot: tmp, externalRoot: external)
+
+        XCTAssertTrue(mgr.availableSkinIDs().contains("black"))
+        XCTAssertEqual(
+            try mgr.loadSkin(id: "black").frameURLs(for: "idle").first?.deletingLastPathComponent().path,
+            externalBlack.path
+        )
+    }
+
     func testLoadUnknownSkinThrows() throws {
         try writeManifest(tmp, #"{ "idle": ["idle_0.png"] }"#)
         let mgr = SkinManager(bundledRoot: tmp, externalRoot: nil)

@@ -2,6 +2,9 @@
 /.build
 /build
 DerivedData/
+/.derivedData/
+/dist/
+/.codex/
 *.xcodeproj
 xcuserdata/
 *.xcuserstate

@@ -8,6 +8,14 @@
     <key>CFBundleVersion</key><string>1</string>
     <key>LSMinimumSystemVersion</key><string>14.0</string>
     <key>LSUIElement</key><true/>
+    <key>NSBonjourServices</key>
+    <array>
+        <string>_openneko._tcp</string>
+    </array>
     <key>NSHighResolutionCapable</key><true/>
+    <key>NSInputMonitoringUsageDescription</key>
+    <string>다른 앱에서 입력 중인지 감지해 고양이 타이핑 애니메이션을 보여주기 위해 사용합니다. 입력한 글자 내용은 읽지 않습니다.</string>
+    <key>NSLocalNetworkUsageDescription</key>
+    <string>같은 로컬 네트워크의 openNeko 이웃 고양이를 찾아 인사하기 위해 사용합니다.</string>
 </dict>
 </plist>
