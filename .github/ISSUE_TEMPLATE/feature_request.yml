@@ -1,0 +1,39 @@
+name: 💡 기능 제안 / 피드백
+description: 이런 게 있으면 좋겠어요 (새 행동·스킨·스킬·설정 등)
+title: "[제안] "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        아이디어 고마워요냥 🐾 작은 제안도 환영합니다.
+  - type: textarea
+    id: idea
+    attributes:
+      label: 제안 내용
+      description: 어떤 기능/변경이 있으면 좋을지 자유롭게 적어주세요.
+      placeholder: 예) 고양이가 자는 동안 알림이 오면 깨어나면 좋겠어요.
+    validations:
+      required: true
+  - type: textarea
+    id: why
+    attributes:
+      label: 왜 필요한가요?
+      description: 어떤 상황/불편에서 이게 도움이 될지 알려주세요.
+    validations:
+      required: false
+  - type: dropdown
+    id: area
+    attributes:
+      label: 관련 영역
+      options:
+        - 펫 행동 / 애니메이션
+        - 스킨
+        - 채팅 / LLM
+        - 스킬 / 슬래시 명령
+        - 에이전트 연동 (HTTP 브리지)
+        - 설정 UI
+        - 다국어
+        - 기타
+    validations:
+      required: false
