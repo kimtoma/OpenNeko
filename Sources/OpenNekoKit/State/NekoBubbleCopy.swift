@@ -124,6 +124,28 @@ public enum NekoBubbleCopy {
         }
     }
 
+    public static func customSkinRequestCreated(_ label: String, languageCode: String?) -> String {
+        switch AppLanguage.normalized(languageCode) ?? "ko" {
+        case "en": return "\(label) request is ready, nya. Send it to ChatGPT or the maker."
+        case "ja": return "\(label) の依頼ファイルを作ったにゃ。ChatGPTか作成者に渡すにゃ"
+        case "zh": return "\(label) 请求文件做好了喵。发给 ChatGPT 或制作者喵"
+        default: return "\(label) 요청 파일을 만들었다냥. ChatGPT나 제작자에게 보내라냥"
+        }
+    }
+
+    public static func customSkinImported(_ label: String, languageCode: String?) -> String {
+        switch AppLanguage.normalized(languageCode) ?? "ko" {
+        case "en": return "\(label) skin is installed, nya!"
+        case "ja": return "\(label) スキンを入れたにゃ"
+        case "zh": return "\(label) 皮肤已安装喵"
+        default: return "\(label) 스킨을 넣었다냥"
+        }
+    }
+
+    public static func customSkinFailed(languageCode: String?) -> String {
+        localized(languageCode, ko: "스킨 파일을 처리하지 못했다냥", en: "I could not process that skin file, nya.", ja: "スキンファイルを処理できなかったにゃ", zh: "没能处理皮肤文件喵")
+    }
+
     public static func currentLanguage(_ name: String, languageCode: String?) -> String {
         switch AppLanguage.normalized(languageCode) ?? "ko" {
         case "en": return "Current language is \(name), nya."

@@ -69,6 +69,11 @@ public enum SettingsCopyKey: String, CaseIterable, Sendable {
     case saveAPIKey
     case deleteAPIKey
     case skillsFolder
+    case skinFolder
+    case customSkin
+    case customSkinDetail
+    case makeSkinRequest
+    case importSkinPackage
     case openFolder
     case aiSettings
     case noSkills
@@ -279,6 +284,16 @@ public enum SettingsCopy {
             return localized(language, ko: "API 키 삭제", en: "Delete API key", ja: "APIキーを削除", zh: "删除 API Key")
         case .skillsFolder:
             return localized(language, ko: "스킬 폴더", en: "Skills Folder", ja: "スキルフォルダ", zh: "技能文件夹")
+        case .skinFolder:
+            return localized(language, ko: "스킨 폴더", en: "Skins Folder", ja: "スキンフォルダ", zh: "皮肤文件夹")
+        case .customSkin:
+            return localized(language, ko: "내 고양이 스킨", en: "My Cat Skin", ja: "うちのねこスキン", zh: "我的猫咪皮肤")
+        case .customSkinDetail:
+            return localized(language, ko: "사진으로 ChatGPT용 요청 파일을 만들고, 완성된 스킨팩을 가져온다냥.", en: "Create a ChatGPT request from photos, then import the finished skin pack, nya.", ja: "写真からChatGPT用の依頼ファイルを作り、完成スキンを読み込むにゃ。", zh: "用照片创建 ChatGPT 请求，再导入完成的皮肤包喵。")
+        case .makeSkinRequest:
+            return localized(language, ko: "사진으로 요청 파일 만들기", en: "Create Photo Request", ja: "写真で依頼ファイル作成", zh: "用照片创建请求")
+        case .importSkinPackage:
+            return localized(language, ko: "스킨팩 가져오기", en: "Import Skin Pack", ja: "スキンパックを読み込む", zh: "导入皮肤包")
         case .openFolder:
             return localized(language, ko: "폴더 열기", en: "Open Folder", ja: "フォルダを開く", zh: "打开文件夹")
         case .aiSettings:

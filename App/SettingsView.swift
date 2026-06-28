@@ -126,6 +126,9 @@ struct SettingsView: View {
     let runSkill: (String) -> Void
     let setSkillEnabled: (String, Bool) -> Void
     let openSkillsFolder: () -> Void
+    let createCustomSkinRequest: () -> Void
+    let importCustomSkinPackage: () -> Void
+    let openSkinsFolder: () -> Void
     let selectSkin: (String) -> Void
     @State private var selectedPaneRaw = SettingsPane.start.rawValue
     @State private var onboardingStepRaw = OnboardingStep.welcome.rawValue
@@ -376,6 +379,28 @@ struct SettingsView: View {
                     }
                     .buttonStyle(.plain)
                 }
+            }
+
+            SettingsGlassDisclosureSection(
+                title: copy(.customSkin),
+                subtitle: copy(.customSkinDetail),
+                systemImage: "camera.aperture",
+                tint: .accentColor
+            ) {
+                SettingsGlassStatusRow(
+                    title: copy(.skinFolder),
+                    subtitle: "~/Library/Application Support/openNeko/skins/<id>",
+                    systemImage: "folder",
+                    tint: .accentColor
+                )
+
+                ViewThatFits(in: .horizontal) {
+                    customSkinButtons(axis: .horizontal)
+                    customSkinButtons(axis: .vertical)
+                }
+                .controlSize(.regular)
+                .padding(.horizontal, 12)
+                .padding(.vertical, 8)
             }
 
             SettingsGlassToggleRow(
@@ -1354,6 +1379,30 @@ struct SettingsView: View {
                     set: { setSoundEffects($0) }
                 )
             )
+        }
+    }
+
+    @ViewBuilder
+    private func customSkinButtons(axis: Axis) -> some View {
+        let layout = axis == .horizontal
+            ? AnyLayout(HStackLayout(spacing: 10))
+            : AnyLayout(VStackLayout(alignment: .leading, spacing: 8))
+
+        layout {
+            Button(action: createCustomSkinRequest) {
+                Label(copy(.makeSkinRequest), systemImage: "camera")
+            }
+            .buttonStyle(.borderedProminent)
+
+            Button(action: importCustomSkinPackage) {
+                Label(copy(.importSkinPackage), systemImage: "square.and.arrow.down")
+            }
+            .buttonStyle(.bordered)
+
+            Button(action: openSkinsFolder) {
+                Label(copy(.openFolder), systemImage: "folder")
+            }
+            .buttonStyle(.bordered)
         }
     }
 

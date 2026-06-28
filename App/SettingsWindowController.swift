@@ -59,6 +59,9 @@ final class SettingsWindowController {
     private let runSkill: (String) -> Void
     private let setSkillEnabled: (String, Bool) -> Void
     private let openSkillsFolder: () -> Void
+    private let createCustomSkinRequest: () -> Void
+    private let importCustomSkinPackage: () -> Void
+    private let openSkinsFolder: () -> Void
     private let selectSkin: (String) -> Void
 
     init(
@@ -89,6 +92,9 @@ final class SettingsWindowController {
         runSkill: @escaping (String) -> Void,
         setSkillEnabled: @escaping (String, Bool) -> Void,
         openSkillsFolder: @escaping () -> Void,
+        createCustomSkinRequest: @escaping () -> Void,
+        importCustomSkinPackage: @escaping () -> Void,
+        openSkinsFolder: @escaping () -> Void,
         selectSkin: @escaping (String) -> Void
     ) {
         self.state = state
@@ -118,6 +124,9 @@ final class SettingsWindowController {
         self.runSkill = runSkill
         self.setSkillEnabled = setSkillEnabled
         self.openSkillsFolder = openSkillsFolder
+        self.createCustomSkinRequest = createCustomSkinRequest
+        self.importCustomSkinPackage = importCustomSkinPackage
+        self.openSkinsFolder = openSkinsFolder
         self.selectSkin = selectSkin
     }
 
@@ -236,6 +245,9 @@ final class SettingsWindowController {
             runSkill: runSkill,
             setSkillEnabled: setSkillEnabled,
             openSkillsFolder: openSkillsFolder,
+            createCustomSkinRequest: createCustomSkinRequest,
+            importCustomSkinPackage: importCustomSkinPackage,
+            openSkinsFolder: openSkinsFolder,
             selectSkin: selectSkin
         )
     }

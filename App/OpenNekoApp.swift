@@ -1,6 +1,7 @@
 import AppKit
 import Darwin
 import SwiftUI
+import UniformTypeIdentifiers
 import OpenNekoKit
 
 @main
@@ -130,7 +131,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             NekoBubbleCopy.chatPlaceholder(languageCode: self?.currentLanguageCode())
         }
 
-        let spritesURL = Bundle.main.resourceURL!.appendingPathComponent("sprites")
+        let spritesURL = bundledSpritesRootURL()
         let manager = SkinManager(bundledRoot: spritesURL, externalRoot: externalSkinsRootURL())
         skinManager = manager
         appSettings = settingsStore.load()
@@ -257,6 +258,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             },
             openSkillsFolder: { [weak self] in
                 self?.openSkillsFolder()
+            },
+            createCustomSkinRequest: { [weak self] in
+                self?.createCustomSkinRequest()
+            },
+            importCustomSkinPackage: { [weak self] in
+                self?.importCustomSkinPackage()
+            },
+            openSkinsFolder: { [weak self] in
+                self?.openSkinsFolder()
             },
             selectSkin: { [weak self, weak cat] id in
                 self?.selectSkin(id, cat: cat)
@@ -440,7 +450,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private func scheduleKeyboardMonitorRetry(cat: CatWindow) {
         guard keyboardMonitorRetryTimer == nil else { return }
         keyboardMonitorRetryTimer = Timer.scheduledTimer(withTimeInterval: 3, repeats: true) { [weak self, weak cat] timer in
-            guard let self, let cat else {
+            guard let self, cat != nil else {
                 timer.invalidate()
                 return
             }
@@ -1472,10 +1482,21 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             .appendingPathComponent("skills", isDirectory: true)
     }
 
+    private func bundledSpritesRootURL() -> URL {
+        Bundle.main.resourceURL!.appendingPathComponent("sprites", isDirectory: true)
+    }
+
     private func externalSkinsRootURL() -> URL {
         AppSettingsStore.defaultFileURL()
             .deletingLastPathComponent()
             .appendingPathComponent("skins", isDirectory: true)
+    }
+
+    private func makeSkinPackageService() throws -> SkinPackageService {
+        try SkinPackageService(
+            externalRoot: externalSkinsRootURL(),
+            rootManifestURL: bundledSpritesRootURL().appendingPathComponent("manifest.json")
+        )
     }
 
     private func reloadSkills() {
@@ -1530,6 +1551,103 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         } catch {
             NSLog("[openNeko] failed to open skills folder: \(error)")
         }
+    }
+
+    private func openSkinsFolder() {
+        let url = externalSkinsRootURL()
+        do {
+            try FileManager.default.createDirectory(at: url, withIntermediateDirectories: true)
+            NSWorkspace.shared.open(url)
+            settingsWindow?.refresh()
+        } catch {
+            NSLog("[openNeko] failed to open skins folder: \(error)")
+            catWindow?.applyBridgeState(.error)
+            catWindow?.showBubble(NekoBubbleCopy.customSkinFailed(languageCode: currentLanguageCode()))
+        }
+    }
+
+    private func createCustomSkinRequest() {
+        noteUserInteraction()
+        let panel = NSOpenPanel()
+        panel.title = "고양이 사진 선택"
+        panel.message = "스킨을 만들 때 참고할 고양이 사진을 골라주세요."
+        panel.prompt = "사진 선택"
+        panel.canChooseFiles = true
+        panel.canChooseDirectories = false
+        panel.allowsMultipleSelection = true
+        panel.allowedContentTypes = [.image]
+
+        guard panel.runModal() == .OK, !panel.urls.isEmpty else { return }
+
+        let savePanel = NSSavePanel()
+        let catName = appSettings.catName.trimmingCharacters(in: .whitespacesAndNewlines)
+        let defaultName = SkinPackageSupport.sanitizedSkinID(from: catName.isEmpty ? "my-cat" : catName)
+        savePanel.title = "스킨 요청 파일 저장"
+        savePanel.message = "ChatGPT에 넣거나 제작자에게 보낼 요청 파일을 저장합니다."
+        savePanel.prompt = "저장"
+        savePanel.nameFieldStringValue = "\(defaultName).\(SkinPackageSupport.skinRequestExtension)"
+        savePanel.allowedContentTypes = customFileTypes(extensions: [SkinPackageSupport.skinRequestExtension])
+
+        guard savePanel.runModal() == .OK, let rawDestination = savePanel.url else { return }
+        let destination = url(rawDestination, ensuringExtension: SkinPackageSupport.skinRequestExtension)
+
+        do {
+            let result = try makeSkinPackageService().createRequestPackage(
+                catName: catName.isEmpty ? defaultName : catName,
+                displayName: defaultName,
+                baseSkinID: selectedSkinID,
+                photoURLs: panel.urls,
+                destinationURL: destination
+            )
+            NSWorkspace.shared.activateFileViewerSelecting([result.packageURL])
+            catWindow?.applyBridgeState(.success)
+            catWindow?.showBubble(
+                NekoBubbleCopy.customSkinRequestCreated(result.recipe.displayName, languageCode: currentLanguageCode())
+            )
+        } catch {
+            NSLog("[openNeko] failed to create custom skin request: \(error)")
+            catWindow?.applyBridgeState(.error)
+            catWindow?.showBubble(NekoBubbleCopy.customSkinFailed(languageCode: currentLanguageCode()))
+        }
+    }
+
+    private func importCustomSkinPackage() {
+        noteUserInteraction()
+        let panel = NSOpenPanel()
+        panel.title = "스킨팩 가져오기"
+        panel.message = "완성된 .openneko-skin 파일이나 스킨 폴더를 선택하세요."
+        panel.prompt = "가져오기"
+        panel.canChooseFiles = true
+        panel.canChooseDirectories = true
+        panel.allowsMultipleSelection = false
+        panel.allowedContentTypes = customFileTypes(extensions: [SkinPackageSupport.skinPackageExtension, "zip"])
+
+        guard panel.runModal() == .OK, let url = panel.url else { return }
+
+        do {
+            let result = try makeSkinPackageService().importSkinPackage(from: url)
+            selectSkin(result.validation.skinID, cat: catWindow)
+            NSWorkspace.shared.activateFileViewerSelecting([result.installedURL])
+            catWindow?.applyBridgeState(.success)
+            catWindow?.showBubble(
+                NekoBubbleCopy.customSkinImported(result.validation.displayName, languageCode: currentLanguageCode())
+            )
+        } catch {
+            NSLog("[openNeko] failed to import custom skin package: \(error)")
+            catWindow?.applyBridgeState(.error)
+            catWindow?.showBubble(NekoBubbleCopy.customSkinFailed(languageCode: currentLanguageCode()))
+        }
+    }
+
+    private func customFileTypes(extensions: [String]) -> [UTType] {
+        let types = extensions.compactMap { UTType(filenameExtension: $0) }
+        return types.isEmpty ? [.data] : types
+    }
+
+    private func url(_ url: URL, ensuringExtension pathExtension: String) -> URL {
+        url.pathExtension == pathExtension
+            ? url
+            : url.appendingPathExtension(pathExtension)
     }
 
     private func runSkill(id: String) {

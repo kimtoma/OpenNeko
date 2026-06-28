@@ -66,6 +66,25 @@ Use the Skills tab or the menu bar **스킬** submenu to run bundled and user
 `SKILL.md` prompts. User skills live in `~/.openneko/skills/<id>/SKILL.md`;
 skill bodies are prompt instructions only and scripts are not executed.
 
+## Custom Skins
+
+The Skin settings tab supports two custom-skin paths:
+
+- **사진으로 요청 파일 만들기**: choose cat photos and save an
+  `.openneko-skin-request` file. It contains the photos, the current
+  `manifest.json`, metadata, and `chatgpt-prompt.md` for ChatGPT image
+  generation.
+- **스킨팩 가져오기**: import a finished `.openneko-skin` file, `.zip`, or
+  skin folder. Complete skins are installed under
+  `~/Library/Application Support/openNeko/skins/<id>/` and immediately appear
+  in the skin list.
+
+A finished custom skin is a folder or archive containing `manifest.json`,
+`openneko-skin.json`, and transparent PNG frames with the exact filenames from
+the manifest. This same format can be used for paid/concierge skin creation:
+receive the user's `.openneko-skin-request`, create the PNG frames, then send
+back a finished `.openneko-skin` file.
+
 The menu bar **업데이트 확인** action mirrors the old Electron git updater for
 developer/git checkout installs. It checks `origin/<branch>`, blocks automatic
 updates when tracked files are dirty, and relaunches through
