@@ -124,8 +124,8 @@ scripts/package-macos.sh
 
 Packages are written to:
 
-- `dist/openNeko-macOS-Release.zip`
-- `dist/openNeko-macOS-Release.dmg`
+- `dist/OpenNeko-macOS-Release.zip`
+- `dist/OpenNeko-macOS-Release.dmg`
 
 Without extra environment variables this creates a local ad-hoc signed build.
 Use `CREATE_DMG=0 scripts/package-macos.sh` if you only need the ZIP.

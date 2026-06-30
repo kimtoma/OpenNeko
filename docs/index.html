@@ -3,33 +3,41 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>openNeko - Open-source desktop pixel cat for AI Agents</title>
-  <meta name="description" content="openNeko is an open-source desktop pixel cat that chats with AI Agents and reacts to typing and agent activity.">
-  <link rel="canonical" href="https://kimtoma.github.io/openNeko/">
-  <meta property="og:title" content="openNeko">
+  <title>OpenNeko - Open-source desktop pixel cat for AI Agents</title>
+  <meta name="description" content="OpenNeko is an open-source desktop pixel cat that chats with AI Agents and reacts to typing and agent activity.">
+  <link rel="canonical" href="https://kimtoma.github.io/OpenNeko/">
+  <meta property="og:title" content="OpenNeko">
   <meta property="og:description" content="An open-source desktop pixel cat for talking with AI Agents">
   <meta property="og:type" content="website">
-  <meta property="og:url" content="https://kimtoma.github.io/openNeko/">
-  <meta property="og:image" content="https://kimtoma.github.io/openNeko/assets/og/openneko-og-v2.png">
-  <meta property="og:image:secure_url" content="https://kimtoma.github.io/openNeko/assets/og/openneko-og-v2.png">
+  <meta property="og:url" content="https://kimtoma.github.io/OpenNeko/">
+  <meta property="og:image" content="https://kimtoma.github.io/OpenNeko/assets/og/openneko-og-v2.png">
+  <meta property="og:image:secure_url" content="https://kimtoma.github.io/OpenNeko/assets/og/openneko-og-v2.png">
   <meta property="og:image:type" content="image/png">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
-  <meta property="og:image:alt" content="openNeko desktop pixel cat walking above a dock">
+  <meta property="og:image:alt" content="OpenNeko desktop pixel cat walking above a dock">
   <meta property="og:locale" content="en_US">
   <meta property="og:locale:alternate" content="ko_KR">
   <meta property="og:locale:alternate" content="ja_JP">
   <meta property="og:locale:alternate" content="zh_CN">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="openNeko">
+  <meta name="twitter:title" content="OpenNeko">
   <meta name="twitter:description" content="An open-source desktop pixel cat for talking with AI Agents">
-  <meta name="twitter:image" content="https://kimtoma.github.io/openNeko/assets/og/openneko-og-v2.png">
+  <meta name="twitter:image" content="https://kimtoma.github.io/OpenNeko/assets/og/openneko-og-v2.png">
   <meta name="theme-color" content="#00a8c8">
   <link rel="icon" type="image/png" href="assets/sprites/black/idle_0.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Doto:wght@400..900&family=Inter:wght@400;520;650;700;800;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;520;650;700;800;900&display=swap" rel="stylesheet">
   <style>
+    /* Geist Pixel (Square) — Vercel, SIL OFL 1.1. See assets/fonts/GeistPixel-LICENSE.txt */
+    @font-face {
+      font-family: "Geist Pixel";
+      src: url("assets/fonts/GeistPixel-Square.woff2") format("woff2");
+      font-weight: 100 900;
+      font-style: normal;
+      font-display: swap;
+    }
     :root {
       --bg: #ffffff;
       --ink: #111318;
@@ -44,7 +52,7 @@
       --shadow: 0 18px 48px rgba(17, 19, 24, 0.12);
       --max: 1120px;
       --ui-font: "Inter", ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
-      --display-font: "Doto", var(--ui-font);
+      --display-font: "Geist Pixel", var(--ui-font);
       color-scheme: light;
       font-family: var(--ui-font);
     }
@@ -1254,9 +1262,9 @@
   <div class="page">
     <header class="site-header">
       <nav class="nav" aria-label="주요 메뉴" data-i18n-attr="aria-label:navAria">
-        <a class="brand" href="#top" aria-label="openNeko 홈" data-i18n-attr="aria-label:brandAria">
+        <a class="brand" href="#top" aria-label="OpenNeko 홈" data-i18n-attr="aria-label:brandAria">
           <img src="assets/sprites/black/idle_0.png" alt="">
-          <span>openNeko</span>
+          <span>OpenNeko</span>
         </a>
         <div class="nav-links">
           <a href="#features" data-i18n="navFeatures">Features</a>
@@ -1284,16 +1292,16 @@
     <main id="top">
       <section class="hero" aria-labelledby="hero-title">
         <div class="hero-copy">
-          <h1 id="hero-title">openNeko</h1>
+          <h1 id="hero-title">OpenNeko</h1>
           <p data-i18n="heroLead">AI Agent와 대화하는 오픈소스 데스크탑 픽셀 고양이</p>
           <p class="support" data-i18n="heroSupport">화면 하단을 사뿐히 걸어다니며 타이핑, 코딩 에이전트 상태, 짧은 질문에 반응합니다. OpenAI/Codex, Claude, Gemini 로그인과 Ollama 같은 로컬 모델을 우선 지원합니다.</p>
           <div class="actions">
-            <a class="button primary" href="https://github.com/kimtoma/openNeko" data-i18n="heroGithub">GitHub에서 보기</a>
+            <a class="button primary" href="https://github.com/kimtoma/OpenNeko" data-i18n="heroGithub">GitHub에서 보기</a>
             <a class="button secondary" href="#install"><span aria-hidden="true">🐾</span> <span data-i18n="heroInstall">Mac용 다운로드</span></a>
           </div>
         </div>
 
-        <div class="hero-stage" aria-label="openNeko 데스크탑 프리뷰" data-i18n-attr="aria-label:heroPreviewAria">
+        <div class="hero-stage" aria-label="OpenNeko 데스크탑 프리뷰" data-i18n-attr="aria-label:heroPreviewAria">
           <div class="window-bar" aria-hidden="true">
             <span class="dot red"></span>
             <span class="dot yellow"></span>
@@ -1314,7 +1322,7 @@
               </div>
             </div>
             <span class="dock-shadow" aria-hidden="true"></span>
-            <img class="hero-cat" id="hero-cat" src="assets/sprites/black/walk_0.png" alt="openNeko pixel cat">
+            <img class="hero-cat" id="hero-cat" src="assets/sprites/black/walk_0.png" alt="OpenNeko pixel cat">
           </div>
         </div>
       </section>
@@ -1322,7 +1330,7 @@
       <section class="section" id="features" aria-labelledby="features-title">
         <div class="section-head">
           <h2 id="features-title" data-i18n="featuresTitle">작업 흐름을 방해하지 않는 작은 AI 동료</h2>
-          <p data-i18n="featuresBody">openNeko는 데스크탑 위에 가볍게 머무는 반응형 펫입니다. 채팅, 상태 표시, 스킬 실행, 스킨 교체가 모두 로컬 앱 안에서 동작합니다.</p>
+          <p data-i18n="featuresBody">OpenNeko는 데스크탑 위에 가볍게 머무는 반응형 펫입니다. 채팅, 상태 표시, 스킬 실행, 스킨 교체가 모두 로컬 앱 안에서 동작합니다.</p>
         </div>
         <div class="feature-grid">
           <article class="feature accent-cyan">
@@ -1357,7 +1365,7 @@
               <h3 data-i18n="featureSkillTitle">스킬 프롬프트</h3>
               <p data-i18n="featureSkillBody">번들 또는 사용자 SKILL.md를 메뉴와 슬래시 명령으로 실행합니다.</p>
             </div>
-            <div class="slash-demo" aria-label="openNeko slash command preview">
+            <div class="slash-demo" aria-label="OpenNeko slash command preview">
               <div class="slash-list">
                 <div class="slash-list-track">
                   <div class="slash-line"><span>/</span> <span data-i18n="slashTranslate">translate 이거 얼마에요?</span></div>
@@ -1373,7 +1381,7 @@
               <h3 data-i18n="featureSkinTitle">다양한 모습의 싸이버네꼬</h3>
               <p data-i18n="featureSkinBody">기본 스킨 5종과 외부 스킨 폴더를 지원해 픽셀 고양이를 바꿀 수 있습니다.</p>
             </div>
-            <div class="skin-stack" aria-label="openNeko skin variants">
+            <div class="skin-stack" aria-label="OpenNeko skin variants">
               <img src="assets/sprites/jump_0.png" alt="" data-frames="assets/sprites/jump_0.png|assets/sprites/jump_1.png|assets/sprites/jump_2.png|assets/sprites/jump_3.png" data-interval="160">
               <img src="assets/sprites/black/jump_0.png" alt="" data-frames="assets/sprites/black/jump_0.png|assets/sprites/black/jump_1.png|assets/sprites/black/jump_2.png|assets/sprites/black/jump_3.png" data-interval="160">
               <img src="assets/sprites/orange/jump_0.png" alt="" data-frames="assets/sprites/orange/jump_0.png|assets/sprites/orange/jump_1.png|assets/sprites/orange/jump_2.png|assets/sprites/orange/jump_3.png" data-interval="160">
@@ -1384,7 +1392,7 @@
           <article class="feature">
             <div>
               <h3 data-i18n="featureNeighborTitle">이웃집 고양이 방문</h3>
-              <p data-i18n="featureNeighborBody">근처에 같은 Wi-Fi로 접속한 openNeko 친구를 발견해 화면에 찾아오게 합니다.</p>
+              <p data-i18n="featureNeighborBody">근처에 같은 Wi-Fi로 접속한 OpenNeko 친구를 발견해 화면에 찾아오게 합니다.</p>
             </div>
             <div class="neighbor-scene" aria-label="neighbor cat visiting">
               <span class="cat-label friend" data-i18n="catFriend">모찌</span>
@@ -1405,12 +1413,12 @@
           <div class="download-card">
             <div>
               <div class="terminal-label" data-i18n="downloadLabel">macOS 14+</div>
-              <h3 data-i18n="downloadTitle">openNeko for Mac</h3>
-              <p data-i18n="downloadBody">가장 쉬운 방법은 DMG를 내려받아 openNeko를 Applications로 옮기는 것입니다.</p>
+              <h3 data-i18n="downloadTitle">OpenNeko for Mac</h3>
+              <p data-i18n="downloadBody">가장 쉬운 방법은 DMG를 내려받아 OpenNeko를 Applications로 옮기는 것입니다.</p>
             </div>
             <div class="download-actions">
-              <a class="button primary download-button" href="https://github.com/kimtoma/openNeko/releases/latest/download/openNeko-macOS-Release.dmg" data-i18n="downloadDmg">DMG 다운로드</a>
-              <a class="button secondary download-button" href="https://github.com/kimtoma/openNeko/releases/latest/download/openNeko-macOS-Release.zip" data-i18n="downloadZip">ZIP 다운로드</a>
+              <a class="button primary download-button" href="https://github.com/kimtoma/OpenNeko/releases/latest/download/OpenNeko-macOS-Release.dmg" data-i18n="downloadDmg">DMG 다운로드</a>
+              <a class="button secondary download-button" href="https://github.com/kimtoma/OpenNeko/releases/latest/download/OpenNeko-macOS-Release.zip" data-i18n="downloadZip">ZIP 다운로드</a>
             </div>
           </div>
           <div class="install-note">
@@ -1421,7 +1429,7 @@
             <div class="terminal">
               <div class="terminal-label" data-i18n="sourceInstallLabel">소스에서 실행</div>
               <div class="command-row">
-                <code id="install-command">git clone https://github.com/kimtoma/openNeko.git && cd openNeko && xcodegen generate && ./script/build_and_run.sh</code>
+                <code id="install-command">git clone https://github.com/kimtoma/OpenNeko.git && cd OpenNeko && xcodegen generate && ./script/build_and_run.sh</code>
                 <button class="copy-button" type="button" data-copy="#install-command"><span aria-hidden="true">🐾</span> <span data-i18n="copy">복사</span></button>
               </div>
             </div>
@@ -1476,11 +1484,11 @@
             <h2 id="community-title" data-i18n="communityTitle">MIT 라이선스로 열어두는 작은 데스크탑 실험</h2>
             <p data-i18n="communityBody">스프라이트, 스킨, 스킬, AI provider adapter, 설치 스크립트까지 모두 저장소에서 함께 개선할 수 있습니다. 귀여운 데스크탑 펫이면서 동시에 에이전트 상태를 표현하는 로컬 UI 실험입니다.</p>
             <div class="actions">
-              <a class="button primary" href="https://github.com/kimtoma/openNeko" data-i18n="communityRepo">저장소 열기</a>
-              <a class="button secondary" href="https://github.com/kimtoma/openNeko/issues" data-i18n="communityIssue">이슈 제안</a>
+              <a class="button primary" href="https://github.com/kimtoma/OpenNeko" data-i18n="communityRepo">저장소 열기</a>
+              <a class="button secondary" href="https://github.com/kimtoma/OpenNeko/issues" data-i18n="communityIssue">이슈 제안</a>
             </div>
           </div>
-          <div class="skin-row" aria-label="openNeko bundled skins">
+          <div class="skin-row" aria-label="OpenNeko bundled skins">
             <img src="assets/sprites/black/idle_0.png" alt="black skin">
             <img src="assets/sprites/orange/idle_0.png" alt="orange skin">
             <img src="assets/sprites/calico/idle_0.png" alt="calico skin">
@@ -1492,13 +1500,13 @@
 
     <footer class="footer">
       <span>
-        <span data-i18n="footerLicense">openNeko is released under the MIT License.</span>
+        <span data-i18n="footerLicense">OpenNeko is released under the MIT License.</span>
         <span class="footer-made"><span data-i18n="footerMadePrefix">made by</span> <a href="https://kimtoma.com">kimtoma</a> <span data-i18n="footerMadeSuffix">with ❤️</span></span>
       </span>
       <div class="footer-links">
-        <a href="https://github.com/kimtoma/openNeko">GitHub</a>
-        <a href="https://github.com/kimtoma/openNeko/blob/main/README.md">README</a>
-        <a href="https://github.com/kimtoma/openNeko/blob/main/LICENSE">License</a>
+        <a href="https://github.com/kimtoma/OpenNeko">GitHub</a>
+        <a href="https://github.com/kimtoma/OpenNeko/blob/main/README.md">README</a>
+        <a href="https://github.com/kimtoma/OpenNeko/blob/main/LICENSE">License</a>
       </div>
     </footer>
   </div>
@@ -1514,10 +1522,10 @@
     };
     const I18N = {
       ko: {
-        title: 'openNeko - AI Agent와 대화하는 오픈소스 데스크탑 픽셀 고양이',
-        description: 'openNeko는 AI Agent와 대화하고 타이핑과 에이전트 상태에 반응하는 오픈소스 데스크탑 픽셀 고양이입니다.',
+        title: 'OpenNeko - AI Agent와 대화하는 오픈소스 데스크탑 픽셀 고양이',
+        description: 'OpenNeko는 AI Agent와 대화하고 타이핑과 에이전트 상태에 반응하는 오픈소스 데스크탑 픽셀 고양이입니다.',
         navAria: '주요 메뉴',
-        brandAria: 'openNeko 홈',
+        brandAria: 'OpenNeko 홈',
         navFeatures: 'Features',
         navInstall: 'Install',
         navProviders: 'Providers',
@@ -1526,10 +1534,10 @@
         heroSupport: '화면 하단을 사뿐히 걸어다니며 타이핑, 코딩 에이전트 상태, 짧은 질문에 반응합니다. OpenAI/Codex, Claude, Gemini 로그인과 Ollama 같은 로컬 모델을 우선 지원합니다.',
         heroGithub: 'GitHub에서 보기',
         heroInstall: 'Mac용 다운로드',
-        heroPreviewAria: 'openNeko 데스크탑 프리뷰',
+        heroPreviewAria: 'OpenNeko 데스크탑 프리뷰',
         heroBubble: '반갑다냥~ 오늘도 같이 작업하자냥.',
         featuresTitle: '작업 흐름을 방해하지 않는 작은 AI 동료',
-        featuresBody: 'openNeko는 데스크탑 위에 가볍게 머무는 반응형 펫입니다. 채팅, 상태 표시, 스킬 실행, 스킨 교체가 모두 로컬 앱 안에서 동작합니다.',
+        featuresBody: 'OpenNeko는 데스크탑 위에 가볍게 머무는 반응형 펫입니다. 채팅, 상태 표시, 스킬 실행, 스킨 교체가 모두 로컬 앱 안에서 동작합니다.',
         featureTypingTitle: '타이핑 반응',
         featureTypingBody: '키보드를 타이핑할 때마다 고양이가 타이핑 애니메이션으로 반응합니다. 키 내용은 읽지 않습니다.',
         featureChatTitle: '짧은 AI Agent 대화',
@@ -1544,7 +1552,7 @@
         featureSkinTitle: '다양한 모습의 싸이버네꼬',
         featureSkinBody: '기본 스킨 5종과 외부 스킨 폴더를 지원해 픽셀 고양이를 바꿀 수 있습니다.',
         featureNeighborTitle: '이웃집 고양이 방문',
-        featureNeighborBody: '근처에 같은 Wi-Fi로 접속한 openNeko 친구를 발견해 화면에 찾아오게 합니다.',
+        featureNeighborBody: '근처에 같은 Wi-Fi로 접속한 OpenNeko 친구를 발견해 화면에 찾아오게 합니다.',
         catFriend: '모찌',
         catMine: '네꼬',
         installTitle: 'Mac용 앱 다운로드',
@@ -1553,8 +1561,8 @@
         copied: '복사됨',
         selected: '선택됨',
         downloadLabel: 'macOS 14+',
-        downloadTitle: 'openNeko for Mac',
-        downloadBody: '가장 쉬운 방법은 DMG를 내려받아 openNeko를 Applications로 옮기는 것입니다.',
+        downloadTitle: 'OpenNeko for Mac',
+        downloadBody: '가장 쉬운 방법은 DMG를 내려받아 OpenNeko를 Applications로 옮기는 것입니다.',
         downloadDmg: 'DMG 다운로드',
         downloadZip: 'ZIP 다운로드',
         downloadReq: 'macOS 14 이상이 필요합니다.',
@@ -1576,15 +1584,15 @@
         communityBody: '스프라이트, 스킨, 스킬, AI provider adapter, 설치 스크립트까지 모두 저장소에서 함께 개선할 수 있습니다. 귀여운 데스크탑 펫이면서 동시에 에이전트 상태를 표현하는 로컬 UI 실험입니다.',
         communityRepo: '저장소 열기',
         communityIssue: '이슈 제안',
-        footerLicense: 'openNeko is released under the MIT License.',
+        footerLicense: 'OpenNeko is released under the MIT License.',
         footerMadePrefix: 'made by',
         footerMadeSuffix: 'with ❤️',
       },
       en: {
-        title: 'openNeko - Open-source desktop pixel cat for AI Agents',
-        description: 'openNeko is an open-source desktop pixel cat that chats with AI Agents and reacts to typing and agent activity.',
+        title: 'OpenNeko - Open-source desktop pixel cat for AI Agents',
+        description: 'OpenNeko is an open-source desktop pixel cat that chats with AI Agents and reacts to typing and agent activity.',
         navAria: 'Primary navigation',
-        brandAria: 'openNeko home',
+        brandAria: 'OpenNeko home',
         navFeatures: 'Features',
         navInstall: 'Install',
         navProviders: 'Providers',
@@ -1593,10 +1601,10 @@
         heroSupport: 'It quietly walks along the bottom of your screen and reacts to typing, coding-agent activity, and quick questions. It prioritizes OpenAI/Codex, Claude, Gemini sign-in flows and local models such as Ollama.',
         heroGithub: 'View on GitHub',
         heroInstall: 'Download for Mac',
-        heroPreviewAria: 'openNeko desktop preview',
+        heroPreviewAria: 'OpenNeko desktop preview',
         heroBubble: 'Hi nya~ let us work together today.',
         featuresTitle: 'A small AI companion that stays out of your flow',
-        featuresBody: 'openNeko is a lightweight reactive pet for your desktop. Chat, status signals, skill runs, and skin switching all work inside the local app.',
+        featuresBody: 'OpenNeko is a lightweight reactive pet for your desktop. Chat, status signals, skill runs, and skin switching all work inside the local app.',
         featureTypingTitle: 'Typing reaction',
         featureTypingBody: 'The cat switches to a typing animation whenever you type. It does not read the contents of your keystrokes.',
         featureChatTitle: 'Short AI Agent chats',
@@ -1611,17 +1619,17 @@
         featureSkinTitle: 'Many looks for cyber neko',
         featureSkinBody: 'Switch between five bundled skins or add more through an external skins folder.',
         featureNeighborTitle: 'Neighbor cats can visit',
-        featureNeighborBody: 'Discover openNeko friends on the same Wi-Fi and let them visit your screen.',
+        featureNeighborBody: 'Discover OpenNeko friends on the same Wi-Fi and let them visit your screen.',
         catFriend: 'Mochi',
         catMine: 'Neko',
         installTitle: 'Download the Mac app',
-        installBody: 'Download the DMG, move openNeko to Applications, and start it like a regular Mac app. Developers can still use the source install command.',
+        installBody: 'Download the DMG, move OpenNeko to Applications, and start it like a regular Mac app. Developers can still use the source install command.',
         copy: 'Copy',
         copied: 'Copied',
         selected: 'Selected',
         downloadLabel: 'macOS 14+',
-        downloadTitle: 'openNeko for Mac',
-        downloadBody: 'The easiest path is the DMG: open it, drag openNeko into Applications, then launch it.',
+        downloadTitle: 'OpenNeko for Mac',
+        downloadBody: 'The easiest path is the DMG: open it, drag OpenNeko into Applications, then launch it.',
         downloadDmg: 'Download DMG',
         downloadZip: 'Download ZIP',
         downloadReq: 'Requires macOS 14 or later.',
@@ -1643,15 +1651,15 @@
         communityBody: 'Sprites, skins, skills, AI provider adapters, and install scripts can all evolve in the repository. It is both a cute desktop pet and a local UI experiment for expressing agent state.',
         communityRepo: 'Open repository',
         communityIssue: 'Suggest an issue',
-        footerLicense: 'openNeko is released under the MIT License.',
+        footerLicense: 'OpenNeko is released under the MIT License.',
         footerMadePrefix: 'made by',
         footerMadeSuffix: 'with ❤️',
       },
       ja: {
-        title: 'openNeko - AI Agentと話せるオープンソースのデスクトップピクセル猫',
-        description: 'openNekoは、AI Agentと会話し、タイピングやエージェント状態に反応するオープンソースのデスクトップピクセル猫です。',
+        title: 'OpenNeko - AI Agentと話せるオープンソースのデスクトップピクセル猫',
+        description: 'OpenNekoは、AI Agentと会話し、タイピングやエージェント状態に反応するオープンソースのデスクトップピクセル猫です。',
         navAria: 'メインナビゲーション',
-        brandAria: 'openNeko ホーム',
+        brandAria: 'OpenNeko ホーム',
         navFeatures: '機能',
         navInstall: 'インストール',
         navProviders: '連携',
@@ -1660,10 +1668,10 @@
         heroSupport: '画面下をそっと歩きながら、タイピング、コーディングエージェントの状態、短い質問に反応します。OpenAI/Codex、Claude、Geminiのログインと、Ollamaなどのローカルモデルを優先してサポートします。',
         heroGithub: 'GitHubで見る',
         heroInstall: 'Mac版をダウンロード',
-        heroPreviewAria: 'openNeko デスクトッププレビュー',
+        heroPreviewAria: 'OpenNeko デスクトッププレビュー',
         heroBubble: 'こんにちはにゃ~ 今日も一緒に作業するにゃ。',
         featuresTitle: '作業の流れを邪魔しない小さなAI相棒',
-        featuresBody: 'openNekoはデスクトップに軽く常駐するリアクティブなペットです。チャット、状態表示、スキル実行、スキン変更がすべてローカルアプリ内で動きます。',
+        featuresBody: 'OpenNekoはデスクトップに軽く常駐するリアクティブなペットです。チャット、状態表示、スキル実行、スキン変更がすべてローカルアプリ内で動きます。',
         featureTypingTitle: 'タイピング反応',
         featureTypingBody: 'キーボードを打つたびに猫がタイピングアニメーションで反応します。キーの内容は読みません。',
         featureChatTitle: '短いAI Agent会話',
@@ -1678,17 +1686,17 @@
         featureSkinTitle: 'いろいろな姿のサイバーネコ',
         featureSkinBody: '5種類の同梱スキンと外部スキンフォルダに対応し、ピクセル猫の見た目を変えられます。',
         featureNeighborTitle: 'ご近所猫の訪問',
-        featureNeighborBody: '同じWi-Fi上のopenNeko友だちを見つけて、画面に遊びに来てもらえます。',
+        featureNeighborBody: '同じWi-Fi上のOpenNeko友だちを見つけて、画面に遊びに来てもらえます。',
         catFriend: 'もち',
         catMine: 'ねこ',
         installTitle: 'Macアプリをダウンロード',
-        installBody: 'DMGをダウンロードしてopenNekoをApplicationsに移せば、通常のMacアプリのように起動できます。開発者向けにソース実行コマンドも残しています。',
+        installBody: 'DMGをダウンロードしてOpenNekoをApplicationsに移せば、通常のMacアプリのように起動できます。開発者向けにソース実行コマンドも残しています。',
         copy: 'コピー',
         copied: 'コピー済み',
         selected: '選択済み',
         downloadLabel: 'macOS 14+',
-        downloadTitle: 'openNeko for Mac',
-        downloadBody: 'いちばん簡単な方法はDMGです。開いて、openNekoをApplicationsにドラッグして起動します。',
+        downloadTitle: 'OpenNeko for Mac',
+        downloadBody: 'いちばん簡単な方法はDMGです。開いて、OpenNekoをApplicationsにドラッグして起動します。',
         downloadDmg: 'DMGをダウンロード',
         downloadZip: 'ZIPをダウンロード',
         downloadReq: 'macOS 14以降が必要です。',
@@ -1710,15 +1718,15 @@
         communityBody: 'スプライト、スキン、スキル、AI provider adapter、インストールスクリプトまで、すべてリポジトリで一緒に改善できます。かわいいデスクトップペットであり、エージェント状態を表現するローカルUI実験でもあります。',
         communityRepo: 'リポジトリを開く',
         communityIssue: 'Issueを提案',
-        footerLicense: 'openNeko is released under the MIT License.',
+        footerLicense: 'OpenNeko is released under the MIT License.',
         footerMadePrefix: 'made by',
         footerMadeSuffix: 'with ❤️',
       },
       zh: {
-        title: 'openNeko - 可与 AI Agent 对话的开源桌面像素猫',
-        description: 'openNeko 是一只开源桌面像素猫，可以与 AI Agent 对话，并响应打字和 Agent 状态。',
+        title: 'OpenNeko - 可与 AI Agent 对话的开源桌面像素猫',
+        description: 'OpenNeko 是一只开源桌面像素猫，可以与 AI Agent 对话，并响应打字和 Agent 状态。',
         navAria: '主导航',
-        brandAria: 'openNeko 首页',
+        brandAria: 'OpenNeko 首页',
         navFeatures: '功能',
         navInstall: '安装',
         navProviders: '连接',
@@ -1727,10 +1735,10 @@
         heroSupport: '它会轻轻走在屏幕底部，响应打字、编程 Agent 状态和简短问题。优先支持 OpenAI/Codex、Claude、Gemini 登录，以及 Ollama 等本地模型。',
         heroGithub: '在 GitHub 查看',
         heroInstall: '下载 Mac 版',
-        heroPreviewAria: 'openNeko 桌面预览',
+        heroPreviewAria: 'OpenNeko 桌面预览',
         heroBubble: '你好喵~ 今天也一起工作喵。',
         featuresTitle: '不打断工作流的小小 AI 伙伴',
-        featuresBody: 'openNeko 是一个轻量的桌面响应式宠物。聊天、状态显示、技能运行和皮肤切换都在本地应用内完成。',
+        featuresBody: 'OpenNeko 是一个轻量的桌面响应式宠物。聊天、状态显示、技能运行和皮肤切换都在本地应用内完成。',
         featureTypingTitle: '打字响应',
         featureTypingBody: '每当你打字时，小猫会切换到打字动画。它不会读取按键内容。',
         featureChatTitle: '简短 AI Agent 对话',
@@ -1745,17 +1753,17 @@
         featureSkinTitle: '多种 cyber neko 外观',
         featureSkinBody: '支持 5 种内置皮肤，也可以通过外部皮肤文件夹添加更多像素猫外观。',
         featureNeighborTitle: '邻居小猫来访',
-        featureNeighborBody: '发现同一 Wi-Fi 上的 openNeko 朋友，并让它们来到你的屏幕上。',
+        featureNeighborBody: '发现同一 Wi-Fi 上的 OpenNeko 朋友，并让它们来到你的屏幕上。',
         catFriend: '麻糬',
         catMine: '猫猫',
         installTitle: '下载 Mac 应用',
-        installBody: '下载 DMG 后把 openNeko 移到 Applications，就可以像普通 Mac 应用一样启动。开发者仍可使用源码安装命令。',
+        installBody: '下载 DMG 后把 OpenNeko 移到 Applications，就可以像普通 Mac 应用一样启动。开发者仍可使用源码安装命令。',
         copy: '复制',
         copied: '已复制',
         selected: '已选中',
         downloadLabel: 'macOS 14+',
-        downloadTitle: 'openNeko for Mac',
-        downloadBody: '最简单的方式是下载 DMG，打开后把 openNeko 拖到 Applications 再启动。',
+        downloadTitle: 'OpenNeko for Mac',
+        downloadBody: '最简单的方式是下载 DMG，打开后把 OpenNeko 拖到 Applications 再启动。',
         downloadDmg: '下载 DMG',
         downloadZip: '下载 ZIP',
         downloadReq: '需要 macOS 14 或更高版本。',
@@ -1777,7 +1785,7 @@
         communityBody: '精灵图、皮肤、技能、AI provider adapter 和安装脚本都可以在仓库中共同改进。它既是可爱的桌面宠物，也是表达 Agent 状态的本地 UI 实验。',
         communityRepo: '打开仓库',
         communityIssue: '提出 Issue',
-        footerLicense: 'openNeko is released under the MIT License.',
+        footerLicense: 'OpenNeko is released under the MIT License.',
         footerMadePrefix: 'made by',
         footerMadeSuffix: 'with ❤️',
       },

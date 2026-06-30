@@ -4,8 +4,8 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 CONFIGURATION="${CONFIGURATION:-Release}"
 APP_PATH="${APP_PATH:-$ROOT_DIR/.derivedData/Build/Products/$CONFIGURATION/OpenNeko.app}"
-ZIP_PATH="${ZIP_PATH:-$ROOT_DIR/dist/openNeko-macOS-$CONFIGURATION.zip}"
-DMG_PATH="${DMG_PATH:-$ROOT_DIR/dist/openNeko-macOS-$CONFIGURATION.dmg}"
+ZIP_PATH="${ZIP_PATH:-$ROOT_DIR/dist/OpenNeko-macOS-$CONFIGURATION.zip}"
+DMG_PATH="${DMG_PATH:-$ROOT_DIR/dist/OpenNeko-macOS-$CONFIGURATION.dmg}"
 MODE="${1:-local}"
 
 case "$MODE" in
@@ -28,6 +28,62 @@ note() {
 
 warn() {
   echo "note: $*"
+}
+
+verify_dmg_contents() {
+  local mount_dir
+  local attach_output
+  local device
+  local volume_device
+  local volume_name
+  local applications_target
+  local error=""
+  mount_dir="$(mktemp -d)"
+
+  if ! attach_output="$(/usr/bin/hdiutil attach "$DMG_PATH" -readonly -nobrowse -noverify -mountpoint "$mount_dir" 2>&1)"; then
+    /bin/rm -rf "$mount_dir"
+    fail "failed to mount dmg for layout verification: $attach_output"
+  fi
+
+  device="$(/usr/bin/awk '/^\/dev\/disk/ {print $1; exit}' <<<"$attach_output")"
+  [[ -n "$device" ]] || error="mounted dmg device was not reported"
+  volume_device="$(/usr/bin/awk -F '\t' '/OpenNeko installer|\/var\/folders|\/Volumes\// {gsub(/[[:space:]]+$/, "", $1); print $1; exit}' <<<"$attach_output")"
+  if [[ -z "$error" && -z "$volume_device" ]]; then
+    error="mounted dmg volume device was not reported"
+  fi
+  volume_name="$(/usr/sbin/diskutil info "$volume_device" 2>/dev/null | /usr/bin/awk -F: '/Volume Name/ {sub(/^[[:space:]]+/, "", $2); print $2; exit}' || true)"
+  if [[ -z "$error" && "$volume_name" != "OpenNeko installer" ]]; then
+    error="unexpected dmg volume name: $volume_name"
+  fi
+
+  if [[ -z "$error" && ! -d "$mount_dir/OpenNeko.app" ]]; then
+    error="dmg app bundle missing"
+  fi
+  if [[ -z "$error" && ! -L "$mount_dir/Applications" ]]; then
+    error="dmg Applications shortcut missing"
+  fi
+  applications_target="$(/usr/bin/readlink "$mount_dir/Applications" 2>/dev/null || true)"
+  if [[ -z "$error" && "$applications_target" != "/Applications" ]]; then
+    error="dmg Applications shortcut points to $applications_target"
+  fi
+  if [[ -z "$error" && ! -f "$mount_dir/.background/openneko-dmg-background.png" ]]; then
+    error="dmg custom background missing"
+  fi
+  if [[ -z "$error" && ! -f "$mount_dir/.DS_Store" ]]; then
+    error="dmg Finder layout .DS_Store missing"
+  fi
+  if [[ -z "$error" && ! -f "$mount_dir/.VolumeIcon.icns" ]]; then
+    error="dmg volume icon missing"
+  fi
+
+  if [[ -n "$device" ]]; then
+    /usr/bin/hdiutil detach "$device" -quiet || true
+  fi
+  /bin/rm -rf "$mount_dir"
+
+  if [[ -n "$error" ]]; then
+    fail "$error"
+  fi
 }
 
 plist_value() {
@@ -96,6 +152,8 @@ fi
 if [[ -f "$DMG_PATH" ]]; then
   /usr/bin/hdiutil verify "$DMG_PATH" >/dev/null
   note "dmg checksum verified: $DMG_PATH"
+  verify_dmg_contents
+  note "dmg installer layout verified"
 else
   warn "dmg package not found: $DMG_PATH"
 fi
