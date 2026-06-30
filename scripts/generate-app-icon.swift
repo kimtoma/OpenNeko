@@ -25,6 +25,71 @@ func color(_ red: CGFloat, _ green: CGFloat, _ blue: CGFloat, _ alpha: CGFloat =
     NSColor(calibratedRed: red / 255, green: green / 255, blue: blue / 255, alpha: alpha)
 }
 
+func alphaTrimmed(_ source: NSImage, cutoff: UInt8 = 16) -> NSImage {
+    guard let cgSource = source.cgImage(forProposedRect: nil, context: nil, hints: nil) else {
+        return source
+    }
+
+    let width = cgSource.width
+    let height = cgSource.height
+    let bytesPerRow = width * 4
+    let colorSpace = CGColorSpaceCreateDeviceRGB()
+    let bitmapInfo = CGBitmapInfo(rawValue: CGImageAlphaInfo.premultipliedLast.rawValue)
+        .union(.byteOrder32Big)
+    var pixels = [UInt8](repeating: 0, count: width * height * 4)
+
+    guard let context = CGContext(
+        data: &pixels,
+        width: width,
+        height: height,
+        bitsPerComponent: 8,
+        bytesPerRow: bytesPerRow,
+        space: colorSpace,
+        bitmapInfo: bitmapInfo.rawValue
+    ) else {
+        return source
+    }
+
+    context.interpolationQuality = .none
+    context.clear(CGRect(x: 0, y: 0, width: width, height: height))
+    context.draw(cgSource, in: CGRect(x: 0, y: 0, width: width, height: height))
+
+    var minX = width
+    var minY = height
+    var maxX = -1
+    var maxY = -1
+    for y in 0..<height {
+        for x in 0..<width {
+            let alpha = pixels[(y * bytesPerRow) + (x * 4) + 3]
+            if alpha > cutoff {
+                minX = min(minX, x)
+                minY = min(minY, y)
+                maxX = max(maxX, x)
+                maxY = max(maxY, y)
+            }
+        }
+    }
+
+    guard maxX >= minX, maxY >= minY else {
+        return source
+    }
+
+    let padding = 2
+    let crop = CGRect(
+        x: max(0, minX - padding),
+        y: max(0, minY - padding),
+        width: min(width, maxX + padding + 1) - max(0, minX - padding),
+        height: min(height, maxY + padding + 1) - max(0, minY - padding)
+    )
+
+    guard let cropped = cgSource.cropping(to: crop) else {
+        return source
+    }
+    return NSImage(cgImage: cropped, size: NSSize(width: crop.width, height: crop.height))
+}
+
+let centeredCatImage = alphaTrimmed(catImage)
+
 // Master canvas rendered at 1024 then downscaled for every required size.
 let master = 1024.0
 
@@ -88,10 +153,10 @@ func renderMaster() -> NSBitmapImageRep {
 
     // Cat art (pixel-art) — keep crisp pixels with nearest-neighbour.
     NSGraphicsContext.current?.imageInterpolation = .none
-    let catScale = body.width * 0.78
+    let catScale = body.width * 0.76
     let catRect = NSRect(
         x: body.midX - catScale / 2,
-        y: body.midY - catScale / 2 - body.height * 0.015,
+        y: body.midY - catScale / 2,
         width: catScale,
         height: catScale
     )
@@ -100,7 +165,7 @@ func renderMaster() -> NSBitmapImageRep {
     catShadow.shadowBlurRadius = size * 0.012
     catShadow.shadowColor = color(12, 18, 28, 0.20)
     catShadow.set()
-    catImage.draw(in: catRect, from: .zero, operation: .sourceOver, fraction: 1)
+    centeredCatImage.draw(in: catRect, from: .zero, operation: .sourceOver, fraction: 1)
     NSGraphicsContext.current?.imageInterpolation = .high
 
     NSGraphicsContext.restoreGraphicsState() // remove clip

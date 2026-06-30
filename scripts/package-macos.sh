@@ -9,14 +9,16 @@ DIST_DIR="$ROOT_DIR/dist"
 APP_NAME="OpenNeko.app"
 CREATE_DMG="${CREATE_DMG:-1}"
 VOLUME_NAME="OpenNeko installer"
-DMG_WINDOW_WIDTH=880
-DMG_WINDOW_HEIGHT=560
-DMG_APP_ICON_X=248
-DMG_APP_ICON_Y=312
-DMG_APPLICATIONS_ICON_X=632
-DMG_APPLICATIONS_ICON_Y=312
+DMG_WINDOW_WIDTH=760
+DMG_WINDOW_HEIGHT=480
+DMG_APP_ICON_X=230
+DMG_APP_ICON_Y=245
+DMG_APPLICATIONS_ICON_X=530
+DMG_APPLICATIONS_ICON_Y=245
 DMG_ICON_SIZE=128
-APP_ICON_CAT_ART="$ROOT_DIR/docs/assets/sprites/black/idle_0.png"
+APP_ICON_CAT_ART="$ROOT_DIR/App/Resources/sprites/black/walk_0.png"
+VOLUME_ICON_CAT_ART="$ROOT_DIR/docs/assets/sprites/black/idle_0.png"
+DMG_TITLE_FONT="$ROOT_DIR/docs/assets/fonts/GeistPixel-Square.woff2"
 
 generate_app_icon() {
   /usr/bin/swift \
@@ -33,7 +35,7 @@ create_volume_icon() {
   # bar-icon cat engraved into its face.
   /usr/bin/swift \
     "$ROOT_DIR/scripts/generate-volume-icon.swift" \
-    "$APP_ICON_CAT_ART" \
+    "$VOLUME_ICON_CAT_ART" \
     "$iconset_dir"
   /usr/bin/iconutil -c icns -o "$output_path" "$iconset_dir"
   /bin/rm -rf "$iconset_dir"
@@ -160,7 +162,9 @@ if [[ "$CREATE_DMG" == "1" ]]; then
   /bin/ln -s /Applications "$DMG_STAGE/Applications"
   /bin/mkdir -p "$DMG_STAGE/.background"
   DMG_BACKGROUND_NAME="openneko-dmg-background.png"
-  /usr/bin/swift "$ROOT_DIR/scripts/generate-dmg-background.swift" "$DMG_STAGE/.background/$DMG_BACKGROUND_NAME"
+  /usr/bin/swift "$ROOT_DIR/scripts/generate-dmg-background.swift" \
+    "$DMG_STAGE/.background/$DMG_BACKGROUND_NAME" \
+    "$DMG_TITLE_FONT"
   create_volume_icon "$DMG_STAGE/.VolumeIcon.icns"
   /bin/chmod -R u+rw,go+r "$DMG_STAGE"
 

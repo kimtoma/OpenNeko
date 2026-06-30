@@ -1,12 +1,13 @@
 #!/usr/bin/env swift
 import AppKit
+import CoreText
 import Foundation
 
 // Renders the OpenNeko DMG installer window background.
-// The Finder item labels carry the text; the background stays quiet and only
-// leaves a centered paw trail from OpenNeko.app to Applications.
+// Finder item labels carry the install targets; the background adds only a
+// compact OpenNeko title and a centered paw trail from the app to Applications.
 //
-// Usage: generate-dmg-background.swift <output.png> [unused-font.ttf]
+// Usage: generate-dmg-background.swift <output.png> [title-font.woff2]
 
 let arguments = CommandLine.arguments
 guard arguments.count == 2 || arguments.count == 3 else {
@@ -15,14 +16,15 @@ guard arguments.count == 2 || arguments.count == 3 else {
 }
 
 let outputURL = URL(fileURLWithPath: arguments[1])
+let titleFontURL = arguments.count == 3 ? URL(fileURLWithPath: arguments[2]) : nil
 try FileManager.default.createDirectory(
     at: outputURL.deletingLastPathComponent(),
     withIntermediateDirectories: true
 )
 
-let canvasW: CGFloat = 880
-let canvasH: CGFloat = 560
-let iconCenterY: CGFloat = 312
+let canvasW: CGFloat = 760
+let canvasH: CGFloat = 400
+let iconCenterY: CGFloat = 245
 
 guard let bitmap = NSBitmapImageRep(
     bitmapDataPlanes: nil,
@@ -71,6 +73,40 @@ func drawPawPrint(center: NSPoint, scale: CGFloat, rotation: CGFloat, fill: NSCo
     NSGraphicsContext.restoreGraphicsState()
 }
 
+func drawCentered(_ string: String, center: NSPoint, font: NSFont, fill: NSColor) {
+    let paragraph = NSMutableParagraphStyle()
+    paragraph.alignment = .center
+    let attributed = NSAttributedString(
+        string: string,
+        attributes: [
+            .font: font,
+            .foregroundColor: fill,
+            .paragraphStyle: paragraph,
+            .kern: 0.4
+        ]
+    )
+    let size = attributed.size()
+    attributed.draw(at: NSPoint(x: center.x - size.width / 2, y: center.y - size.height / 2))
+}
+
+func registerFont(at url: URL?) {
+    guard let url else {
+        return
+    }
+    var error: Unmanaged<CFError>?
+    if !CTFontManagerRegisterFontsForURL(url as CFURL, .process, &error),
+       let errorDescription = error?.takeRetainedValue().localizedDescription {
+        fputs("warning: failed to register title font: \(errorDescription)\n", stderr)
+    }
+}
+
+func makeTitleFont(size: CGFloat) -> NSFont {
+    registerFont(at: titleFontURL)
+    return NSFont(name: "Geist Pixel", size: size)
+        ?? NSFont(name: "GeistPixel-Square", size: size)
+        ?? NSFont.monospacedSystemFont(ofSize: size, weight: .regular)
+}
+
 NSGraphicsContext.saveGraphicsState()
 NSGraphicsContext.current = NSGraphicsContext(bitmapImageRep: bitmap)
 NSGraphicsContext.current?.imageInterpolation = .high
@@ -79,13 +115,18 @@ let canvas = NSRect(origin: .zero, size: NSSize(width: canvasW, height: canvasH)
 color(248, 250, 252).setFill()
 canvas.fill()
 
+let titleFont = makeTitleFont(size: 60)
+NSGraphicsContext.current?.shouldAntialias = false
+drawCentered("OpenNeko", center: pt(canvasW / 2, 112), font: titleFont, fill: color(17, 19, 24))
+NSGraphicsContext.current?.shouldAntialias = true
+
 let pawColor = color(71, 82, 102, 0.30)
 let pawTrail: [(NSPoint, CGFloat, CGFloat)] = [
-    (pt(336, iconCenterY + 24), 0.60, -16),
-    (pt(378, iconCenterY + 2), 0.68, 12),
-    (pt(420, iconCenterY + 14), 0.74, -8),
-    (pt(462, iconCenterY - 6), 0.70, 16),
-    (pt(503, iconCenterY + 6), 0.62, -12)
+    (pt(316, iconCenterY + 16), 0.58, -16),
+    (pt(354, iconCenterY - 4), 0.66, 12),
+    (pt(392, iconCenterY + 10), 0.70, -8),
+    (pt(430, iconCenterY - 8), 0.66, 16),
+    (pt(468, iconCenterY + 5), 0.58, -12)
 ]
 
 for (center, scale, rotation) in pawTrail {
