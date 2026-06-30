@@ -21,7 +21,7 @@ enum AgentCLIKind: Equatable {
 
     var serviceName: String {
         switch self {
-        case .claude: "Claude Code CLI"
+        case .claude: "Claude CLI"
         case .gemini: "Gemini CLI"
         }
     }

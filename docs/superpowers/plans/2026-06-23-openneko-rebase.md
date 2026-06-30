@@ -60,7 +60,7 @@
 - Produces concise public docs for installing, running, configuring GPT, adding skills, and using the HTTP state bridge.
 
 - [ ] Rewrite all READMEs around `openNeko`.
-- [ ] Replace contributor context with an `openNeko` AGENTS guide.
+- [ ] Replace legacy project context with an `openNeko` AGENTS guide.
 - [ ] Keep install/run/test commands accurate.
 
 ### Task 4: Verify And Save

@@ -41,7 +41,7 @@ final class AgentProcessDetectorTests: XCTestCase {
     func testCodexAppGUIActivityDoesNotBecomeBusyByItself() {
         let activities = [
             AgentProcessActivity(source: "codex-app", label: "Codex App", cpu: 24.0),
-            AgentProcessActivity(source: "claude", label: "Claude Code", cpu: 0.6),
+            AgentProcessActivity(source: "claude", label: "Claude", cpu: 0.6),
         ]
 
         XCTAssertNil(AgentProcessDetector.topBusyActivity(in: activities))
@@ -111,17 +111,17 @@ final class AgentProcessDetectorTests: XCTestCase {
         let activities = AgentProcessDetector.detect(psOutput: ps)
 
         XCTAssertEqual(activities, [
-            AgentProcessActivity(source: "claude", label: "Claude Code", cpu: 3.2),
+            AgentProcessActivity(source: "claude", label: "Claude", cpu: 3.2),
         ])
         XCTAssertEqual(
             AgentProcessDetector.topBusyActivity(in: activities),
-            AgentProcessActivity(source: "claude", label: "Claude Code", cpu: 3.2)
+            AgentProcessActivity(source: "claude", label: "Claude", cpu: 3.2)
         )
     }
 
     func testDefaultBusyThresholdIgnoresLowCPUBackgroundNoise() {
         let activities = [
-            AgentProcessActivity(source: "claude", label: "Claude Code", cpu: 1.4),
+            AgentProcessActivity(source: "claude", label: "Claude", cpu: 1.4),
             AgentProcessActivity(source: "codex-app", label: "Codex App", cpu: 0.1),
         ]
 

@@ -88,7 +88,7 @@ public enum ChatPromptBuilder {
         [
             system ?? defaultSystemPrompt(languageCode: languageCode),
             "",
-            companionRules(service: "Claude Code CLI"),
+            companionRules(service: "Claude CLI"),
         ].joined(separator: "\n")
     }
 

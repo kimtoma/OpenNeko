@@ -51,7 +51,7 @@ public struct AIProviderPreset: Equatable, Identifiable, Sendable {
             type: .claudeCLI,
             defaultModel: "",
             fields: [.model],
-            note: "Claude Code CLI 로그인 세션을 사용합니다."
+            note: "Claude CLI 로그인 세션을 사용합니다."
         ),
         AIProviderPreset(
             id: "gemini-oauth",
@@ -267,7 +267,7 @@ public struct AIProviderPreset: Equatable, Identifiable, Sendable {
     private var englishNote: String {
         switch id {
         case "chatgpt-oauth": return "Uses your Codex CLI login session. Run `codex login` first."
-        case "claude-oauth": return "Uses your Claude Code CLI login session."
+        case "claude-oauth": return "Uses your Claude CLI login session."
         case "gemini-oauth": return "Uses your Gemini CLI Google login session."
         case "ollama": return "Connects to a local Ollama server."
         case "local-openai": return "Connects to local servers such as LM Studio, llama.cpp, or vLLM."
@@ -281,7 +281,7 @@ public struct AIProviderPreset: Equatable, Identifiable, Sendable {
     private var japaneseNote: String {
         switch id {
         case "chatgpt-oauth": return "Codex CLIのログインセッションを使います。先に`codex login`が必要です。"
-        case "claude-oauth": return "Claude Code CLIのログインセッションを使います。"
+        case "claude-oauth": return "Claude CLIのログインセッションを使います。"
         case "gemini-oauth": return "Gemini CLIのGoogleログインセッションを使います。"
         case "ollama": return "ローカルOllamaサーバーに接続します。"
         case "local-openai": return "LM Studio、llama.cpp、vLLMなどのローカルサーバーに接続します。"
@@ -295,7 +295,7 @@ public struct AIProviderPreset: Equatable, Identifiable, Sendable {
     private var chineseNote: String {
         switch id {
         case "chatgpt-oauth": return "使用 Codex CLI 登录会话。请先运行 `codex login`。"
-        case "claude-oauth": return "使用 Claude Code CLI 登录会话。"
+        case "claude-oauth": return "使用 Claude CLI 登录会话。"
         case "gemini-oauth": return "使用 Gemini CLI Google 登录会话。"
         case "ollama": return "连接本地 Ollama 服务器。"
         case "local-openai": return "连接 LM Studio、llama.cpp、vLLM 等本地服务器。"

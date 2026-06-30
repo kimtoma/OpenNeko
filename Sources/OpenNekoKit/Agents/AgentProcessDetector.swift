@@ -36,7 +36,7 @@ public enum AgentProcessDetector {
         ),
         AgentProcessDefinition(
             id: "claude",
-            label: "Claude Code",
+            label: "Claude",
             patterns: [#"(^|/)claude(\s|$|-)"#, #"@anthropic-ai/claude-code"#, #"claude-code"#]
         ),
         AgentProcessDefinition(

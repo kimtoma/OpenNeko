@@ -202,7 +202,7 @@ final class ChatPromptBuilderTests: XCTestCase {
         )
 
         XCTAssertTrue(system.hasPrefix("짧게\n\n"))
-        XCTAssertTrue(system.contains("Claude Code CLI"))
+        XCTAssertTrue(system.contains("Claude CLI"))
         XCTAssertTrue(system.contains("Return only the final answer"))
     }
 
