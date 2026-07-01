@@ -1303,7 +1303,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             return
         }
 
-        guard cat.currentState == .idle || cat.currentState == .coding || cat.currentState == .walk else { return }
+        guard NekoStatePriority.acceptsAgentCodingState(
+            isChatAnswering: activeChatTask != nil,
+            currentState: cat.currentState
+        ) else { return }
         if activeAgentProcessSource != activity.source {
             cat.showBubble(NekoBubbleCopy.agentWorking(activity.label, languageCode: currentLanguageCode()))
         }
@@ -1885,6 +1888,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     private func handleBridgeEvent(_ event: StateBridgeEvent, cat: CatWindow?) {
+        guard NekoStatePriority.acceptsBridgeEvent(isChatAnswering: activeChatTask != nil) else {
+            return
+        }
         noteUserInteraction(showWakeBubble: false)
         bridgeIdleTimer?.invalidate()
         autonomousStateTimer?.invalidate()
@@ -2333,7 +2339,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     @MainActor
     private func updateStreamingChat(generation: Int, text: String) {
         guard chatGeneration == generation, activeChatTask != nil else { return }
-        catWindow?.applyBridgeState(.coding)
+        catWindow?.applyBridgeState(NekoStatePriority.chatAnsweringState)
         catWindow?.showBubble(text)
     }
 
