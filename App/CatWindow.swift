@@ -148,6 +148,7 @@ final class CatWindow: NSWindow {
         hasShadow = false
         level = .floating
         collectionBehavior = [.canJoinAllSpaces, .stationary, .ignoresCycle, .fullScreenAuxiliary]
+        applyOpenNekoOverlayWindowPolicy()
 
         skView.allowsTransparency = true
         skView.preferredFramesPerSecond = 60

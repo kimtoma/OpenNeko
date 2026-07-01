@@ -73,6 +73,7 @@ final class CatChatWindow {
             window.level = .floating
             window.collectionBehavior = [.canJoinAllSpaces, .stationary, .ignoresCycle]
             window.isReleasedWhenClosed = false
+            window.applyOpenNekoOverlayWindowPolicy()
             self.window = window
         }
 

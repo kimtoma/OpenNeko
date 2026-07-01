@@ -58,6 +58,7 @@ final class CatBubbleWindow {
             window.ignoresMouseEvents = clickAction == nil
             window.level = .floating
             window.collectionBehavior = [.canJoinAllSpaces, .stationary, .ignoresCycle]
+            window.applyOpenNekoOverlayWindowPolicy()
             self.window = window
         }
 

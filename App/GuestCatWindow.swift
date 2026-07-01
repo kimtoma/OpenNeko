@@ -73,6 +73,7 @@ final class GuestCatWindow: NSWindow {
         hasShadow = false
         level = parentWindow.level
         collectionBehavior = [.canJoinAllSpaces, .stationary, .ignoresCycle]
+        applyOpenNekoOverlayWindowPolicy()
 
         skView.allowsTransparency = true
         skView.preferredFramesPerSecond = 60
@@ -266,6 +267,7 @@ private final class GuestNameWindow {
             window.hasShadow = false
             window.ignoresMouseEvents = true
             window.collectionBehavior = [.canJoinAllSpaces, .stationary, .ignoresCycle]
+            window.applyOpenNekoOverlayWindowPolicy()
             self.window = window
         }
 
