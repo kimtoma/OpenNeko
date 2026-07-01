@@ -117,14 +117,7 @@ final class CatWindow: NSWindow {
     var isAlwaysOnTopEnabled: Bool { level == .floating }
     var isChatVisible: Bool { chatWindow?.isVisible == true }
     var isAutonomousMotionSettling: Bool { autonomousWalkAirborne }
-    var catScreenFrame: NSRect {
-        NSRect(
-            x: frame.minX + catOrigin.x,
-            y: frame.minY + catOrigin.y,
-            width: catSize.width,
-            height: catSize.height
-        )
-    }
+    var catScreenFrame: NSRect { frame }
 
     deinit {
         mousePassThroughTimer?.invalidate()
@@ -133,8 +126,8 @@ final class CatWindow: NSWindow {
     }
 
     init() {
-        let initialFrame = NSScreen.main?.frame ?? NSRect(origin: .zero, size: catSize)
-        let initialScene = CatScene(size: initialFrame.size)
+        let initialFrame = NSRect(origin: .zero, size: catSize)
+        let initialScene = CatScene(size: catSize)
         initialScene.setCatFrameSize(catSize)
         scene = initialScene
         super.init(
@@ -156,7 +149,7 @@ final class CatWindow: NSWindow {
         skView.wantsLayer = true
         skView.layer?.magnificationFilter = .nearest
         skView.layer?.minificationFilter = .nearest
-        skView.frame = NSRect(origin: .zero, size: initialFrame.size)
+        skView.frame = NSRect(origin: .zero, size: catSize)
         skView.autoresizingMask = [.width, .height]
         skView.presentScene(scene)
         skView.onDragBegan = { [weak self] mouse in self?.beginDrag(mouse: mouse) }
@@ -166,7 +159,9 @@ final class CatWindow: NSWindow {
         skView.onContextMenu = { [weak self] view in self?.onContextMenu?(view) }
         skView.shouldHandleLocalPoint = { [weak self] point in
             guard let self else { return false }
-            return self.isPointInCat(point, padding: self.catHitPadding)
+            return CGRect(origin: .zero, size: self.catSize)
+                .insetBy(dx: -self.catHitPadding, dy: -self.catHitPadding)
+                .contains(point)
         }
         contentView = skView
 
@@ -196,17 +191,22 @@ final class CatWindow: NSWindow {
     private let floorMargin = CatLayoutMetrics.floorPadding
     private let catHitPadding: CGFloat = 8
 
-    private func resizeLayer(to screen: NSScreen) {
-        let target = screen.frame
-        if frame != target {
-            setFrame(target, display: true)
-            scene.size = target.size
+    private func resizeLayer(to _: NSScreen) {
+        if frame.size != catSize {
+            setFrame(NSRect(origin: frame.origin, size: catSize), display: true)
+        }
+        if scene.size != catSize {
+            scene.size = catSize
         }
     }
 
     private func setCatOrigin(_ origin: CGPoint) {
         catOrigin = origin
-        scene.setCatOrigin(origin)
+        scene.setCatOrigin(.zero)
+        let targetFrame = NSRect(origin: screenPoint(fromLocal: origin), size: catSize)
+        if frame != targetFrame {
+            setFrame(targetFrame, display: true)
+        }
         repositionFloatingWindows()
     }
 
@@ -216,20 +216,30 @@ final class CatWindow: NSWindow {
     }
 
     private func localPoint(fromScreen point: NSPoint) -> CGPoint {
-        CGPoint(x: point.x - frame.minX, y: point.y - frame.minY)
+        let screenFrame = screenFrame(containing: point)
+        return CGPoint(x: point.x - screenFrame.minX, y: point.y - screenFrame.minY)
     }
 
     private func screenPoint(fromLocal point: CGPoint) -> NSPoint {
-        NSPoint(x: frame.minX + point.x, y: frame.minY + point.y)
+        let screenFrame = currentScreenFrame()
+        return NSPoint(x: screenFrame.minX + point.x, y: screenFrame.minY + point.y)
     }
 
-    private func localRect(fromScreen rect: NSRect) -> CGRect {
+    private func localRect(fromScreen rect: NSRect, in screenFrame: NSRect) -> CGRect {
         CGRect(
-            x: rect.minX - frame.minX,
-            y: rect.minY - frame.minY,
+            x: rect.minX - screenFrame.minX,
+            y: rect.minY - screenFrame.minY,
             width: rect.width,
             height: rect.height
         )
+    }
+
+    private func screenFrame(containing point: NSPoint) -> NSRect {
+        NSScreen.screens.first { $0.frame.contains(point) }?.frame ?? currentScreenFrame()
+    }
+
+    private func currentScreenFrame() -> NSRect {
+        screen?.frame ?? NSScreen.main?.frame ?? NSRect(origin: .zero, size: catSize)
     }
 
     private struct GroundContext {
@@ -240,10 +250,13 @@ final class CatWindow: NSWindow {
 
     private func localGroundContext() -> GroundContext? {
         guard let currentScreen = screen ?? NSScreen.main else { return nil }
+        let screenFrame = currentScreen.frame
         return GroundContext(
-            screenFrame: localRect(fromScreen: currentScreen.frame),
-            visibleFrame: localRect(fromScreen: currentScreen.visibleFrame),
-            dockFrame: DockSupportFrameProvider.dockFrame(for: currentScreen).map { localRect(fromScreen: $0) }
+            screenFrame: localRect(fromScreen: screenFrame, in: screenFrame),
+            visibleFrame: localRect(fromScreen: currentScreen.visibleFrame, in: screenFrame),
+            dockFrame: DockSupportFrameProvider.dockFrame(for: currentScreen).map {
+                localRect(fromScreen: $0, in: screenFrame)
+            }
         )
     }
 
