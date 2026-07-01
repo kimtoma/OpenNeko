@@ -29,6 +29,7 @@ final class SettingsWindowController {
         let skinPreviewFrameURLs: [String: [URL]]
         let selectedSkinID: String
         let version: String
+        let updateStatus: AppUpdateStatus
     }
 
     private var window: NSWindow?
@@ -63,6 +64,7 @@ final class SettingsWindowController {
     private let importCustomSkinPackage: () -> Void
     private let openSkinsFolder: () -> Void
     private let selectSkin: (String) -> Void
+    private let checkForUpdates: () -> Void
 
     init(
         state: @escaping () -> State,
@@ -95,7 +97,8 @@ final class SettingsWindowController {
         createCustomSkinRequest: @escaping () -> Void,
         importCustomSkinPackage: @escaping () -> Void,
         openSkinsFolder: @escaping () -> Void,
-        selectSkin: @escaping (String) -> Void
+        selectSkin: @escaping (String) -> Void,
+        checkForUpdates: @escaping () -> Void
     ) {
         self.state = state
         self.openAccessibility = openAccessibility
@@ -128,6 +131,7 @@ final class SettingsWindowController {
         self.importCustomSkinPackage = importCustomSkinPackage
         self.openSkinsFolder = openSkinsFolder
         self.selectSkin = selectSkin
+        self.checkForUpdates = checkForUpdates
     }
 
     func show() {
@@ -219,6 +223,8 @@ final class SettingsWindowController {
             skinPreviewFrameURLs: state.skinPreviewFrameURLs,
             selectedSkinID: state.selectedSkinID,
             version: state.version,
+            updateStatus: state.updateStatus,
+            checkForUpdates: checkForUpdates,
             openAccessibility: openAccessibility,
             openInputMonitoring: openInputMonitoring,
             retryKeyboardMonitor: retryKeyboardMonitor,

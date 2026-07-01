@@ -244,6 +244,8 @@ public enum ChatPromptBuilder {
                 var birth = "사용자 생년월일: \(userProfile.birthDate)"
                 if userProfile.calendar == "lunar" {
                     birth += " (음력)"
+                } else if userProfile.calendar == "unknown" {
+                    birth += " (양력/음력 모름)"
                 }
                 if !userProfile.birthTime.isEmpty {
                     birth += ", 태어난 시각: \(userProfile.birthTime)"
@@ -263,6 +265,8 @@ public enum ChatPromptBuilder {
                 var birth = "ユーザーの生年月日: \(userProfile.birthDate)"
                 if userProfile.calendar == "lunar" {
                     birth += " (旧暦)"
+                } else if userProfile.calendar == "unknown" {
+                    birth += " (新暦/旧暦不明)"
                 }
                 if !userProfile.birthTime.isEmpty {
                     birth += ", 生まれた時刻: \(userProfile.birthTime)"
@@ -279,6 +283,8 @@ public enum ChatPromptBuilder {
                 var birth = "用户出生日期: \(userProfile.birthDate)"
                 if userProfile.calendar == "lunar" {
                     birth += " (农历)"
+                } else if userProfile.calendar == "unknown" {
+                    birth += " (阳历/农历未知)"
                 }
                 if !userProfile.birthTime.isEmpty {
                     birth += ", 出生时间: \(userProfile.birthTime)"
@@ -295,6 +301,8 @@ public enum ChatPromptBuilder {
                 var birth = "User birth date: \(userProfile.birthDate)"
                 if userProfile.calendar == "lunar" {
                     birth += " (lunar)"
+                } else if userProfile.calendar == "unknown" {
+                    birth += " (solar/lunar unknown)"
                 }
                 if !userProfile.birthTime.isEmpty {
                     birth += ", birth time: \(userProfile.birthTime)"

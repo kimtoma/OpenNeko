@@ -217,10 +217,10 @@ private enum ChatHistoryCopy {
     static func subtitle(languageCode: String?) -> String {
         localized(
             languageCode,
-            ko: "현재 실행 중인 openNeko 대화",
-            en: "Current openNeko session",
-            ja: "現在のopenNekoセッション",
-            zh: "当前 openNeko 会话"
+            ko: "로컬 Markdown에 저장된 openNeko 대화",
+            en: "openNeko chats saved as local Markdown",
+            ja: "ローカルMarkdownに保存されたopenNeko会話",
+            zh: "保存为本地 Markdown 的 openNeko 对话"
         )
     }
 

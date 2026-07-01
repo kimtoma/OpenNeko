@@ -23,7 +23,7 @@ final class AppSettingsStoreTests: XCTestCase {
         XCTAssertTrue(AppSettings.defaults.agentProcessDetectionEnabled)
         XCTAssertNil(AppSettings.defaults.languageCode)
         XCTAssertTrue(AppSettings.defaults.soundEffectsEnabled)
-        XCTAssertFalse(AppSettings.defaults.webSearchEnabled)
+        XCTAssertTrue(AppSettings.defaults.webSearchEnabled)
         XCTAssertEqual(AppSettings.defaults.catName, "")
         XCTAssertEqual(AppSettings.defaults.userProfile, .empty)
         XCTAssertEqual(AppSettings.defaults.neighborSettings, .defaults)
@@ -34,6 +34,11 @@ final class AppSettingsStoreTests: XCTestCase {
         let store = AppSettingsStore(fileURL: tmp.appendingPathComponent("settings.json"))
 
         XCTAssertEqual(store.load(), .defaults)
+    }
+
+    func testUserProfileAcceptsUnknownCalendar() {
+        XCTAssertEqual(UserProfile(calendar: "unknown").calendar, "unknown")
+        XCTAssertEqual(UserProfile(calendar: "invalid").calendar, "solar")
     }
 
     func testDefaultFileURLCanUseEnvironmentOverrideForQA() {

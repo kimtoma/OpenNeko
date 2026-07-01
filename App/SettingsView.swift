@@ -1,13 +1,17 @@
 import AppKit
+import CoreText
 import SwiftUI
 import OpenNekoKit
+
+private let openNekoGitHubURL = URL(string: "https://github.com/kimtoma/openNeko")!
+private let openNekoLicenseURL = URL(string: "https://github.com/kimtoma/openNeko/blob/main/LICENSE")!
+private let kimtomaURL = URL(string: "https://kimtoma.com")!
 
 private enum OnboardingStep: Int, CaseIterable {
     case welcome
     case skin
     case name
     case permissions
-    case startup
     case ai
     case done
 
@@ -21,8 +25,6 @@ private enum OnboardingStep: Int, CaseIterable {
             return SettingsCopy.text(.onboardingNameTitle, languageCode: languageCode)
         case .permissions:
             return SettingsCopy.text(.onboardingPermissionTitle, languageCode: languageCode)
-        case .startup:
-            return SettingsCopy.text(.onboardingLaunchTitle, languageCode: languageCode)
         case .ai:
             return SettingsCopy.text(.onboardingAITitle, languageCode: languageCode)
         case .done:
@@ -40,8 +42,6 @@ private enum OnboardingStep: Int, CaseIterable {
             return SettingsCopy.text(.onboardingNameBody, languageCode: languageCode)
         case .permissions:
             return SettingsCopy.text(.onboardingPermissionBody, languageCode: languageCode)
-        case .startup:
-            return SettingsCopy.text(.onboardingLaunchBody, languageCode: languageCode)
         case .ai:
             return SettingsCopy.text(.onboardingAIBody, languageCode: languageCode)
         case .done:
@@ -55,7 +55,6 @@ private enum OnboardingStep: Int, CaseIterable {
         case .skin: return "paintpalette.fill"
         case .name: return "textformat"
         case .permissions: return "hand.raised.fill"
-        case .startup: return "power.circle.fill"
         case .ai: return "sparkles"
         case .done: return "checkmark.circle.fill"
         }
@@ -67,7 +66,6 @@ private enum OnboardingStep: Int, CaseIterable {
         case .skin: return .purple
         case .name: return .teal
         case .permissions: return .orange
-        case .startup: return .blue
         case .ai: return .accentColor
         case .done: return .green
         }
@@ -100,6 +98,8 @@ struct SettingsView: View {
     let skinPreviewFrameURLs: [String: [URL]]
     let selectedSkinID: String
     let version: String
+    let updateStatus: AppUpdateStatus
+    let checkForUpdates: () -> Void
     let openAccessibility: () -> Void
     let openInputMonitoring: () -> Void
     let retryKeyboardMonitor: () -> Void
@@ -139,13 +139,8 @@ struct SettingsView: View {
     var body: some View {
         ZStack {
             SettingsGlassBackground()
-            VStack(spacing: 8) {
+            VStack(spacing: isOnboardingVisible ? 0 : 8) {
                 if isOnboardingVisible {
-                    Text(settingsWindowTitle)
-                        .font(.title3.weight(.semibold))
-                        .foregroundStyle(.primary)
-                        .frame(maxWidth: .infinity, alignment: .center)
-
                     onboardingWizard
                 } else {
                     HStack(alignment: .top, spacing: 16) {
@@ -195,8 +190,10 @@ struct SettingsView: View {
     }
 
     private var visibleSettingsPanes: [SettingsPane] {
-        [.start, .ai, .skins, .skills, .profile, .general, .neighbors, .about]
+        [.start, .skins, .profile, .general, .ai, .skills, .about]
     }
+
+    private var profileControlWidth: CGFloat { 260 }
 
     private var unifiedSettingsPage: some View {
         SettingsGlassPane(
@@ -265,10 +262,11 @@ struct SettingsView: View {
                 tint: .accentColor
             )
 
-            SettingsAIProviderPicker(
-                selectedPresetID: aiProvider.presetID,
-                languageCode: resolvedLanguageCode,
-                select: selectAIProviderPreset
+            SettingsGlassStatusRow(
+                title: aiProviderSummary,
+                subtitle: aiProviderModelSummary,
+                systemImage: aiProviderReadiness.systemImage,
+                tint: readinessTint(aiProviderReadiness.severity)
             )
 
             SettingsGlassDetectedProvidersSection(
@@ -286,11 +284,14 @@ struct SettingsView: View {
                 tint: readinessTint(aiProviderReadiness.severity)
             )
 
-            SettingsGlassConnectionTestRow(
-                status: aiProviderConnectionTest,
-                canStart: aiProviderReadiness.severity != .needsAction,
-                languageCode: resolvedLanguageCode,
-                test: testAIProviderConnection
+            SettingsGlassToggleRow(
+                title: copy(.agentDetection),
+                subtitle: copy(.agentDetectionDetail),
+                systemImage: "dot.radiowaves.left.and.right",
+                isOn: Binding(
+                    get: { agentProcessDetectionEnabled },
+                    set: { setAgentProcessDetection($0) }
+                )
             )
 
             if preset.fields.contains(.baseURL) {
@@ -404,16 +405,6 @@ struct SettingsView: View {
             }
 
             SettingsGlassToggleRow(
-                title: copy(.soundEffects),
-                subtitle: soundEffectsEnabled ? copy(.soundEffectsOn) : copy(.soundEffectsOff),
-                systemImage: soundEffectsEnabled ? "speaker.wave.2.fill" : "speaker.slash.fill",
-                isOn: Binding(
-                    get: { soundEffectsEnabled },
-                    set: { setSoundEffects($0) }
-                )
-            )
-
-            SettingsGlassToggleRow(
                 title: copy(.neighborDiscovery),
                 subtitle: neighborSettings.enabled ? copy(.neighborDiscoveryOn) : copy(.neighborDiscoveryOff),
                 systemImage: neighborSettings.enabled ? "dot.radiowaves.left.and.right" : "wifi.slash",
@@ -441,53 +432,7 @@ struct SettingsView: View {
                 tint: .accentColor
             )
 
-            SettingsGlassTextFieldRow(
-                title: copy(.name),
-                systemImage: "person",
-                text: Binding(
-                    get: { editableUserProfile.name },
-                    set: { updateUserProfile(name: $0) }
-                ),
-                prompt: copy(.name)
-            )
-
-            SettingsGlassTextFieldRow(
-                title: copy(.birthDate),
-                systemImage: "calendar",
-                text: Binding(
-                    get: { editableUserProfile.birthDate },
-                    set: { updateUserProfile(birthDate: $0) }
-                ),
-                prompt: "YYYY-MM-DD"
-            )
-
-            SettingsGlassTextFieldRow(
-                title: copy(.birthTime),
-                systemImage: "clock",
-                text: Binding(
-                    get: { editableUserProfile.birthTime },
-                    set: { updateUserProfile(birthTime: $0) }
-                ),
-                prompt: "HH:mm"
-            )
-
-            SettingsGlassRow(systemImage: "moonphase.waxing.crescent") {
-                VStack(alignment: .leading, spacing: 7) {
-                    Text(copy(.calendar))
-                        .font(.body.weight(.medium))
-                    Picker(copy(.calendar), selection: Binding(
-                        get: { editableUserProfile.calendar },
-                        set: { updateUserProfile(calendar: $0) }
-                    )) {
-                        Text(copy(.solar)).tag("solar")
-                        Text(copy(.lunar)).tag("lunar")
-                    }
-                    .labelsHidden()
-                    .frame(maxWidth: 180)
-                }
-            } trailing: {
-                EmptyView()
-            }
+            profileInputRows
         }
     }
 
@@ -508,7 +453,7 @@ struct SettingsView: View {
             )
 
             Button(action: openSkillsFolder) {
-                Label(copy(.openFolder), systemImage: "folder")
+                Label(copy(.openSkillsFolder), systemImage: "folder")
             }
             .buttonStyle(.bordered)
 
@@ -558,7 +503,7 @@ struct SettingsView: View {
             }
             .controlSize(.regular)
 
-            SettingsGlassToggleRow(
+            SettingsGlassCheckboxRow(
                 title: launchAtLogin.title(languageCode: resolvedLanguageCode),
                 subtitle: launchAtLogin.detail(languageCode: resolvedLanguageCode),
                 systemImage: "power.circle",
@@ -568,28 +513,35 @@ struct SettingsView: View {
                 )
             )
 
+            SettingsGlassCheckboxRow(
+                title: copy(.soundEffects),
+                subtitle: soundEffectsEnabled ? copy(.soundEffectsOn) : copy(.soundEffectsOff),
+                systemImage: soundEffectsEnabled ? "speaker.wave.2.fill" : "speaker.slash.fill",
+                isOn: Binding(
+                    get: { soundEffectsEnabled },
+                    set: { setSoundEffects($0) }
+                )
+            )
+
             SettingsGlassRow(systemImage: "globe") {
-                VStack(alignment: .leading, spacing: 7) {
-                    Text(copy(.language))
-                        .font(.body.weight(.medium))
-                    Picker(copy(.language), selection: Binding(
-                        get: { languageCode ?? "system" },
-                        set: { setLanguageCode($0 == "system" ? nil : $0) }
-                    )) {
-                        Text(SettingsCopy.systemDefaultLanguage(
-                            resolvedName: AppLanguage.displayName(for: resolvedLanguageCode),
-                            languageCode: resolvedLanguageCode
-                        )).tag("system")
-                        Text("한국어").tag("ko")
-                        Text("English").tag("en")
-                        Text("日本語").tag("ja")
-                        Text("简体中文").tag("zh")
-                    }
-                    .labelsHidden()
-                    .frame(maxWidth: 270)
-                }
+                Text(copy(.language))
+                    .font(.body.weight(.medium))
             } trailing: {
-                EmptyView()
+                Picker(copy(.language), selection: Binding(
+                    get: { languageCode ?? "system" },
+                    set: { setLanguageCode($0 == "system" ? nil : $0) }
+                )) {
+                    Text(SettingsCopy.systemDefaultLanguage(
+                        resolvedName: AppLanguage.displayName(for: resolvedLanguageCode),
+                        languageCode: resolvedLanguageCode
+                    )).tag("system")
+                    Text("한국어").tag("ko")
+                    Text("English").tag("en")
+                    Text("日本語").tag("ja")
+                    Text("简体中文").tag("zh")
+                }
+                .labelsHidden()
+                .frame(width: 220, alignment: .trailing)
             }
 
             SettingsGlassToggleRow(
@@ -731,20 +683,42 @@ struct SettingsView: View {
     }
 
     private var onboardingWizard: some View {
-        SettingsGlassPane(
-            title: SettingsCopy.text(.onboardingTitle, languageCode: resolvedLanguageCode),
-            subtitle: onboardingProgressText
-        ) {
-            SettingsPixelOnboardingHero(
-                title: onboardingStep.title(languageCode: resolvedLanguageCode),
-                subtitle: onboardingStep.body(languageCode: resolvedLanguageCode),
-                systemImage: onboardingStep.systemImage,
-                tint: onboardingStep.tint,
-                frameURLs: skinPreviewFrameURLs[selectedSkinID] ?? []
-            )
+        OpenNekoGlassContainer {
+            VStack(alignment: .leading, spacing: 14) {
+                SettingsOnboardingHeader(
+                    currentIndex: onboardingStepIndex,
+                    totalCount: OnboardingStep.allCases.count,
+                    tint: onboardingStep.tint
+                )
 
-            onboardingStepContent
-            onboardingControls
+                VStack(alignment: .leading, spacing: 16) {
+                    HStack(spacing: 10) {
+                        Image(systemName: onboardingStep.systemImage)
+                            .font(.system(size: 16, weight: .semibold))
+                            .foregroundStyle(onboardingStep.tint)
+                            .frame(width: 28, height: 28)
+                            .background {
+                                RoundedRectangle(cornerRadius: 7, style: .continuous)
+                                    .fill(onboardingStep.tint.opacity(0.12))
+                            }
+
+                        Text(onboardingStep.title(languageCode: resolvedLanguageCode))
+                            .font(.title2.weight(.semibold))
+                            .foregroundStyle(.primary)
+                            .lineLimit(2)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+
+                    onboardingStepContent
+                        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+                }
+                .padding(18)
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+                .openNekoGlass(cornerRadius: 16)
+
+                onboardingControls
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         }
     }
 
@@ -753,106 +727,77 @@ struct SettingsView: View {
         switch onboardingStep {
         case .welcome:
             SettingsOnboardingFeatureGrid(
-                languageCode: resolvedLanguageCode,
-                frameURLs: skinPreviewFrameURLs[selectedSkinID] ?? []
+                languageCode: resolvedLanguageCode
             )
         case .skin:
-            LazyVGrid(columns: [GridItem(.adaptive(minimum: 132), spacing: 12)], spacing: 12) {
-                ForEach(skinIDs, id: \.self) { id in
-                    Button {
-                        selectSkin(id)
-                    } label: {
-                        SettingsGlassSkinTile(
-                            title: skinLabel(id),
-                            systemImage: id == SkinManager.defaultID ? "sparkles" : "paintpalette",
-                            frameURLs: skinPreviewFrameURLs[id] ?? [],
-                            isSelected: id == selectedSkinID
-                        )
-                    }
-                    .buttonStyle(.plain)
-                }
-            }
+            SettingsOnboardingSkinPicker(
+                skinIDs: skinIDs,
+                selectedSkinID: selectedSkinID,
+                label: skinLabel,
+                frameURLs: { skinPreviewFrameURLs[$0] ?? [] },
+                select: selectSkin
+            )
         case .name:
-            SettingsGlassTextFieldRow(
-                title: copy(.catName),
-                systemImage: "pawprint",
-                text: Binding(
-                    get: { editableCatName },
-                    set: { updateCatName($0) }
-                ),
-                prompt: copy(.catNamePrompt)
-            )
-        case .permissions:
-            permissionDetailSection
-        case .startup:
-            SettingsGlassStatusRow(
-                title: SettingsCopy.text(.onboardingNekoGuideTitle, languageCode: resolvedLanguageCode),
-                subtitle: SettingsCopy.text(.onboardingNekoGuideBody, languageCode: resolvedLanguageCode),
-                systemImage: "menubar.rectangle",
-                tint: .accentColor
-            )
-
-            SettingsGlassToggleRow(
-                title: launchAtLogin.title(languageCode: resolvedLanguageCode),
-                subtitle: launchAtLogin.detail(languageCode: resolvedLanguageCode),
-                systemImage: "power.circle",
-                isOn: Binding(
-                    get: { launchAtLogin.isEnabled },
-                    set: { setLaunchAtLogin($0) }
+            SettingsOnboardingNameStep(
+                frameURLs: skinPreviewFrameURLs[selectedSkinID] ?? [],
+                tint: onboardingStep.tint,
+                nameField: SettingsOnboardingNameField(
+                    title: copy(.catName),
+                    systemImage: "pawprint",
+                    text: Binding(
+                        get: { editableCatName },
+                        set: { updateCatName($0) }
+                    ),
+                    prompt: copy(.catNamePrompt)
                 )
             )
+        case .permissions:
+                SettingsOnboardingPermissionStep(
+                    frameURLs: selectedTypingFrameURLs,
+                    permissionMenu: permissionMenu,
+                    languageCode: resolvedLanguageCode,
+                    openAccessibility: openAccessibility,
+                    openInputMonitoring: openInputMonitoring
+                )
         case .ai:
-            SettingsAIProviderPicker(
-                selectedPresetID: aiProvider.presetID,
-                languageCode: resolvedLanguageCode,
-                select: selectAIProviderPreset
-            )
-
-            SettingsGlassDetectedProvidersSection(
+            SettingsOnboardingAISection(
+                readiness: aiProviderReadiness,
                 detections: aiProviderDetections,
                 currentPresetID: aiProvider.presetID,
                 languageCode: resolvedLanguageCode,
                 apply: applyAIProviderDetection,
-                refresh: refreshAIProviderDetections
-            )
-
-            SettingsGlassStatusRow(
-                title: aiProviderReadiness.title,
-                subtitle: aiProviderReadiness.detail,
-                systemImage: aiProviderReadiness.systemImage,
-                tint: readinessTint(aiProviderReadiness.severity)
+                refresh: refreshAIProviderDetections,
+                selectPreset: selectAIProviderPreset,
+                autoApplyDetected: true
             )
         case .done:
-            SettingsGlassStatusRow(
-                title: SettingsCopy.text(.onboardingClick, languageCode: resolvedLanguageCode),
-                subtitle: SettingsCopy.text(.aiTest, languageCode: resolvedLanguageCode),
-                systemImage: "bubble.left.and.bubble.right.fill",
-                tint: .accentColor
+            SettingsOnboardingDoneStep(
+                frameURLs: selectedSuccessFrameURLs,
+                launchAtLogin: Binding(
+                    get: { launchAtLogin.isEnabled },
+                    set: { setLaunchAtLogin($0) }
+                ),
+                title: launchAtLogin.title(languageCode: resolvedLanguageCode),
+                subtitle: launchAtLogin.detail(languageCode: resolvedLanguageCode)
             )
-            SettingsGlassStatusRow(
-                title: SettingsCopy.text(.onboardingDrag, languageCode: resolvedLanguageCode),
-                subtitle: skinLabel(selectedSkinID),
-                systemImage: "arrow.up.and.down.and.arrow.left.and.right",
-                tint: .purple
-            )
-            SettingsGlassStatusRow(
-                title: SettingsCopy.text(.onboardingMenu, languageCode: resolvedLanguageCode),
-                subtitle: "openNeko",
-                systemImage: "menubar.rectangle",
-                tint: .secondary
-            )
+            .onAppear {
+                if !launchAtLogin.isEnabled {
+                    setLaunchAtLogin(true)
+                }
+            }
         }
     }
 
     private var onboardingControls: some View {
         HStack(spacing: 10) {
-            Button {
-                moveOnboarding(by: -1)
-            } label: {
-                Label(SettingsCopy.text(.onboardingBack, languageCode: resolvedLanguageCode), systemImage: "chevron.left")
+            if onboardingStep != .welcome {
+                Button {
+                    moveOnboarding(by: -1)
+                } label: {
+                    Label(SettingsCopy.text(.onboardingBack, languageCode: resolvedLanguageCode), systemImage: "chevron.left")
+                }
+                .buttonStyle(.bordered)
             }
-            .buttonStyle(.bordered)
-            .disabled(onboardingStep == .welcome)
 
             if onboardingStep == .permissions || onboardingStep == .ai {
                 Button {
@@ -868,7 +813,10 @@ struct SettingsView: View {
             Button {
                 advanceOnboarding()
             } label: {
-                Label(onboardingPrimaryTitle, systemImage: onboardingPrimaryImage)
+                HStack(spacing: 6) {
+                    Text(onboardingPrimaryTitle)
+                    Image(systemName: onboardingPrimaryImage)
+                }
             }
             .buttonStyle(.borderedProminent)
         }
@@ -880,14 +828,25 @@ struct SettingsView: View {
             title: SettingsPane.start.title(languageCode: resolvedLanguageCode),
             subtitle: copy(.startSubtitle)
         ) {
-            SettingsGlassHero(
-                title: setupTitle,
-                subtitle: setupSubtitle,
-                systemImage: "pawprint.fill",
-                tint: setupTint
-            )
+            LazyVGrid(columns: [GridItem(.adaptive(minimum: 158), spacing: 12)], spacing: 12) {
+                SettingsGlassSetupTile(
+                    title: copy(.skin),
+                    subtitle: skinLabel(selectedSkinID),
+                    systemImage: "paintpalette.fill",
+                    tint: .accentColor
+                ) {
+                    selectPane(.skins)
+                }
 
-            LazyVGrid(columns: [GridItem(.adaptive(minimum: 220), spacing: 12)], spacing: 12) {
+                SettingsGlassSetupTile(
+                    title: copy(.profile),
+                    subtitle: profileSummary,
+                    systemImage: profileNeedsSetup ? "exclamationmark.triangle.fill" : "person.crop.circle.fill",
+                    tint: profileNeedsSetup ? .orange : .teal
+                ) {
+                    selectPane(.profile)
+                }
+
                 SettingsGlassSetupTile(
                     title: copy(.typing),
                     subtitle: permissionMenu.statusTitle(languageCode: resolvedLanguageCode),
@@ -899,20 +858,11 @@ struct SettingsView: View {
 
                 SettingsGlassSetupTile(
                     title: "AI",
-                    subtitle: aiProviderReadiness.title,
+                    subtitle: aiProviderConnectionSummary,
                     systemImage: aiProviderReadiness.systemImage,
                     tint: readinessTint(aiProviderReadiness.severity)
                 ) {
                     selectPane(.ai)
-                }
-
-                SettingsGlassSetupTile(
-                    title: copy(.skin),
-                    subtitle: skinLabel(selectedSkinID),
-                    systemImage: "paintpalette.fill",
-                    tint: .accentColor
-                ) {
-                    selectPane(.skins)
                 }
 
                 SettingsGlassSetupTile(
@@ -923,46 +873,12 @@ struct SettingsView: View {
                 ) {
                     selectPane(.skills)
                 }
-
-                SettingsGlassSetupTile(
-                    title: copy(.neighbor),
-                    subtitle: neighborStatusText,
-                    systemImage: "person.2.wave.2.fill",
-                    tint: neighborSettings.enabled ? .green : .secondary
-                ) {
-                    selectPane(.neighbors)
-                }
-
-                SettingsGlassSetupTile(
-                    title: copy(.profile),
-                    subtitle: profileSummary,
-                    systemImage: "person.crop.circle.fill",
-                    tint: .teal
-                ) {
-                    selectPane(.profile)
-                }
-
             }
 
-            HStack(spacing: 10) {
-                Button {
-                    selectPane(permissionMenu.needsUserAction ? .general : .ai)
-                } label: {
-                    Label(primarySetupActionTitle, systemImage: primarySetupActionImage)
-                }
-                .buttonStyle(.borderedProminent)
-
-                Button(action: testAIProviderConnection) {
-                    Label(copy(.aiTest), systemImage: "play.circle")
-                }
-                .buttonStyle(.bordered)
-                .disabled(aiProviderReadiness.severity == .needsAction || aiProviderConnectionTest.isRunning)
-
-                Button(action: showOnboarding) {
-                    Label(SettingsCopy.text(.onboardingRestart, languageCode: resolvedLanguageCode), systemImage: "list.bullet.clipboard")
-                }
-                .buttonStyle(.bordered)
+            Button(action: showOnboarding) {
+                Label(SettingsCopy.text(.onboardingRestart, languageCode: resolvedLanguageCode), systemImage: "list.bullet.clipboard")
             }
+            .buttonStyle(.bordered)
             .controlSize(.regular)
         }
     }
@@ -972,7 +888,28 @@ struct SettingsView: View {
             title: SettingsPane.general.title(languageCode: resolvedLanguageCode),
             subtitle: copy(.generalSubtitle)
         ) {
-            SettingsGlassToggleRow(
+            SettingsGlassRow(systemImage: "globe") {
+                Text(copy(.language))
+                    .font(.body.weight(.medium))
+            } trailing: {
+                Picker(copy(.language), selection: Binding(
+                    get: { languageCode ?? "system" },
+                    set: { setLanguageCode($0 == "system" ? nil : $0) }
+                )) {
+                    Text(SettingsCopy.systemDefaultLanguage(
+                        resolvedName: AppLanguage.displayName(for: resolvedLanguageCode),
+                        languageCode: resolvedLanguageCode
+                    )).tag("system")
+                    Text("한국어").tag("ko")
+                    Text("English").tag("en")
+                    Text("日本語").tag("ja")
+                    Text("简体中文").tag("zh")
+                }
+                .labelsHidden()
+                .frame(width: 220, alignment: .trailing)
+            }
+
+            SettingsGlassCheckboxRow(
                 title: launchAtLogin.title(languageCode: resolvedLanguageCode),
                 subtitle: launchAtLogin.detail(languageCode: resolvedLanguageCode),
                 systemImage: "power.circle",
@@ -982,65 +919,17 @@ struct SettingsView: View {
                 )
             )
 
-            SettingsGlassRow(systemImage: "globe") {
-                VStack(alignment: .leading, spacing: 7) {
-                    Text(copy(.language))
-                        .font(.body.weight(.medium))
-                    Picker(copy(.language), selection: Binding(
-                        get: { languageCode ?? "system" },
-                        set: { setLanguageCode($0 == "system" ? nil : $0) }
-                    )) {
-                        Text(SettingsCopy.systemDefaultLanguage(
-                            resolvedName: AppLanguage.displayName(for: resolvedLanguageCode),
-                            languageCode: resolvedLanguageCode
-                        )).tag("system")
-                        Text("한국어").tag("ko")
-                        Text("English").tag("en")
-                        Text("日本語").tag("ja")
-                        Text("简体中文").tag("zh")
-                    }
-                    .labelsHidden()
-                    .frame(maxWidth: 270)
-                }
-            } trailing: {
-                EmptyView()
-            }
-
-            if permissionMenu.needsUserAction {
-                compactPermissionsSection
-            }
-
-            SettingsGlassDisclosureSection(
-                title: copy(.advancedSettings),
-                subtitle: copy(.advancedSettingsDetail),
-                systemImage: "slider.horizontal.3",
-                tint: .secondary
-            ) {
-                SettingsGlassToggleRow(
-                    title: copy(.agentDetection),
-                    subtitle: copy(.agentDetectionDetail),
-                    systemImage: "dot.radiowaves.left.and.right",
-                    isOn: Binding(
-                        get: { agentProcessDetectionEnabled },
-                        set: { setAgentProcessDetection($0) }
-                    )
+            SettingsGlassCheckboxRow(
+                title: copy(.soundEffects),
+                subtitle: soundEffectsEnabled ? copy(.soundEffectsOn) : copy(.soundEffectsOff),
+                systemImage: soundEffectsEnabled ? "speaker.wave.2.fill" : "speaker.slash.fill",
+                isOn: Binding(
+                    get: { soundEffectsEnabled },
+                    set: { setSoundEffects($0) }
                 )
+            )
 
-                SettingsGlassToggleRow(
-                    title: copy(.webSearch),
-                    subtitle: webSearchEnabled ? copy(.webSearchOn) : copy(.webSearchOff),
-                    systemImage: "magnifyingglass.circle",
-                    isOn: Binding(
-                        get: { webSearchEnabled },
-                        set: { setWebSearch($0) }
-                    )
-                )
-
-                if !permissionMenu.needsUserAction {
-                    compactPermissionsSection
-                }
-                compactBridgeSection
-            }
+            compactPermissionsSection
         }
     }
 
@@ -1100,53 +989,7 @@ struct SettingsView: View {
                 tint: .accentColor
             )
 
-            SettingsGlassTextFieldRow(
-                title: copy(.name),
-                systemImage: "person",
-                text: Binding(
-                    get: { editableUserProfile.name },
-                    set: { updateUserProfile(name: $0) }
-                ),
-                prompt: copy(.name)
-            )
-
-            SettingsGlassTextFieldRow(
-                title: copy(.birthDate),
-                systemImage: "calendar",
-                text: Binding(
-                    get: { editableUserProfile.birthDate },
-                    set: { updateUserProfile(birthDate: $0) }
-                ),
-                prompt: "YYYY-MM-DD"
-            )
-
-            SettingsGlassTextFieldRow(
-                title: copy(.birthTime),
-                systemImage: "clock",
-                text: Binding(
-                    get: { editableUserProfile.birthTime },
-                    set: { updateUserProfile(birthTime: $0) }
-                ),
-                prompt: "HH:mm"
-            )
-
-            SettingsGlassRow(systemImage: "moonphase.waxing.crescent") {
-                VStack(alignment: .leading, spacing: 7) {
-                    Text(copy(.calendar))
-                        .font(.body.weight(.medium))
-                    Picker(copy(.calendar), selection: Binding(
-                        get: { editableUserProfile.calendar },
-                        set: { updateUserProfile(calendar: $0) }
-                    )) {
-                        Text(copy(.solar)).tag("solar")
-                        Text(copy(.lunar)).tag("lunar")
-                    }
-                    .labelsHidden()
-                    .frame(maxWidth: 180)
-                }
-            } trailing: {
-                EmptyView()
-            }
+            profileInputRows
         }
     }
 
@@ -1156,32 +999,35 @@ struct SettingsView: View {
             title: SettingsPane.ai.title(languageCode: resolvedLanguageCode),
             subtitle: copy(.aiSubtitle)
         ) {
-            SettingsAIProviderPicker(
-                selectedPresetID: aiProvider.presetID,
-                languageCode: resolvedLanguageCode,
-                select: selectAIProviderPreset
-            )
-
-            SettingsGlassDetectedProvidersSection(
+            SettingsOnboardingAISection(
+                readiness: aiProviderReadiness,
                 detections: aiProviderDetections,
                 currentPresetID: aiProvider.presetID,
                 languageCode: resolvedLanguageCode,
                 apply: applyAIProviderDetection,
-                refresh: refreshAIProviderDetections
+                refresh: refreshAIProviderDetections,
+                selectPreset: selectAIProviderPreset,
+                autoApplyDetected: false
             )
 
-            SettingsGlassStatusRow(
-                title: aiProviderReadiness.title,
-                subtitle: aiProviderReadiness.detail,
-                systemImage: aiProviderReadiness.systemImage,
-                tint: readinessTint(aiProviderReadiness.severity)
+            SettingsGlassToggleRow(
+                title: copy(.agentDetection),
+                subtitle: copy(.agentDetectionDetail),
+                systemImage: "dot.radiowaves.left.and.right",
+                isOn: Binding(
+                    get: { agentProcessDetectionEnabled },
+                    set: { setAgentProcessDetection($0) }
+                )
             )
 
-            SettingsGlassConnectionTestRow(
-                status: aiProviderConnectionTest,
-                canStart: aiProviderReadiness.severity != .needsAction,
-                languageCode: resolvedLanguageCode,
-                test: testAIProviderConnection
+            SettingsGlassToggleRow(
+                title: copy(.webSearch),
+                subtitle: webSearchEnabled ? copy(.webSearchOn) : copy(.webSearchOff),
+                systemImage: "magnifyingglass.circle",
+                isOn: Binding(
+                    get: { webSearchEnabled },
+                    set: { setWebSearch($0) }
+                )
             )
 
             if preset.fields.contains(.apiKey) {
@@ -1193,45 +1039,31 @@ struct SettingsView: View {
                 )
             }
 
-            if preset.fields.contains(.baseURL) || preset.fields.contains(.model) || preset.requiresAPIKey {
-                SettingsGlassDisclosureSection(
-                    title: copy(.advancedConnection),
-                    subtitle: copy(.advancedConnectionDetail),
-                    systemImage: "network",
-                    tint: .secondary
-                ) {
-                    if preset.fields.contains(.baseURL) {
-                        SettingsGlassTextFieldRow(
-                            title: "Base URL",
-                            systemImage: "link",
-                            text: Binding(
-                                get: { aiProvider.baseURL },
-                                set: { updateAIProviderBaseURL($0) }
-                            )
-                        )
-                    }
+            if preset.fields.contains(.baseURL) {
+                SettingsGlassCompactTextFieldRow(
+                    title: "Base URL",
+                    systemImage: "link",
+                    text: Binding(
+                        get: { aiProvider.baseURL },
+                        set: { updateAIProviderBaseURL($0) }
+                    ),
+                    prompt: preset.defaultBaseURL,
+                    width: 280
+                )
+            }
 
-                    if preset.fields.contains(.model) {
-                        SettingsGlassTextFieldRow(
-                            title: copy(.model),
-                            systemImage: "cpu",
-                            text: Binding(
-                                get: { aiProvider.model },
-                                set: { updateAIProviderModel($0) }
-                            ),
-                            prompt: preset.defaultModel.isEmpty ? copy(.autoSelect) : preset.defaultModel
-                        )
-                    }
-
-                    if preset.requiresAPIKey {
-                        SettingsGlassStatusRow(
-                            title: copy(.environmentVariables),
-                            subtitle: environmentKeyLabel(for: preset),
-                            systemImage: "terminal",
-                            tint: .secondary
-                        )
-                    }
-                }
+            if preset.fields.contains(.model) {
+                SettingsGlassCompactTextFieldRow(
+                    title: copy(.model),
+                    systemImage: "cpu",
+                    text: Binding(
+                        get: { aiProvider.model },
+                        set: { updateAIProviderModel($0) }
+                    ),
+                    prompt: preset.defaultModel.isEmpty ? copy(.autoSelect) : preset.defaultModel,
+                    width: 220,
+                    monospaced: true
+                )
             }
         }
     }
@@ -1260,54 +1092,23 @@ struct SettingsView: View {
                 }
             }
 
-            SettingsGlassDisclosureSection(
-                title: copy(.advancedSkills),
-                subtitle: copy(.advancedSkillsDetail),
-                systemImage: "folder.badge.gearshape",
-                tint: .secondary
-            ) {
-                SettingsGlassStatusRow(
-                    title: copy(.skillsFolder),
-                    subtitle: "~/.openneko/skills/<id>/SKILL.md",
-                    systemImage: "folder",
-                    tint: .accentColor
-                )
-
-                HStack(spacing: 10) {
-                    Button(action: openSkillsFolder) {
-                        Label(copy(.openFolder), systemImage: "folder")
-                    }
-                    .buttonStyle(.bordered)
-
-                    Button {
-                        selectPane(.ai)
-                    } label: {
-                        Label(copy(.aiSettings), systemImage: "sparkles")
-                    }
-                    .buttonStyle(.bordered)
+            HStack(spacing: 10) {
+                Button(action: openSkillsFolder) {
+                    Label(copy(.openSkillsFolder), systemImage: "folder")
                 }
-                .padding(.horizontal, 12)
-                .padding(.vertical, 6)
+                .buttonStyle(.bordered)
             }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 6)
         }
     }
 
     @ViewBuilder
     private var permissionDetailSection: some View {
-            SettingsGlassStatusRow(
-                title: permissionMenu.statusTitle(languageCode: resolvedLanguageCode),
-                subtitle: copy(.permissionPrivacyDetail),
-                systemImage: permissionMenu.needsUserAction ? "exclamationmark.triangle.fill" : "checkmark.circle.fill",
-                tint: permissionMenu.needsUserAction ? .orange : .green
-            )
-
             SettingsGlassPermissionRow(
                 title: permissionMenu.accessibilityTitle(languageCode: resolvedLanguageCode),
-                subtitle: permissionMenu.permissionStateTitle(
-                    granted: permissionMenu.accessibilityGranted,
-                    languageCode: resolvedLanguageCode
-                ),
-                systemImage: permissionMenu.accessibilityGranted ? "checkmark.circle.fill" : "figure.universal.access.circle.fill",
+                subtitle: "",
+                systemImage: "accessibility",
                 tint: permissionMenu.accessibilityGranted ? .green : .orange,
                 buttonTitle: permissionMenu.openAccessibilityTitle(languageCode: resolvedLanguageCode),
                 buttonImage: "gearshape",
@@ -1316,27 +1117,13 @@ struct SettingsView: View {
 
             SettingsGlassPermissionRow(
                 title: permissionMenu.inputMonitoringTitle(languageCode: resolvedLanguageCode),
-                subtitle: permissionMenu.permissionStateTitle(
-                    granted: permissionMenu.inputMonitoringGranted,
-                    languageCode: resolvedLanguageCode
-                ),
+                subtitle: "",
                 systemImage: permissionMenu.inputMonitoringGranted ? "checkmark.circle.fill" : "keyboard.badge.eye.fill",
                 tint: permissionMenu.inputMonitoringGranted ? .green : .orange,
                 buttonTitle: permissionMenu.openSettingsTitle(languageCode: resolvedLanguageCode),
                 buttonImage: "keyboard",
                 action: openInputMonitoring
             )
-
-            HStack(spacing: 10) {
-                Button(action: retryKeyboardMonitor) {
-                    Label(
-                        permissionMenu.retryTitle(languageCode: resolvedLanguageCode),
-                        systemImage: "arrow.clockwise"
-                    )
-                }
-                .buttonStyle(.bordered)
-            }
-            .controlSize(.regular)
     }
 
     private var skinsPane: some View {
@@ -1370,15 +1157,6 @@ struct SettingsView: View {
                 }
             }
 
-            SettingsGlassToggleRow(
-                title: copy(.soundEffects),
-                subtitle: soundEffectsEnabled ? copy(.soundEffectsOn) : copy(.soundEffectsOff),
-                systemImage: soundEffectsEnabled ? "speaker.wave.2.fill" : "speaker.slash.fill",
-                isOn: Binding(
-                    get: { soundEffectsEnabled },
-                    set: { setSoundEffects($0) }
-                )
-            )
         }
     }
 
@@ -1411,24 +1189,64 @@ struct SettingsView: View {
             title: SettingsPane.about.title(languageCode: resolvedLanguageCode),
             subtitle: copy(.aboutSubtitle)
         ) {
-            HStack(spacing: 18) {
-                ZStack {
-                    Circle()
-                        .fill(.secondary.opacity(0.12))
-                    Image(systemName: "pawprint.fill")
-                        .font(.system(size: 38, weight: .semibold))
-                        .foregroundStyle(.primary)
-                }
-                .frame(width: 82, height: 82)
+            HStack(alignment: .center, spacing: 18) {
+                Image(nsImage: NSApp.applicationIconImage)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 82, height: 82)
 
                 VStack(alignment: .leading, spacing: 6) {
-                    Text("openNeko")
+                    Text("OpenNeko")
                         .font(.title.weight(.semibold))
                     Text("\(copy(.version)) \(version)")
                         .foregroundStyle(.secondary)
+
+                    HStack(spacing: 8) {
+                        Button(action: checkForUpdates) {
+                            Label(updateStatus.menuTitle(languageCode: resolvedLanguageCode), systemImage: "arrow.clockwise")
+                        }
+                        .buttonStyle(.bordered)
+                        .disabled(!updateStatus.menuIsEnabled)
+
+                        Link(destination: openNekoGitHubURL) {
+                            Label("GitHub", systemImage: "arrow.up.right.square")
+                        }
+                        .buttonStyle(.bordered)
+                    }
+                    .padding(.top, 4)
+
+                    if !updateStatus.bubbleText(languageCode: resolvedLanguageCode).isEmpty {
+                        Text(updateStatus.bubbleText(languageCode: resolvedLanguageCode))
+                            .font(.callout)
+                            .foregroundStyle(.secondary)
+                            .lineLimit(2)
+                            .padding(.top, 2)
+                    }
                 }
                 Spacer()
             }
+
+            HStack(spacing: 4) {
+                Text("OpenNeko is released under the")
+                    .foregroundStyle(.secondary)
+                Link("MIT License", destination: openNekoLicenseURL)
+                Text(".")
+                    .foregroundStyle(.secondary)
+            }
+            .font(.callout)
+            .padding(.horizontal, 12)
+            .padding(.vertical, 6)
+
+            HStack(spacing: 4) {
+                Text("made by")
+                    .foregroundStyle(.secondary)
+                Link("kimtoma", destination: kimtomaURL)
+                Text("with ❤️")
+                    .foregroundStyle(.secondary)
+            }
+            .font(.callout)
+            .padding(.horizontal, 12)
+            .padding(.vertical, 6)
         }
     }
 
@@ -1439,6 +1257,21 @@ struct SettingsView: View {
     private var aiProviderSummary: String {
         (AIProviderPreset.preset(for: aiProvider.presetID) ?? AIProviderPreset.all[0])
             .title(languageCode: resolvedLanguageCode)
+    }
+
+    private var aiProviderModelSummary: String {
+        let preset = AIProviderPreset.preset(for: aiProvider.presetID) ?? AIProviderPreset.all[0]
+        let detectedModel = aiProviderDetections
+            .first { $0.presetID == aiProvider.presetID }?
+            .model ?? ""
+        let model = [aiProvider.model, detectedModel, preset.defaultModel]
+            .first { !$0.isEmpty } ?? ""
+        let value = model.isEmpty ? copy(.autoSelect) : model
+        return "\(copy(.model)): \(value)"
+    }
+
+    private var aiProviderConnectionSummary: String {
+        "\(aiProviderSummary) · \(aiProviderModelSummary)"
     }
 
     private var catSummary: String {
@@ -1477,6 +1310,73 @@ struct SettingsView: View {
         return copy(.noProfile)
     }
 
+    private var profileNeedsSetup: Bool {
+        editableUserProfile.isEmpty
+    }
+
+    @ViewBuilder
+    private var profileInputRows: some View {
+        SettingsGlassCompactTextFieldRow(
+            title: copy(.name),
+            systemImage: "person",
+            text: Binding(
+                get: { editableUserProfile.name },
+                set: { updateUserProfile(name: $0) }
+            ),
+            prompt: copy(.name),
+            width: profileControlWidth
+        )
+
+        SettingsGlassDatePickerRow(
+            title: copy(.birthDate),
+            systemImage: "calendar",
+            selection: profileBirthDateSelection,
+            components: .date,
+            width: profileControlWidth
+        )
+
+        SettingsGlassDatePickerRow(
+            title: copy(.birthTime),
+            systemImage: "clock",
+            selection: profileBirthTimeSelection,
+            components: .hourAndMinute,
+            width: profileControlWidth
+        )
+
+        SettingsGlassRadioRow(
+            title: copy(.calendar),
+            systemImage: "moonphase.waxing.crescent",
+            options: [
+                SettingsRadioOption(id: "solar", title: copy(.solar)),
+                SettingsRadioOption(id: "lunar", title: copy(.lunar)),
+                SettingsRadioOption(id: "unknown", title: copy(.unknown))
+            ],
+            selection: Binding(
+                get: { editableUserProfile.calendar },
+                set: { updateUserProfile(calendar: $0) }
+            ),
+            width: profileControlWidth
+        )
+    }
+
+    private var profileBirthDateSelection: Binding<Date> {
+        Binding(
+            get: { parseProfileDate(editableUserProfile.birthDate) ?? Date() },
+            set: { updateUserProfile(birthDate: formatProfileDate($0)) }
+        )
+    }
+
+    private var profileBirthTimeSelection: Binding<Date> {
+        Binding(
+            get: { parseProfileTime(editableUserProfile.birthTime) ?? defaultProfileTimeDate },
+            set: { updateUserProfile(birthTime: formatProfileTime($0)) }
+        )
+    }
+
+    private var defaultProfileTimeDate: Date {
+        Calendar.current.date(from: DateComponents(year: 2000, month: 1, day: 1, hour: 12, minute: 0)) ?? Date()
+    }
+
     private var editableCatName: String {
         catNameDraft ?? catName
     }
@@ -1509,6 +1409,51 @@ struct SettingsView: View {
 
     private var onboardingStep: OnboardingStep {
         OnboardingStep(rawValue: onboardingStepRaw) ?? .welcome
+    }
+
+    private var onboardingStepIndex: Int {
+        (OnboardingStep.allCases.firstIndex(of: onboardingStep) ?? 0) + 1
+    }
+
+    private var selectedTypingFrameURLs: [URL] {
+        selectedStateFrameURLs("typing")
+    }
+
+    private var selectedSuccessFrameURLs: [URL] {
+        selectedStateFrameURLs("success")
+    }
+
+    private func selectedStateFrameURLs(_ state: String) -> [URL] {
+        skinStateFrameURLs(skinID: selectedSkinID, state: state)
+    }
+
+    private func skinStateFrameURLs(skinID: String, state: String) -> [URL] {
+        let fallback = skinPreviewFrameURLs[skinID] ?? []
+        guard let firstFrame = fallback.first else { return [] }
+        let directory = firstFrame.deletingLastPathComponent()
+        guard let urls = try? FileManager.default.contentsOfDirectory(
+            at: directory,
+            includingPropertiesForKeys: nil
+        ) else {
+            return fallback
+        }
+        let frames = urls
+            .filter { $0.lastPathComponent.hasPrefix("\(state)_") && $0.pathExtension == "png" }
+            .sorted { lhs, rhs in
+                frameIndex(lhs, state: state) < frameIndex(rhs, state: state)
+            }
+        return frames.isEmpty ? fallback : frames
+    }
+
+    private func frameIndex(_ url: URL, state: String) -> Int {
+        let stem = url.deletingPathExtension().lastPathComponent
+        let prefix = "\(state)_"
+        guard stem.hasPrefix(prefix),
+              let index = Int(stem.dropFirst(prefix.count))
+        else {
+            return .max
+        }
+        return index
     }
 
     private var onboardingProgressText: String {
@@ -1625,6 +1570,38 @@ struct SettingsView: View {
         case .needsAction:
             .red
         }
+    }
+
+    private func parseProfileDate(_ value: String) -> Date? {
+        profileDateFormatter.date(from: value)
+    }
+
+    private func formatProfileDate(_ date: Date) -> String {
+        profileDateFormatter.string(from: date)
+    }
+
+    private func parseProfileTime(_ value: String) -> Date? {
+        profileTimeFormatter.date(from: value)
+    }
+
+    private func formatProfileTime(_ date: Date) -> String {
+        profileTimeFormatter.string(from: date)
+    }
+
+    private var profileDateFormatter: DateFormatter {
+        let formatter = DateFormatter()
+        formatter.calendar = Calendar(identifier: .gregorian)
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.dateFormat = "yyyy-MM-dd"
+        return formatter
+    }
+
+    private var profileTimeFormatter: DateFormatter {
+        let formatter = DateFormatter()
+        formatter.calendar = Calendar(identifier: .gregorian)
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.dateFormat = "HH:mm"
+        return formatter
     }
 
     private func updateUserProfile(
@@ -1924,42 +1901,30 @@ private struct SettingsAIProviderCard: View {
 
 private struct SettingsPixelOnboardingHero: View {
     let title: String
-    let subtitle: String
+    let step: OnboardingStep
     let systemImage: String
     let tint: Color
     let frameURLs: [URL]
 
     var body: some View {
-        HStack(spacing: 14) {
-            SettingsPixelDesktopScene(frameURLs: frameURLs, tint: tint)
+        HStack(spacing: 18) {
+            visual
                 .frame(width: 152, height: 92)
 
             VStack(alignment: .leading, spacing: 7) {
-                HStack(spacing: 7) {
-                    Image(systemName: systemImage)
-                        .font(.system(size: 14, weight: .bold))
-                        .foregroundStyle(tint)
-                        .frame(width: 24, height: 24)
-                        .background {
-                            RoundedRectangle(cornerRadius: 5, style: .continuous)
-                                .fill(tint.opacity(0.13))
-                        }
-
-                    Text("openNeko")
-                        .font(.system(.caption, design: .monospaced).weight(.bold))
-                        .foregroundStyle(.secondary)
-                }
+                Image(systemName: systemImage)
+                    .font(.system(size: 14, weight: .bold))
+                    .foregroundStyle(tint)
+                    .frame(width: 24, height: 24)
+                    .background {
+                        RoundedRectangle(cornerRadius: 5, style: .continuous)
+                            .fill(tint.opacity(0.13))
+                    }
 
                 Text(title)
                     .font(.title3.weight(.semibold))
                     .foregroundStyle(.primary)
                     .lineLimit(2)
-
-                Text(subtitle)
-                    .font(.callout)
-                    .foregroundStyle(.secondary)
-                    .lineLimit(3)
-                    .fixedSize(horizontal: false, vertical: true)
             }
 
             Spacer(minLength: 0)
@@ -1975,10 +1940,162 @@ private struct SettingsPixelOnboardingHero: View {
                 .strokeBorder(Color(nsColor: .separatorColor).opacity(0.45), lineWidth: 1)
         }
     }
+
+    @ViewBuilder
+    private var visual: some View {
+        switch step {
+        case .permissions:
+            SettingsOnboardingTypingPreview(frameURLs: frameURLs, tint: tint)
+        case .done:
+            SettingsOnboardingCatSpotlight(frameURLs: frameURLs, tint: tint)
+        default:
+            SettingsPixelDesktopScene(frameURLs: frameURLs, tint: tint)
+        }
+    }
+}
+
+private enum SettingsOnboardingBrandFont {
+    private static let fontName = "Geist Pixel Square"
+
+    private static let registerFont: Void = {
+        let url = Bundle.main.url(forResource: "GeistPixel-Square", withExtension: "ttf")
+            ?? Bundle.main.url(
+                forResource: "GeistPixel-Square",
+                withExtension: "ttf",
+                subdirectory: "fonts"
+            )
+        guard let url else {
+            return
+        }
+        CTFontManagerRegisterFontsForURL(url as CFURL, .process, nil)
+    }()
+
+    static func font(size: CGFloat) -> Font {
+        _ = registerFont
+        if NSFont(name: fontName, size: size) != nil {
+            return .custom(fontName, size: size).weight(.black)
+        }
+        return .system(size: size, weight: .black, design: .monospaced)
+    }
+}
+
+private struct SettingsOnboardingHeader: View {
+    let currentIndex: Int
+    let totalCount: Int
+    let tint: Color
+
+    var body: some View {
+        VStack(spacing: 8) {
+            Text("OpenNeko")
+                .font(SettingsOnboardingBrandFont.font(size: 36))
+                .foregroundStyle(.primary)
+                .lineLimit(1)
+                .minimumScaleFactor(0.82)
+
+            SettingsOnboardingProgressPaws(
+                currentIndex: currentIndex,
+                totalCount: totalCount,
+                tint: tint
+            )
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.top, 4)
+        .padding(.bottom, 4)
+    }
+}
+
+private struct SettingsOnboardingProgressPaws: View {
+    let currentIndex: Int
+    let totalCount: Int
+    let tint: Color
+
+    var body: some View {
+        HStack(spacing: 7) {
+            ForEach(1...totalCount, id: \.self) { index in
+                Image(systemName: "pawprint.fill")
+                    .font(.system(size: index == currentIndex ? 15 : 12, weight: .bold))
+                    .foregroundStyle(index <= currentIndex ? tint : Color.secondary.opacity(0.28))
+                    .frame(width: 18, height: 18)
+                    .scaleEffect(index == currentIndex ? 1.08 : 1)
+                    .animation(.snappy(duration: 0.22), value: currentIndex)
+            }
+        }
+        .accessibilityLabel("\(currentIndex) of \(totalCount)")
+    }
 }
 
 private struct SettingsPixelDesktopScene: View {
     let frameURLs: [URL]
+    let tint: Color
+
+    var body: some View {
+        ZStack(alignment: .bottom) {
+            SettingsOnboardingSceneBackdrop(tint: tint)
+
+            SettingsPixelMiniCat(frameURLs: frameURLs, size: 54)
+                .offset(x: -8, y: -13)
+
+            Text("냥")
+                .font(.system(size: 10, weight: .bold, design: .monospaced))
+                .foregroundStyle(.white)
+                .padding(.horizontal, 7)
+                .padding(.vertical, 4)
+                .background {
+                    RoundedRectangle(cornerRadius: 4, style: .continuous)
+                        .fill(Color.black.opacity(0.82))
+                }
+                .offset(x: 37, y: -58)
+        }
+        .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+        .overlay {
+            RoundedRectangle(cornerRadius: 8, style: .continuous)
+                .strokeBorder(Color.primary.opacity(0.12), lineWidth: 1)
+        }
+    }
+}
+
+private struct SettingsOnboardingTypingPreview: View {
+    let frameURLs: [URL]
+    let tint: Color
+
+    var body: some View {
+        ZStack {
+            RoundedRectangle(cornerRadius: 8, style: .continuous)
+                .fill(Color(nsColor: .textBackgroundColor))
+
+            SettingsPixelMiniCat(frameURLs: frameURLs, size: 158)
+        }
+        .padding(.vertical, 6)
+        .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+        .overlay {
+            RoundedRectangle(cornerRadius: 8, style: .continuous)
+                .strokeBorder(Color.primary.opacity(0.12), lineWidth: 1)
+        }
+    }
+}
+
+private struct SettingsOnboardingCatPortrait: View {
+    let frameURLs: [URL]
+    let tint: Color
+    let size: CGFloat
+
+    var body: some View {
+        ZStack(alignment: .bottom) {
+            RoundedRectangle(cornerRadius: 8, style: .continuous)
+                .fill(Color(nsColor: .textBackgroundColor))
+
+            SettingsPixelMiniCat(frameURLs: frameURLs, size: size)
+                .padding(.bottom, 24)
+        }
+        .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+        .overlay {
+            RoundedRectangle(cornerRadius: 8, style: .continuous)
+                .strokeBorder(Color(nsColor: .separatorColor).opacity(0.32), lineWidth: 1)
+        }
+    }
+}
+
+private struct SettingsOnboardingSceneBackdrop: View {
     let tint: Color
 
     var body: some View {
@@ -1992,9 +2109,6 @@ private struct SettingsPixelDesktopScene: View {
                     Circle().fill(SettingsPixelPalette.yellow).frame(width: 6, height: 6)
                     Circle().fill(SettingsPixelPalette.green).frame(width: 6, height: 6)
                     Spacer()
-                    Text("/nya")
-                        .font(.system(size: 9, weight: .bold, design: .monospaced))
-                        .foregroundStyle(.secondary)
                 }
                 .padding(.horizontal, 10)
                 .padding(.vertical, 7)
@@ -2014,25 +2128,6 @@ private struct SettingsPixelDesktopScene: View {
                 .frame(height: 5)
                 .padding(.horizontal, 16)
                 .padding(.bottom, 14)
-
-            SettingsPixelMiniCat(frameURLs: frameURLs, size: 54)
-                .offset(x: -18, y: -15)
-
-            Text("냥")
-                .font(.system(size: 10, weight: .bold, design: .monospaced))
-                .foregroundStyle(.white)
-                .padding(.horizontal, 7)
-                .padding(.vertical, 4)
-                .background {
-                    RoundedRectangle(cornerRadius: 4, style: .continuous)
-                        .fill(Color.black.opacity(0.82))
-                }
-                .offset(x: 37, y: -58)
-        }
-        .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
-        .overlay {
-            RoundedRectangle(cornerRadius: 8, style: .continuous)
-                .strokeBorder(Color.primary.opacity(0.12), lineWidth: 1)
         }
     }
 }
@@ -2105,21 +2200,206 @@ private enum SettingsOnboardingFeatureKind: CaseIterable, Hashable {
 
 private struct SettingsOnboardingFeatureGrid: View {
     let languageCode: String
-    let frameURLs: [URL]
 
     private var columns: [GridItem] {
-        [GridItem(.adaptive(minimum: 158), spacing: 10)]
+        Array(repeating: GridItem(.flexible(minimum: 0), spacing: 12), count: 3)
+    }
+
+    var body: some View {
+        LazyVGrid(columns: columns, alignment: .leading, spacing: 12) {
+            ForEach(SettingsOnboardingFeatureKind.allCases, id: \.self) { kind in
+                SettingsPixelFeatureCard(
+                    kind: kind,
+                    languageCode: languageCode
+                )
+            }
+        }
+    }
+}
+
+private struct SettingsOnboardingSkinPicker: View {
+    let skinIDs: [String]
+    let selectedSkinID: String
+    let label: (String) -> String
+    let frameURLs: (String) -> [URL]
+    let select: (String) -> Void
+
+    private var columns: [GridItem] {
+        [GridItem(.adaptive(minimum: 128), spacing: 10)]
     }
 
     var body: some View {
         LazyVGrid(columns: columns, alignment: .leading, spacing: 10) {
-            ForEach(SettingsOnboardingFeatureKind.allCases, id: \.self) { kind in
-                SettingsPixelFeatureCard(
-                    kind: kind,
-                    languageCode: languageCode,
-                    frameURLs: frameURLs
+            ForEach(skinIDs, id: \.self) { id in
+                Button {
+                    select(id)
+                } label: {
+                    SettingsOnboardingSkinTile(
+                        title: label(id),
+                        systemImage: id == SkinManager.defaultID ? "sparkles" : "paintpalette",
+                        frameURLs: frameURLs(id),
+                        isSelected: id == selectedSkinID
+                    )
+                }
+                .buttonStyle(.plain)
+            }
+        }
+    }
+}
+
+private struct SettingsOnboardingSkinTile: View {
+    let title: String
+    let systemImage: String
+    let frameURLs: [URL]
+    let isSelected: Bool
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 9) {
+            SettingsSkinWalkPreview(
+                frameURLs: frameURLs,
+                placeholderSystemImage: systemImage,
+                catSize: 82,
+                previewHeight: 108
+            )
+
+            HStack(spacing: 6) {
+                Text(title)
+                    .font(.callout.weight(.semibold))
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.72)
+                Spacer(minLength: 4)
+                Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
+                    .font(.body.weight(.semibold))
+                    .foregroundStyle(isSelected ? Color.green : Color.secondary.opacity(0.34))
+            }
+        }
+        .padding(10)
+        .frame(maxWidth: .infinity, minHeight: 154, alignment: .topLeading)
+        .background {
+            RoundedRectangle(cornerRadius: 10, style: .continuous)
+                .fill(Color(nsColor: .controlBackgroundColor))
+        }
+        .overlay {
+            RoundedRectangle(cornerRadius: 10, style: .continuous)
+                .strokeBorder(
+                    isSelected ? Color.accentColor.opacity(0.72) : Color(nsColor: .separatorColor).opacity(0.42),
+                    lineWidth: isSelected ? 1.5 : 1
+                )
+        }
+    }
+}
+
+private struct SettingsOnboardingNameStep<NameField: View>: View {
+    let frameURLs: [URL]
+    let tint: Color
+    let nameField: NameField
+
+    var body: some View {
+        HStack(alignment: .center, spacing: 18) {
+            SettingsOnboardingCatPortrait(frameURLs: frameURLs, tint: tint, size: 138)
+                .frame(width: 230, height: 218)
+
+            VStack(alignment: .leading, spacing: 12) {
+                nameField
+
+                Text("말풍선과 인사말에서 이 이름으로 부른다냥.")
+                    .font(.callout)
+                    .foregroundStyle(.secondary)
+                    .padding(.leading, 12)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+        }
+    }
+}
+
+private struct SettingsOnboardingPermissionStep: View {
+    let frameURLs: [URL]
+    let permissionMenu: InputMonitoringPermissionMenu
+    let languageCode: String
+    let openAccessibility: () -> Void
+    let openInputMonitoring: () -> Void
+
+    var body: some View {
+        HStack(alignment: .center, spacing: 18) {
+            SettingsOnboardingTypingPreview(frameURLs: frameURLs, tint: .orange)
+                .frame(width: 230, height: 218)
+
+            VStack(alignment: .leading, spacing: 0) {
+                SettingsOnboardingPermissionStatusRow(
+                    title: permissionMenu.accessibilityTitle(languageCode: languageCode),
+                    isGranted: permissionMenu.accessibilityGranted,
+                    systemImage: "accessibility",
+                    buttonTitle: permissionMenu.openAccessibilityTitle(languageCode: languageCode),
+                    buttonImage: "gearshape",
+                    completionTitle: completionTitle,
+                    action: openAccessibility
+                )
+
+                SettingsOnboardingPermissionStatusRow(
+                    title: permissionMenu.inputMonitoringTitle(languageCode: languageCode),
+                    isGranted: permissionMenu.inputMonitoringGranted,
+                    systemImage: "keyboard.badge.eye.fill",
+                    buttonTitle: permissionMenu.openSettingsTitle(languageCode: languageCode),
+                    buttonImage: "keyboard",
+                    completionTitle: completionTitle,
+                    action: openInputMonitoring
                 )
             }
+            .frame(maxWidth: .infinity, alignment: .leading)
+        }
+    }
+
+    private var completionTitle: String {
+        switch AppLanguage.normalized(languageCode) ?? "ko" {
+        case "en": return "Done"
+        case "ja": return "完了"
+        case "zh": return "完成"
+        default: return "완료"
+        }
+    }
+}
+
+private struct SettingsOnboardingPermissionStatusRow: View {
+    let title: String
+    let isGranted: Bool
+    let systemImage: String
+    let buttonTitle: String
+    let buttonImage: String
+    let completionTitle: String
+    let action: () -> Void
+
+    var body: some View {
+        HStack(spacing: 12) {
+            Image(systemName: systemImage)
+                .font(.system(size: 20, weight: .semibold))
+                .foregroundStyle(isGranted ? Color.green : Color.orange)
+                .frame(width: 28, height: 28)
+
+            Text(title)
+                .font(.body.weight(.medium))
+
+            Spacer(minLength: 12)
+
+            if isGranted {
+                HStack(spacing: 5) {
+                    Image(systemName: "checkmark.circle.fill")
+                    Text(completionTitle)
+                }
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(.green)
+                .modifier(SettingsNativeBadge())
+            } else {
+                Button(action: action) {
+                    Label(buttonTitle, systemImage: buttonImage)
+                }
+                .buttonStyle(.bordered)
+            }
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 12)
+        .overlay(alignment: .bottom) {
+            Divider()
+                .padding(.leading, 40)
         }
     }
 }
@@ -2127,15 +2407,14 @@ private struct SettingsOnboardingFeatureGrid: View {
 private struct SettingsPixelFeatureCard: View {
     let kind: SettingsOnboardingFeatureKind
     let languageCode: String
-    let frameURLs: [URL]
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 9) {
+        VStack(alignment: .leading, spacing: 11) {
             featureVisual
-                .frame(height: 54)
+                .frame(height: 108)
 
             Text(kind.title(languageCode: languageCode))
-                .font(.body.weight(.semibold))
+                .font(.headline.weight(.semibold))
                 .foregroundStyle(.primary)
                 .lineLimit(2)
                 .fixedSize(horizontal: false, vertical: true)
@@ -2143,11 +2422,11 @@ private struct SettingsPixelFeatureCard: View {
             Text(kind.body(languageCode: languageCode))
                 .font(.caption)
                 .foregroundStyle(.secondary)
-                .lineLimit(3)
+                .lineLimit(4)
                 .fixedSize(horizontal: false, vertical: true)
         }
-        .padding(12)
-        .frame(maxWidth: .infinity, minHeight: 150, alignment: .topLeading)
+        .padding(14)
+        .frame(maxWidth: .infinity, minHeight: 226, alignment: .topLeading)
         .background {
             RoundedRectangle(cornerRadius: 8, style: .continuous)
                 .fill(Color(nsColor: .controlBackgroundColor))
@@ -2160,54 +2439,148 @@ private struct SettingsPixelFeatureCard: View {
 
     @ViewBuilder
     private var featureVisual: some View {
-        ZStack(alignment: .bottomLeading) {
+        ZStack(alignment: .bottom) {
             RoundedRectangle(cornerRadius: 6, style: .continuous)
-                .fill(kind.softFill)
+                .fill(Color(nsColor: .textBackgroundColor))
 
             switch kind {
             case .desktop:
-                Rectangle()
-                    .fill(Color.primary.opacity(0.18))
-                    .frame(height: 4)
-                    .padding(.horizontal, 12)
-                    .padding(.bottom, 10)
-                SettingsPixelMiniCat(frameURLs: frameURLs, size: 42)
-                    .padding(.leading, 18)
-                    .padding(.bottom, 8)
+                SettingsHomepageFeatureScene(
+                    frameURLs: homepageFrames(state: "walk"),
+                    accessory: .none,
+                    accent: kind.tint,
+                    catSize: 86
+                )
             case .chat:
-                Text("냥")
-                    .font(.system(size: 12, weight: .bold, design: .monospaced))
-                    .foregroundStyle(.white)
-                    .padding(.horizontal, 9)
-                    .padding(.vertical, 5)
-                    .background {
-                        RoundedRectangle(cornerRadius: 4, style: .continuous)
-                            .fill(Color.black.opacity(0.82))
-                    }
-                    .padding(.leading, 14)
-                    .padding(.bottom, 18)
-                Image(systemName: "bubble.left.and.bubble.right.fill")
-                    .font(.system(size: 21, weight: .semibold))
-                    .foregroundStyle(kind.tint)
-                    .padding(.leading, 62)
-                    .padding(.bottom, 13)
+                SettingsHomepageFeatureScene(
+                    frameURLs: homepageFrames(state: "idle"),
+                    accessory: .chatInput,
+                    accent: kind.tint,
+                    catSize: 84
+                )
             case .skills:
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("/fortune")
-                    Text("/summarize")
-                }
-                .font(.system(size: 10, weight: .bold, design: .monospaced))
-                .foregroundStyle(.primary.opacity(0.72))
-                .padding(.leading, 14)
-                .padding(.bottom, 12)
-                Image(systemName: "wand.and.stars")
-                    .font(.system(size: 20, weight: .semibold))
-                    .foregroundStyle(kind.tint)
-                    .padding(.leading, 94)
-                    .padding(.bottom, 15)
+                SettingsHomepageFeatureScene(
+                    frameURLs: homepageFrames(state: "thinking"),
+                    accessory: .slashCommands(["/fortune", "/summarize", "/translate", "/today"]),
+                    accent: kind.tint,
+                    catSize: 84
+                )
             }
         }
         .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
+    }
+
+    private func homepageFrames(state: String) -> [URL] {
+        SettingsBundledSpriteFrames.frames(skinID: "black", state: state)
+    }
+}
+
+private enum SettingsHomepageFeatureAccessory: Equatable {
+    case none
+    case chatInput
+    case slashCommands([String])
+}
+
+private struct SettingsHomepageFeatureScene: View {
+    let frameURLs: [URL]
+    let accessory: SettingsHomepageFeatureAccessory
+    let accent: Color
+    let catSize: CGFloat
+
+    var body: some View {
+        ZStack(alignment: .bottom) {
+            VStack(spacing: 0) {
+                Spacer(minLength: 0)
+                Rectangle()
+                    .fill(Color.primary.opacity(0.16))
+                    .frame(height: 3)
+                    .padding(.horizontal, 18)
+                    .padding(.bottom, 16)
+            }
+
+            accessoryView
+                .zIndex(2)
+
+            SettingsPixelMiniCat(frameURLs: frameURLs, size: catSize)
+                .padding(.bottom, 18)
+                .zIndex(1)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+
+    @ViewBuilder
+    private var accessoryView: some View {
+        switch accessory {
+        case .none:
+            EmptyView()
+        case .chatInput:
+            HStack(spacing: 5) {
+                Image(systemName: "bubble.left.fill")
+                    .font(.system(size: 10, weight: .semibold))
+                    .foregroundStyle(accent)
+                Text("무엇을 물어볼까냥?")
+                    .font(.system(size: 10, weight: .semibold))
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
+                Image(systemName: "paperplane.fill")
+                    .font(.system(size: 9, weight: .semibold))
+                    .foregroundStyle(.secondary.opacity(0.72))
+            }
+            .padding(.horizontal, 8)
+            .padding(.vertical, 5)
+            .frame(width: 130, alignment: .leading)
+            .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 7, style: .continuous))
+            .overlay {
+                RoundedRectangle(cornerRadius: 7, style: .continuous)
+                    .strokeBorder(Color(nsColor: .separatorColor).opacity(0.34), lineWidth: 1)
+            }
+            .offset(x: 10, y: -71)
+        case .slashCommands(let commands):
+            TimelineView(.animation(minimumInterval: 1.0 / 12.0)) { context in
+                let safeCommands = commands.isEmpty ? ["/fortune"] : commands
+                let command = safeCommands[
+                    Int(context.date.timeIntervalSinceReferenceDate / 1.35) % safeCommands.count
+                ]
+
+                HStack(spacing: 6) {
+                    Image(systemName: "wand.and.stars")
+                        .font(.caption.weight(.semibold))
+                    Text(command)
+                        .font(.system(size: 13, weight: .bold, design: .monospaced))
+                        .contentTransition(.numericText())
+                }
+                .frame(width: 128, alignment: .leading)
+                .foregroundStyle(accent)
+                .padding(.horizontal, 9)
+                .padding(.vertical, 6)
+                .background(Color(nsColor: .controlBackgroundColor), in: RoundedRectangle(cornerRadius: 6, style: .continuous))
+                .overlay {
+                    RoundedRectangle(cornerRadius: 6, style: .continuous)
+                        .strokeBorder(Color(nsColor: .separatorColor).opacity(0.32), lineWidth: 1)
+                }
+                .offset(x: 3, y: -85)
+            }
+        }
+    }
+}
+
+private enum SettingsBundledSpriteFrames {
+    static func frames(skinID: String, state: String) -> [URL] {
+        let skinFrames = indexedFrames(subdirectory: "sprites/\(skinID)", state: state)
+        if !skinFrames.isEmpty {
+            return skinFrames
+        }
+        return indexedFrames(subdirectory: "sprites", state: state)
+    }
+
+    private static func indexedFrames(subdirectory: String, state: String) -> [URL] {
+        (0..<4).compactMap { index in
+            Bundle.main.url(
+                forResource: "\(state)_\(index)",
+                withExtension: "png",
+                subdirectory: subdirectory
+            )
+        }
     }
 }
 
@@ -2248,6 +2621,63 @@ private struct SettingsPixelMiniCat: View {
         images = frameURLs.compactMap { url in
             NSImage(contentsOf: url)
         }
+    }
+}
+
+private struct SettingsOnboardingCatSpotlight: View {
+    let frameURLs: [URL]
+    let tint: Color
+
+    var body: some View {
+        ZStack {
+            RoundedRectangle(cornerRadius: 8, style: .continuous)
+                .fill(Color(nsColor: .controlBackgroundColor))
+
+            VStack(spacing: 12) {
+                SettingsPixelMiniCat(frameURLs: frameURLs, size: 112)
+                    .padding(.top, 8)
+
+                HStack(spacing: 5) {
+                    Image(systemName: "pawprint.fill")
+                    Text("OpenNeko")
+                }
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(tint)
+            }
+        }
+        .overlay {
+            RoundedRectangle(cornerRadius: 8, style: .continuous)
+                .strokeBorder(tint.opacity(0.38), lineWidth: 1)
+        }
+    }
+}
+
+private struct SettingsOnboardingDoneStep: View {
+    let frameURLs: [URL]
+    @Binding var launchAtLogin: Bool
+    let title: String
+    let subtitle: String
+
+    var body: some View {
+        let cardWidth: CGFloat = 288
+
+        VStack(alignment: .leading, spacing: 12) {
+            SettingsOnboardingCatPortrait(frameURLs: frameURLs, tint: .green, size: 158)
+                .frame(width: cardWidth, height: 208)
+
+            Toggle(isOn: $launchAtLogin) {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(title)
+                        .font(.body.weight(.medium))
+                    Text(subtitle)
+                        .font(.callout)
+                        .foregroundStyle(.secondary)
+                }
+            }
+            .toggleStyle(.checkbox)
+            .frame(width: cardWidth, alignment: .leading)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
     }
 }
 
@@ -2402,53 +2832,323 @@ private struct SettingsNativeBadge: ViewModifier {
     }
 }
 
-private struct SettingsGlassConnectionTestRow: View {
-    let status: AIProviderConnectionTestStatus
-    let canStart: Bool
+private struct SettingsOnboardingAISection: View {
+    let readiness: AIProviderReadiness
+    let detections: [AIProviderDetection]
+    let currentPresetID: String
     let languageCode: String
-    let test: () -> Void
+    let apply: (AIProviderDetection) -> Void
+    let refresh: () -> Void
+    let selectPreset: (String) -> Void
+    let autoApplyDetected: Bool
 
     var body: some View {
-        SettingsGlassRow(systemImage: status.systemImage, iconTint: tint) {
-            VStack(alignment: .leading, spacing: 4) {
-                Text(status.title)
-                    .font(.body.weight(.medium))
-                Text(status.detail)
-                    .font(.callout)
-                    .foregroundStyle(.secondary)
-                    .lineLimit(2)
-            }
-        } trailing: {
-            HStack(spacing: 8) {
-                if status.isRunning {
-                    ProgressView()
-                        .controlSize(.small)
+        VStack(alignment: .leading, spacing: 14) {
+            HStack(spacing: 12) {
+                Image(systemName: selectedDetection == nil ? "magnifyingglass" : "checkmark.circle.fill")
+                    .font(.system(size: 20, weight: .semibold))
+                    .foregroundStyle(selectedDetection == nil ? Color.secondary : Color.green)
+                    .frame(width: 28, height: 28)
+
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(aiSummaryTitle)
+                        .font(.body.weight(.medium))
+                    Text(aiSummaryBody)
+                        .font(.callout)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(2)
                 }
 
-                Button(action: test) {
-                    Label(SettingsCopy.text(.test, languageCode: languageCode), systemImage: "play.circle")
-                        .labelStyle(.titleAndIcon)
+                Spacer(minLength: 12)
+
+                Button(action: refresh) {
+                    Label(SettingsCopy.text(.refreshDetection, languageCode: languageCode), systemImage: "arrow.clockwise")
                 }
                 .buttonStyle(.bordered)
-                .disabled(status.isRunning || !canStart)
-                .help(canStart
-                    ? SettingsCopy.text(.connectionTestHelp, languageCode: languageCode)
-                    : SettingsCopy.text(.finishRequiredSettings, languageCode: languageCode)
-                )
             }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 10)
+            .background {
+                RoundedRectangle(cornerRadius: 10, style: .continuous)
+                    .fill(Color(nsColor: .controlBackgroundColor))
+            }
+
+            LazyVGrid(columns: columns, alignment: .leading, spacing: 10) {
+                ForEach(AIProviderPreset.all) { preset in
+                    let detection = providerDetection(for: preset.id)
+
+                    Button {
+                        if let detection {
+                            apply(detection)
+                        } else {
+                            selectPreset(preset.id)
+                        }
+                    } label: {
+                        SettingsOnboardingAIProviderCard(
+                            preset: preset,
+                            languageCode: languageCode,
+                            isDetected: detection != nil,
+                            isSelected: preset.id == selectedPresetID,
+                            isRecommended: preset.isRecommended
+                        )
+                    }
+                    .buttonStyle(.plain)
+                    .help(selectProviderHelp)
+                }
+            }
+        }
+        .onAppear {
+            guard autoApplyDetected,
+                  let detection = selectedDetection,
+                  detection.presetID != currentPresetID
+            else {
+                return
+            }
+            apply(detection)
         }
     }
 
-    private var tint: Color {
-        switch status.severity {
-        case .idle:
-            .accentColor
-        case .running:
-            .blue
-        case .success:
-            .green
-        case .failure:
-            .red
+    private var columns: [GridItem] {
+        [GridItem(.adaptive(minimum: 122), spacing: 10)]
+    }
+
+    private var selectedDetection: AIProviderDetection? {
+        detections.first { $0.presetID == currentPresetID } ?? detections.first
+    }
+
+    private var selectedPresetID: String {
+        currentPresetID
+    }
+
+    private func providerDetection(for presetID: String) -> AIProviderDetection? {
+        detections.first { $0.presetID == presetID }
+    }
+
+    private var aiSummaryTitle: String {
+        guard let detection = selectedDetection else {
+            return laterTitle
+        }
+        return defaultConnectionTitle(detection)
+    }
+
+    private var aiSummaryBody: String {
+        guard let detection = selectedDetection else {
+            return laterBody
+        }
+        return defaultConnectionBody(detection)
+    }
+
+    private var statusTitle: String {
+        if readiness.severity == .needsAction, !detections.isEmpty {
+            return autoFoundTitle
+        }
+        if readiness.severity == .needsAction {
+            return SettingsCopy.text(.onboardingAITitle, languageCode: languageCode)
+        }
+        return readiness.title
+    }
+
+    private var statusSubtitle: String {
+        if readiness.severity == .needsAction, !detections.isEmpty {
+            return autoFoundBody
+        }
+        if readiness.severity == .needsAction {
+            return SettingsCopy.text(.onboardingAIBody, languageCode: languageCode)
+        }
+        return readiness.detail
+    }
+
+    private var statusImage: String {
+        readiness.severity == .needsAction && !detections.isEmpty
+            ? "sparkles"
+            : readiness.systemImage
+    }
+
+    private var statusTint: Color {
+        if readiness.severity == .needsAction, !detections.isEmpty {
+            return .green
+        }
+        switch readiness.severity {
+        case .ready:
+            return .green
+        case .warning:
+            return .orange
+        case .needsAction:
+            return .secondary
+        }
+    }
+
+    private var autoFoundTitle: String {
+        localized(
+            ko: "자동으로 찾은 연결",
+            en: "Auto-detected connection",
+            ja: "自動で見つけた接続",
+            zh: "自动检测到的连接"
+        )
+    }
+
+    private var autoFoundBody: String {
+        localized(
+            ko: "바로 쓸 수 있는 연결을 찾아 기본값으로 보여준다냥.",
+            en: "I found a ready connection and show it as the default, nya.",
+            ja: "すぐ使える接続を見つけて、標準として表示するにゃ。",
+            zh: "已找到可用连接，并作为默认连接显示喵。"
+        )
+    }
+
+    private var defaultBadge: String {
+        localized(ko: "기본값", en: "Default", ja: "標準", zh: "默认")
+    }
+
+    private func defaultConnectionTitle(_ detection: AIProviderDetection) -> String {
+        localized(
+            ko: "\(detection.title(languageCode: languageCode)) 준비됨",
+            en: "\(detection.title(languageCode: languageCode)) is ready",
+            ja: "\(detection.title(languageCode: languageCode)) 準備完了",
+            zh: "\(detection.title(languageCode: languageCode)) 已就绪"
+        )
+    }
+
+    private func defaultConnectionBody(_ detection: AIProviderDetection) -> String {
+        localized(
+            ko: "\(detection.source.label(languageCode: languageCode))에서 자동으로 인식했다냥. 기본 연결로 써둔다냥.",
+            en: "Auto-detected from \(detection.source.label(languageCode: languageCode)), nya. It will be used as the default connection.",
+            ja: "\(detection.source.label(languageCode: languageCode))から自動で認識したにゃ。標準接続として使うにゃ。",
+            zh: "已从\(detection.source.label(languageCode: languageCode))自动识别喵。将作为默认连接使用喵。"
+        )
+    }
+
+    private var laterTitle: String {
+        localized(
+            ko: "나중에 해도 된다냥",
+            en: "You can do this later, nya",
+            ja: "後からでも大丈夫にゃ",
+            zh: "之后再设置也可以喵"
+        )
+    }
+
+    private var laterBody: String {
+        localized(
+            ko: "대화가 안 되면 메뉴바의 AI 설정에서 연결만 골라주면 된다냥.",
+            en: "If chat is not ready, choose a connection later in AI Settings, nya.",
+            ja: "話せないときはメニューバーのAI設定で接続を選べばいいにゃ。",
+            zh: "如果还不能聊天，之后在菜单栏的 AI 设置里选择连接即可喵。"
+        )
+    }
+
+    private var selectProviderHelp: String {
+        localized(
+            ko: "이 연결을 기본값으로 고른다냥.",
+            en: "Choose this connection as the default, nya.",
+            ja: "この接続を標準にするにゃ。",
+            zh: "将此连接设为默认喵。"
+        )
+    }
+
+    private var notDetectedHelp: String {
+        localized(
+            ko: "아직 자동으로 감지되지 않았다냥.",
+            en: "This connection was not auto-detected yet, nya.",
+            ja: "まだ自動検出されていないにゃ。",
+            zh: "尚未自动检测到此连接喵。"
+        )
+    }
+
+    private func localized(ko: String, en: String, ja: String, zh: String) -> String {
+        switch AppLanguage.normalized(languageCode) ?? "ko" {
+        case "en": en
+        case "ja": ja
+        case "zh": zh
+        default: ko
+        }
+    }
+}
+
+private struct SettingsOnboardingAIProviderCard: View {
+    let preset: AIProviderPreset
+    let languageCode: String
+    let isDetected: Bool
+    let isSelected: Bool
+    let isRecommended: Bool
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 9) {
+            HStack(alignment: .top, spacing: 8) {
+                SettingsProviderIcon(presetID: preset.id, size: 36)
+
+                Spacer(minLength: 4)
+
+                Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
+                    .font(.body.weight(.semibold))
+                    .foregroundStyle(isSelected ? Color.green : Color.secondary.opacity(0.34))
+            }
+
+            Text(preset.title(languageCode: languageCode))
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(.primary)
+                .lineLimit(2)
+                .fixedSize(horizontal: false, vertical: true)
+
+            HStack(spacing: 5) {
+                Text(SettingsProviderVisual.modeLabel(for: preset, languageCode: languageCode))
+                    .font(.caption2.weight(.semibold))
+                    .foregroundStyle(SettingsProviderVisual.accent(for: preset.id))
+                    .lineLimit(1)
+
+                if isSelected {
+                    Text(defaultBadge)
+                        .font(.caption2.weight(.semibold))
+                        .foregroundStyle(.green)
+                        .lineLimit(1)
+                } else if isDetected {
+                    Text(detectedBadge)
+                        .font(.caption2.weight(.semibold))
+                        .foregroundStyle(.green)
+                        .lineLimit(1)
+                } else if isRecommended {
+                    Text(SettingsCopy.text(.recommended, languageCode: languageCode))
+                        .font(.caption2.weight(.semibold))
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                }
+            }
+        }
+        .padding(10)
+        .frame(maxWidth: .infinity, minHeight: 116, alignment: .topLeading)
+        .background {
+            RoundedRectangle(cornerRadius: 10, style: .continuous)
+                .fill(isSelected ? SettingsProviderVisual.accent(for: preset.id).opacity(0.11) : Color(nsColor: .controlBackgroundColor))
+        }
+        .overlay {
+            RoundedRectangle(cornerRadius: 10, style: .continuous)
+                .strokeBorder(borderColor, lineWidth: isSelected ? 1.5 : 1)
+        }
+    }
+
+    private var borderColor: Color {
+        if isSelected {
+            return SettingsProviderVisual.accent(for: preset.id).opacity(0.76)
+        }
+        if isDetected {
+            return Color.green.opacity(0.48)
+        }
+        return Color(nsColor: .separatorColor).opacity(0.38)
+    }
+
+    private var defaultBadge: String {
+        localized(ko: "기본값", en: "Default", ja: "標準", zh: "默认")
+    }
+
+    private var detectedBadge: String {
+        localized(ko: "찾음", en: "Found", ja: "検出", zh: "已找到")
+    }
+
+    private func localized(ko: String, en: String, ja: String, zh: String) -> String {
+        switch AppLanguage.normalized(languageCode) ?? "ko" {
+        case "en": en
+        case "ja": ja
+        case "zh": zh
+        default: ko
         }
     }
 }
@@ -2635,10 +3335,12 @@ private struct SettingsGlassPane<Content: View>: View {
                     Text(title)
                         .font(.title3.weight(.semibold))
                         .foregroundStyle(.primary)
-                    Text(subtitle)
-                        .font(.callout)
-                        .foregroundStyle(.secondary)
-                        .lineLimit(2)
+                    if !subtitle.isEmpty {
+                        Text(subtitle)
+                            .font(.callout)
+                            .foregroundStyle(.secondary)
+                            .lineLimit(2)
+                    }
                 }
                 .padding(.bottom, 6)
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -2724,6 +3426,29 @@ private struct SettingsGlassToggleRow: View {
     }
 }
 
+private struct SettingsGlassCheckboxRow: View {
+    let title: String
+    let subtitle: String
+    let systemImage: String
+    @Binding var isOn: Bool
+
+    var body: some View {
+        SettingsGlassRow(systemImage: systemImage) {
+            VStack(alignment: .leading, spacing: 4) {
+                Text(title)
+                    .font(.body.weight(.medium))
+                Text(subtitle)
+                    .font(.callout)
+                    .foregroundStyle(.secondary)
+            }
+        } trailing: {
+            Toggle("", isOn: $isOn)
+                .labelsHidden()
+                .toggleStyle(.checkbox)
+        }
+    }
+}
+
 private struct SettingsGlassStatusRow: View {
     let title: String
     let subtitle: String
@@ -2759,9 +3484,11 @@ private struct SettingsGlassPermissionRow: View {
             VStack(alignment: .leading, spacing: 4) {
                 Text(title)
                     .font(.body.weight(.medium))
-                Text(subtitle)
-                    .font(.callout)
-                    .foregroundStyle(.secondary)
+                if !subtitle.isEmpty {
+                    Text(subtitle)
+                        .font(.callout)
+                        .foregroundStyle(.secondary)
+                }
             }
         } trailing: {
             Button(action: action) {
@@ -2799,6 +3526,123 @@ private struct SettingsGlassCommandRow: View {
             .buttonStyle(.bordered)
             .tint(didCopy ? .green : .accentColor)
             .help(SettingsCopy.text(didCopy ? .copied : .copyCommand, languageCode: languageCode))
+        }
+    }
+}
+
+private struct SettingsGlassCompactTextFieldRow: View {
+    let title: String
+    let systemImage: String
+    let prompt: String
+    let width: CGFloat
+    let monospaced: Bool
+    @Binding private var text: String
+    @State private var draftText: String
+
+    init(
+        title: String,
+        systemImage: String,
+        text: Binding<String>,
+        prompt: String = "",
+        width: CGFloat,
+        monospaced: Bool = false
+    ) {
+        self.title = title
+        self.systemImage = systemImage
+        self.prompt = prompt
+        self.width = width
+        self.monospaced = monospaced
+        self._text = text
+        self._draftText = State(initialValue: text.wrappedValue)
+    }
+
+    var body: some View {
+        SettingsGlassRow(systemImage: systemImage) {
+            Text(title)
+                .font(.body.weight(.medium))
+        } trailing: {
+            TextField(prompt, text: $draftText)
+                .textFieldStyle(.roundedBorder)
+                .font(monospaced ? .body.monospacedDigit() : .body)
+                .frame(width: width)
+                .onChange(of: draftText) { _, newValue in
+                    text = newValue
+                }
+                .onChange(of: text) { _, newValue in
+                    if draftText != newValue {
+                        draftText = newValue
+                    }
+                }
+        }
+    }
+}
+
+private struct SettingsGlassDatePickerRow: View {
+    let title: String
+    let systemImage: String
+    @Binding var selection: Date
+    let components: DatePickerComponents
+    let width: CGFloat
+
+    var body: some View {
+        SettingsGlassRow(systemImage: systemImage) {
+            Text(title)
+                .font(.body.weight(.medium))
+        } trailing: {
+            DatePicker("", selection: $selection, displayedComponents: components)
+                .labelsHidden()
+                .datePickerStyle(.compact)
+                .frame(width: width, alignment: .leading)
+        }
+    }
+}
+
+private struct SettingsRadioOption: Identifiable {
+    let id: String
+    let title: String
+}
+
+private struct SettingsGlassRadioRow: View {
+    let title: String
+    let systemImage: String
+    let options: [SettingsRadioOption]
+    @Binding var selection: String
+    let width: CGFloat
+
+    var body: some View {
+        SettingsGlassRow(systemImage: systemImage) {
+            Text(title)
+                .font(.body.weight(.medium))
+        } trailing: {
+            HStack(spacing: 14) {
+                ForEach(options) { option in
+                    Button {
+                        selection = option.id
+                    } label: {
+                        HStack(spacing: 6) {
+                            ZStack {
+                                Circle()
+                                    .strokeBorder(
+                                        selection == option.id ? Color.accentColor : Color.secondary.opacity(0.7),
+                                        lineWidth: 1.3
+                                    )
+                                if selection == option.id {
+                                    Circle()
+                                        .fill(Color.accentColor)
+                                        .frame(width: 6, height: 6)
+                                }
+                            }
+                            .frame(width: 14, height: 14)
+
+                            Text(option.title)
+                                .foregroundStyle(.primary)
+                        }
+                    }
+                    .buttonStyle(.plain)
+                    .fixedSize()
+                }
+            }
+            .frame(width: width, alignment: .leading)
         }
     }
 }
@@ -2841,6 +3685,60 @@ private struct SettingsGlassTextFieldRow: View {
             }
         } trailing: {
             EmptyView()
+        }
+    }
+}
+
+private struct SettingsOnboardingNameField: View {
+    let title: String
+    let systemImage: String
+    let prompt: String
+    @Binding private var text: String
+    @State private var draftText: String
+
+    init(
+        title: String,
+        systemImage: String,
+        text: Binding<String>,
+        prompt: String = ""
+    ) {
+        self.title = title
+        self.systemImage = systemImage
+        self.prompt = prompt
+        self._text = text
+        self._draftText = State(initialValue: text.wrappedValue)
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack(spacing: 10) {
+                Image(systemName: systemImage)
+                    .font(.system(size: 18, weight: .semibold))
+                    .foregroundStyle(Color.accentColor)
+                    .frame(width: 28, height: 28)
+
+                Text(title)
+                    .font(.headline.weight(.semibold))
+            }
+
+            TextField(prompt, text: $draftText)
+                .textFieldStyle(.roundedBorder)
+                .font(.title3.weight(.medium))
+                .onChange(of: draftText) { _, newValue in
+                    text = newValue
+                }
+                .onChange(of: text) { _, newValue in
+                    if draftText != newValue {
+                        draftText = newValue
+                    }
+                }
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 10)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .overlay(alignment: .bottom) {
+            Divider()
+                .padding(.leading, 44)
         }
     }
 }
@@ -2968,6 +3866,8 @@ private struct SettingsGlassSkinTile: View {
 private struct SettingsSkinWalkPreview: View {
     let frameURLs: [URL]
     let placeholderSystemImage: String
+    var catSize: CGFloat = 58
+    var previewHeight: CGFloat = 74
     @State private var images: [NSImage] = []
 
     private let frameDuration: TimeInterval = 0.12
@@ -2981,7 +3881,7 @@ private struct SettingsSkinWalkPreview: View {
                 let cyclePosition = elapsed.truncatingRemainder(dividingBy: travelDuration) / travelDuration
                 let movingRight = cyclePosition < 0.5
                 let progress = movingRight ? cyclePosition * 2 : (1 - cyclePosition) * 2
-                let travel = max(proxy.size.width - 58, 0)
+                let travel = max(proxy.size.width - catSize, 0)
                 let xOffset = -travel / 2 + CGFloat(progress) * travel
                 let bobOffset: CGFloat = frameIndex.isMultiple(of: 2) ? 0 : -2
 
@@ -2997,7 +3897,7 @@ private struct SettingsSkinWalkPreview: View {
 
                     if images.isEmpty {
                         Image(systemName: placeholderSystemImage)
-                            .font(.system(size: 26, weight: .semibold))
+                            .font(.system(size: catSize * 0.45, weight: .semibold))
                             .foregroundStyle(.secondary)
                             .frame(maxWidth: .infinity, maxHeight: .infinity)
                     } else {
@@ -3006,13 +3906,13 @@ private struct SettingsSkinWalkPreview: View {
                             .resizable()
                             .scaledToFit()
                             .scaleEffect(x: movingRight ? 1 : -1, y: 1)
-                            .frame(width: 58, height: 58)
+                            .frame(width: catSize, height: catSize)
                             .offset(x: xOffset, y: bobOffset - 6)
                     }
                 }
             }
         }
-        .frame(height: 74)
+        .frame(height: previewHeight)
         .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
         .overlay {
             RoundedRectangle(cornerRadius: 8, style: .continuous)

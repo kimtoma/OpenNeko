@@ -1,14 +1,14 @@
 public enum SettingsPane: String, CaseIterable, Equatable, Identifiable {
     case start
-    case ai
     case skins
-    case skills
     case profile
     case general
+    case ai
+    case skills
+    case about
     case neighbors
     case permissions
     case bridge
-    case about
 
     public var id: String { rawValue }
 
@@ -31,7 +31,7 @@ public enum SettingsPane: String, CaseIterable, Equatable, Identifiable {
 
     private var koreanTitle: String {
         switch self {
-        case .start: "시작"
+        case .start: "네꼬 상태"
         case .general: "일반"
         case .neighbors: "이웃 고양이"
         case .profile: "내 프로필"
@@ -40,13 +40,13 @@ public enum SettingsPane: String, CaseIterable, Equatable, Identifiable {
         case .permissions: "권한"
         case .bridge: "브리지"
         case .skins: "외형"
-        case .about: "정보"
+        case .about: "앱 정보"
         }
     }
 
     private var englishTitle: String {
         switch self {
-        case .start: "Start"
+        case .start: "Neko Status"
         case .general: "General"
         case .neighbors: "Neighbor Cats"
         case .profile: "My Profile"
@@ -55,13 +55,13 @@ public enum SettingsPane: String, CaseIterable, Equatable, Identifiable {
         case .permissions: "Permissions"
         case .bridge: "Bridge"
         case .skins: "Appearance"
-        case .about: "About"
+        case .about: "App Info"
         }
     }
 
     private var japaneseTitle: String {
         switch self {
-        case .start: "開始"
+        case .start: "ネコの状態"
         case .general: "一般"
         case .neighbors: "近くのねこ"
         case .profile: "自分のプロフィール"
@@ -70,13 +70,13 @@ public enum SettingsPane: String, CaseIterable, Equatable, Identifiable {
         case .permissions: "権限"
         case .bridge: "ブリッジ"
         case .skins: "見た目"
-        case .about: "情報"
+        case .about: "アプリ情報"
         }
     }
 
     private var chineseTitle: String {
         switch self {
-        case .start: "开始"
+        case .start: "猫咪状态"
         case .general: "通用"
         case .neighbors: "邻居猫"
         case .profile: "我的资料"
@@ -85,7 +85,7 @@ public enum SettingsPane: String, CaseIterable, Equatable, Identifiable {
         case .permissions: "权限"
         case .bridge: "桥接"
         case .skins: "外观"
-        case .about: "关于"
+        case .about: "应用信息"
         }
     }
 

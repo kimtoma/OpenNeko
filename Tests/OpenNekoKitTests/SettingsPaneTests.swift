@@ -3,11 +3,11 @@ import XCTest
 
 final class SettingsPaneTests: XCTestCase {
     func testSettingsPanesAppearInUserFacingOrder() {
-        XCTAssertEqual(SettingsPane.allCases, [.start, .ai, .skins, .skills, .profile, .general, .neighbors, .permissions, .bridge, .about])
+        XCTAssertEqual(SettingsPane.allCases, [.start, .skins, .profile, .general, .ai, .skills, .about, .neighbors, .permissions, .bridge])
     }
 
     func testSettingsPaneTitles() {
-        XCTAssertEqual(SettingsPane.start.title, "시작")
+        XCTAssertEqual(SettingsPane.start.title, "네꼬 상태")
         XCTAssertEqual(SettingsPane.general.title, "일반")
         XCTAssertEqual(SettingsPane.neighbors.title, "이웃 고양이")
         XCTAssertEqual(SettingsPane.profile.title, "내 프로필")
@@ -16,11 +16,11 @@ final class SettingsPaneTests: XCTestCase {
         XCTAssertEqual(SettingsPane.permissions.title, "권한")
         XCTAssertEqual(SettingsPane.bridge.title, "브리지")
         XCTAssertEqual(SettingsPane.skins.title, "외형")
-        XCTAssertEqual(SettingsPane.about.title, "정보")
+        XCTAssertEqual(SettingsPane.about.title, "앱 정보")
     }
 
     func testLocalizedSettingsPaneTitles() {
-        XCTAssertEqual(SettingsPane.start.title(languageCode: "en"), "Start")
+        XCTAssertEqual(SettingsPane.start.title(languageCode: "en"), "Neko Status")
         XCTAssertEqual(SettingsPane.skins.title(languageCode: "en"), "Appearance")
         XCTAssertEqual(SettingsPane.neighbors.title(languageCode: "en"), "Neighbor Cats")
         XCTAssertEqual(SettingsPane.permissions.title(languageCode: "ja"), "権限")
@@ -40,6 +40,7 @@ final class SettingsPaneTests: XCTestCase {
         XCTAssertEqual(SettingsCopy.text(.webSearchOff, languageCode: "zh"), "不使用搜索辅助。")
         XCTAssertEqual(SettingsCopy.text(.activateSkill, languageCode: "en"), "Activate skill")
         XCTAssertEqual(SettingsCopy.text(.defaultSkin, languageCode: "ko"), "white")
+        XCTAssertEqual(SettingsCopy.text(.unknown, languageCode: "ko"), "모름")
         XCTAssertEqual(
             SettingsCopy.enabledSkillsCount(enabled: 2, total: 7, languageCode: "en"),
             "2/7 enabled"
@@ -58,8 +59,8 @@ final class SettingsPaneTests: XCTestCase {
             .onboardingFeatureChatBody,
             .onboardingFeatureSkillsBody,
             .onboardingNekoGuideBody,
-            .onboardingNext,
-            .onboardingFinish
+            .onboardingAITitle,
+            .onboardingAIBody
         ]
 
         for key in onboardingKeys {
@@ -68,5 +69,16 @@ final class SettingsPaneTests: XCTestCase {
                 "\(key.rawValue) should use cat voice"
             )
         }
+    }
+
+    func testOnboardingAIConnectionCopyStaysSimple() {
+        let title = SettingsCopy.text(.onboardingAITitle, languageCode: "ko")
+        let body = SettingsCopy.text(.onboardingAIBody, languageCode: "ko")
+        let combined = "\(title)\n\(body)"
+
+        XCTAssertTrue(combined.contains("자동"))
+        XCTAssertFalse(combined.contains("Base URL"))
+        XCTAssertFalse(combined.contains("API key"))
+        XCTAssertFalse(combined.contains("모델"))
     }
 }

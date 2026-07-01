@@ -178,6 +178,20 @@ final class ChatPromptBuilderTests: XCTestCase {
         XCTAssertTrue(chinese.contains("用户姓名: Ari"))
     }
 
+    func testProfileContextIncludesUnknownCalendar() {
+        let context = ChatPromptBuilder.profileContext(
+            userProfile: UserProfile(
+                birthDate: "1995-06-07",
+                birthTime: "09:10",
+                calendar: "unknown"
+            ),
+            now: Date(timeIntervalSince1970: 1_772_496_000),
+            languageCode: "en"
+        )
+
+        XCTAssertTrue(context.contains("User birth date: 1995-06-07 (solar/lunar unknown), birth time: 09:10"))
+    }
+
     func testCodexExecArgumentsMatchSupportedCLIOptions() {
         let args = ChatPromptBuilder.codexExecArguments(
             model: "gpt-test",

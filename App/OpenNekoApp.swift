@@ -61,6 +61,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var skinManager: SkinManager?
     private var skillCatalog = NekoSkillCatalog(skills: [])
     private let settingsStore = AppSettingsStore()
+    private let chatTranscriptStore = ChatTranscriptStore()
     private let apiKeyStore = APIKeyStore()
     private let updateController = GitUpdateController()
     private let launchOptions = AppLaunchOptions(environment: ProcessInfo.processInfo.environment)
@@ -135,6 +136,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let manager = SkinManager(bundledRoot: spritesURL, externalRoot: externalSkinsRootURL())
         skinManager = manager
         appSettings = settingsStore.load()
+        chatTranscript = chatTranscriptStore.load()
         skillCatalog = loadSkillCatalog()
         let shouldShowFirstLaunchSettings = !appSettings.hasCompletedFirstLaunch
         isOnboardingVisible = shouldShowFirstLaunchSettings
@@ -168,7 +170,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                     languageCode: nil,
                     resolvedLanguageCode: AppLanguage.resolved(nil),
                     soundEffectsEnabled: true,
-                    webSearchEnabled: false,
+                    webSearchEnabled: true,
                     catName: "",
                     userProfile: .empty,
                     neighborSettings: .defaults,
@@ -178,7 +180,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                     skinIDs: [SkinManager.defaultID],
                     skinPreviewFrameURLs: [:],
                     selectedSkinID: SkinManager.defaultID,
-                    version: OpenNekoKit.version
+                    version: OpenNekoKit.version,
+                    updateStatus: .idle
                 )
             },
             openAccessibility: { [weak self] in
@@ -270,6 +273,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             },
             selectSkin: { [weak self, weak cat] id in
                 self?.selectSkin(id, cat: cat)
+            },
+            checkForUpdates: { [weak self] in
+                self?.checkForUpdates(silent: false)
             }
         )
 
@@ -876,7 +882,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             skinIDs: skinManager?.availableSkinIDs() ?? [SkinManager.defaultID],
             skinPreviewFrameURLs: skinPreviewFrameURLs(),
             selectedSkinID: selectedSkinID,
-            version: OpenNekoKit.version
+            version: OpenNekoKit.version,
+            updateStatus: updateStatus
         )
     }
 
@@ -1129,6 +1136,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         guard !updateStatus.isBusy else { return }
         updateStatus = .checking
         menuBar?.refresh()
+        settingsWindow?.refresh()
         if !silent {
             catWindow?.showBubble(updateStatus.bubbleText(languageCode: currentLanguageCode()))
         }
@@ -1160,6 +1168,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             updateStatus = .upToDate
         }
         menuBar?.refresh()
+        settingsWindow?.refresh()
         if !silent || updateStatus.isUpdateAvailable {
             catWindow?.showBubble(updateStatus.bubbleText(languageCode: currentLanguageCode()))
         }
@@ -1169,6 +1178,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private func failUpdateCheck(silent: Bool) {
         updateStatus = .checkFailed
         menuBar?.refresh()
+        settingsWindow?.refresh()
         if !silent {
             catWindow?.showBubble(updateStatus.bubbleText(languageCode: currentLanguageCode()))
         }
@@ -1182,6 +1192,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         guard !updateStatus.isBusy else { return }
         updateStatus = .updating
         menuBar?.refresh()
+        settingsWindow?.refresh()
         catWindow?.applyBridgeState(.coding)
         catWindow?.showBubble(updateStatus.bubbleText(languageCode: currentLanguageCode()))
 
@@ -1211,6 +1222,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private func failUpdateApply() {
         updateStatus = .failed
         menuBar?.refresh()
+        settingsWindow?.refresh()
         catWindow?.applyBridgeState(.error)
         catWindow?.showBubble(updateStatus.bubbleText(languageCode: currentLanguageCode()))
     }
@@ -1220,6 +1232,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         guard FileManager.default.isExecutableFile(atPath: script.path) else {
             updateStatus = .failed
             menuBar?.refresh()
+            settingsWindow?.refresh()
             catWindow?.applyBridgeState(.error)
             catWindow?.showBubble(NekoBubbleCopy.missingRunScript(languageCode: currentLanguageCode()))
             return
@@ -1239,6 +1252,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         } catch {
             updateStatus = .failed
             menuBar?.refresh()
+            settingsWindow?.refresh()
             catWindow?.applyBridgeState(.error)
             catWindow?.showBubble(NekoBubbleCopy.restartFailed(languageCode: currentLanguageCode()))
         }
@@ -1939,19 +1953,30 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         if chatTranscript.count > 160 {
             chatTranscript = Array(chatTranscript.suffix(160))
         }
+        saveChatTranscript()
         refreshChatHistoryWindow()
     }
 
     private func removeFailedTranscriptTurn(_ message: String) {
         if let last = chatTranscript.last, last.role == .user, last.text == message {
             chatTranscript.removeLast()
+            saveChatTranscript()
             refreshChatHistoryWindow()
         }
     }
 
     private func resetChatTranscript() {
         chatTranscript = []
+        saveChatTranscript()
         refreshChatHistoryWindow()
+    }
+
+    private func saveChatTranscript() {
+        do {
+            try chatTranscriptStore.save(chatTranscript)
+        } catch {
+            NSLog("[openNeko] failed to save chat history markdown: \(error)")
+        }
     }
 
     private func showCopyableReplyBubble(_ reply: String) {

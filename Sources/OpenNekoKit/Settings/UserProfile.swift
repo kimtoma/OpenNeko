@@ -17,7 +17,14 @@ public struct UserProfile: Codable, Equatable, Sendable {
         self.name = Self.sanitized(name, limit: 64)
         self.birthDate = Self.sanitized(birthDate, limit: 32)
         self.birthTime = Self.sanitized(birthTime, limit: 16)
-        self.calendar = calendar == "lunar" ? "lunar" : "solar"
+        switch calendar {
+        case "lunar":
+            self.calendar = "lunar"
+        case "unknown":
+            self.calendar = "unknown"
+        default:
+            self.calendar = "solar"
+        }
     }
 
     public var isEmpty: Bool {

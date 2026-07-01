@@ -24,7 +24,6 @@ public enum SettingsCopyKey: String, CaseIterable, Sendable {
     case advancedSkillsDetail
     case advancedNeighborInfo
     case advancedNeighborInfoDetail
-    case aiTest
     case soundEffects
     case soundEffectsOn
     case soundEffectsOff
@@ -52,6 +51,7 @@ public enum SettingsCopyKey: String, CaseIterable, Sendable {
     case calendar
     case solar
     case lunar
+    case unknown
     case preset
     case detectedProviders
     case detectedProvidersEmpty
@@ -75,6 +75,7 @@ public enum SettingsCopyKey: String, CaseIterable, Sendable {
     case makeSkinRequest
     case importSkinPackage
     case openFolder
+    case openSkillsFolder
     case aiSettings
     case noSkills
     case noSkillsDetail
@@ -159,11 +160,11 @@ public enum SettingsCopy {
         case .permissionsSubtitle:
             return localized(language, ko: "키 내용은 읽지 않고 입력 이벤트만 사용합니다", en: "Uses input events without reading key contents", ja: "キー内容は読まず入力イベントだけ使います", zh: "只使用输入事件，不读取按键内容")
         case .skinsSubtitle:
-            return localized(language, ko: "스킨과 소리를 고른다냥", en: "Choose the cat's look and sounds, nya", ja: "見た目と音を選ぶにゃ", zh: "选择猫咪外观和声音喵")
+            return localized(language, ko: "털 색깔과 이름을 고른다냥", en: "Choose the cat's coat and name, nya", ja: "毛色と名前を選ぶにゃ", zh: "选择猫咪毛色和名字喵")
         case .bridgeSubtitle:
             return localized(language, ko: "로컬 도구가 고양이 상태를 바꾸는 HTTP 포트", en: "HTTP port for local tools to update cat state", ja: "ローカルツールが状態を変えるHTTPポート", zh: "本地工具更新猫咪状态的 HTTP 端口")
         case .aboutSubtitle:
-            return localized(language, ko: "Native macOS preview", en: "Native macOS preview", ja: "Native macOSプレビュー", zh: "Native macOS 预览")
+            return ""
         case .typing:
             return localized(language, ko: "타이핑", en: "Typing", ja: "入力", zh: "输入")
         case .skin:
@@ -194,8 +195,6 @@ public enum SettingsCopy {
             return localized(language, ko: "고급 이웃 정보", en: "Advanced Neighbor Info", ja: "近くのねこの詳細情報", zh: "高级邻居信息")
         case .advancedNeighborInfoDetail:
             return localized(language, ko: "문제 해결이 필요할 때만 피어 ID를 확인합니다.", en: "Check the peer ID only when troubleshooting.", ja: "問題解決が必要なときだけピアIDを確認します。", zh: "仅在排查问题时查看 Peer ID。")
-        case .aiTest:
-            return localized(language, ko: "AI 테스트", en: "Test AI", ja: "AIをテスト", zh: "测试 AI")
         case .soundEffects:
             return localized(language, ko: "효과음", en: "Sound Effects", ja: "効果音", zh: "音效")
         case .soundEffectsOn:
@@ -250,6 +249,8 @@ public enum SettingsCopy {
             return localized(language, ko: "양력", en: "Solar", ja: "新暦", zh: "阳历")
         case .lunar:
             return localized(language, ko: "음력", en: "Lunar", ja: "旧暦", zh: "农历")
+        case .unknown:
+            return localized(language, ko: "모름", en: "Unknown", ja: "不明", zh: "未知")
         case .preset:
             return localized(language, ko: "프리셋", en: "Preset", ja: "プリセット", zh: "预设")
         case .detectedProviders:
@@ -296,6 +297,8 @@ public enum SettingsCopy {
             return localized(language, ko: "스킨팩 가져오기", en: "Import Skin Pack", ja: "スキンパックを読み込む", zh: "导入皮肤包")
         case .openFolder:
             return localized(language, ko: "폴더 열기", en: "Open Folder", ja: "フォルダを開く", zh: "打开文件夹")
+        case .openSkillsFolder:
+            return localized(language, ko: "스킬 폴더 열기", en: "Open Skills Folder", ja: "スキルフォルダを開く", zh: "打开技能文件夹")
         case .aiSettings:
             return localized(language, ko: "AI 설정", en: "AI Settings", ja: "AI設定", zh: "AI 设置")
         case .noSkills:
@@ -333,11 +336,11 @@ public enum SettingsCopy {
         case .onboardingSubtitle:
             return localized(language, ko: "몇 번만 누르면 바로 쓸 수 있다냥", en: "A few clicks and openNeko is ready, nya", ja: "少し選ぶだけですぐ使えるにゃ", zh: "点几下就能开始用喵")
         case .onboardingWelcomeTitle:
-            return localized(language, ko: "오픈네꼬로 할 수 있는 일", en: "What openNeko can do", ja: "openNekoでできること", zh: "openNeko 能做什么")
+            return localized(language, ko: "반갑다냥! 오픈네꼬랑 할 수 있는 일은 다음과 같다냥", en: "Hello, nya! Here is what openNeko can do", ja: "よろしくにゃ！openNekoでできることはこれにゃ", zh: "你好喵！openNeko 可以做这些事喵")
         case .onboardingWelcomeBody:
             return localized(language, ko: "먼저 중요한 기능 3개만 보고, 그다음 필요한 설정을 하나씩 맞춘다냥.", en: "Start with three core features, then set up only what you need, nya.", ja: "まず大事な機能を3つ見てから、必要な設定だけ進めるにゃ。", zh: "先看 3 个核心功能，然后一步步完成必要设置喵。")
         case .onboardingSkinTitle:
-            return localized(language, ko: "마음에 드는 털색을 고르자냥", en: "Choose a coat color, nya", ja: "好きな毛色を選ぶにゃ", zh: "选个喜欢的毛色喵")
+            return localized(language, ko: "마음에 드는 네꼬 털색을 고르자냥", en: "Choose your favorite Neko coat, nya", ja: "好きなネコの毛色を選ぶにゃ", zh: "选个喜欢的猫咪毛色喵")
         case .onboardingSkinBody:
             return localized(language, ko: "움직이는 모습을 보고 제일 귀여운 아이를 누르면 된다냥.", en: "Pick the one that looks best on your desktop, nya.", ja: "動く姿を見て好きな子を選ぶにゃ。", zh: "看看会动的样子，点喜欢的那只喵。")
         case .onboardingNameTitle:
@@ -353,11 +356,11 @@ public enum SettingsCopy {
         case .onboardingLaunchBody:
             return localized(language, ko: "메뉴바에서 다시 설정할 수 있고, 켜두면 맥을 켤 때 같이 나타난다냥.", en: "Use the menu bar to revisit settings, and launch automatically at login, nya.", ja: "メニューバーから設定を開けて、ログイン時にも起動できるにゃ。", zh: "可从菜单栏重新设置，也能登录时自动启动喵。")
         case .onboardingAITitle:
-            return localized(language, ko: "대화할 머리를 연결할까냥", en: "Connect chat, nya?", ja: "会話の接続をするにゃ?", zh: "连接聊天能力喵?")
+            return localized(language, ko: "AI 연결은 자동으로 찾는다냥", en: "AI connects automatically, nya", ja: "AI接続は自動で探すにゃ", zh: "AI 会自动查找连接喵")
         case .onboardingAIBody:
-            return localized(language, ko: "이미 로그인된 Codex나 준비된 연결이 있으면 내가 찾아준다냥.", en: "I can use a detected login or ready provider, nya.", ja: "ログイン済みや準備済みの接続を探すにゃ。", zh: "会寻找已登录或可用的连接喵。")
+            return localized(language, ko: "로그인된 Codex나 준비된 로컬 연결이 있으면 내가 알아서 쓴다냥. 안 보여도 나중에 AI 설정에서 바꾸면 된다냥.", en: "If a login or local provider is ready, I will use it automatically, nya. You can change it later in AI Settings.", ja: "ログイン済みやローカル接続があれば自動で使うにゃ。後からAI設定で変えられるにゃ。", zh: "如果已有登录或本地连接，我会自动使用喵。之后也可以在 AI 设置里修改喵。")
         case .onboardingDoneTitle:
-            return localized(language, ko: "준비 끝났다냥", en: "Ready, nya", ja: "準備完了にゃ", zh: "准备好了喵")
+            return localized(language, ko: "이제 놀 준비 끝났다냥", en: "Ready to play, nya", ja: "遊ぶ準備ができたにゃ", zh: "现在准备好一起玩了喵")
         case .onboardingDoneBody:
             return localized(language, ko: "이제 고양이를 눌러 대화하고, 메뉴바에서 언제든 다시 고칠 수 있다냥.", en: "Click the cat to chat and change settings anytime, nya.", ja: "ねこをクリックして話して、いつでも設定できるにゃ。", zh: "点击猫咪聊天，也可随时改设置喵。")
         case .onboardingFeatureDesktopTitle:
@@ -377,15 +380,15 @@ public enum SettingsCopy {
         case .onboardingNekoGuideBody:
             return localized(language, ko: "처음엔 메뉴바의 openNeko 아이콘만 기억하면 된다냥. 설정은 언제든 다시 열 수 있다냥.", en: "Remember the openNeko menu bar icon. You can reopen settings anytime, nya.", ja: "まずはメニューバーのopenNekoアイコンだけ覚えればいいにゃ。設定はいつでも開けるにゃ。", zh: "先记住菜单栏里的 openNeko 图标，随时都能重新打开设置喵。")
         case .onboardingStart:
-            return localized(language, ko: "따라가기 시작냥", en: "Start, nya", ja: "始めるにゃ", zh: "开始喵")
+            return localized(language, ko: "시작", en: "Start", ja: "開始", zh: "开始")
         case .onboardingNext:
-            return localized(language, ko: "다음으로 가자냥", en: "Next, nya", ja: "次へにゃ", zh: "下一步喵")
+            return localized(language, ko: "다음", en: "Next", ja: "次へ", zh: "下一步")
         case .onboardingBack:
-            return localized(language, ko: "뒤로냥", en: "Back", ja: "戻るにゃ", zh: "返回喵")
+            return localized(language, ko: "이전", en: "Back", ja: "戻る", zh: "返回")
         case .onboardingSkip:
-            return localized(language, ko: "나중에 할게냥", en: "Do later, nya", ja: "後でやるにゃ", zh: "以后再做喵")
+            return localized(language, ko: "나중에", en: "Later", ja: "後で", zh: "以后")
         case .onboardingFinish:
-            return localized(language, ko: "끝났다냥", en: "Finish, nya", ja: "完了にゃ", zh: "完成喵")
+            return localized(language, ko: "완료", en: "Finish", ja: "完了", zh: "完成")
         case .onboardingRestart:
             return localized(language, ko: "첫 시작 도우미 다시 열기", en: "Open First Setup Again", ja: "初期設定をもう一度開く", zh: "重新打开初始设置")
         case .onboardingClick:
