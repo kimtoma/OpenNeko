@@ -2,7 +2,7 @@ import AppKit
 
 extension NSWindow {
     func applyOpenNekoOverlayWindowPolicy() {
-        sharingType = .none
+        sharingType = .readOnly
         isExcludedFromWindowsMenu = true
     }
 }
