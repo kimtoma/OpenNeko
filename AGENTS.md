@@ -45,7 +45,9 @@ tested there.
 `OpenNekoKit`. The generated `OpenNeko.xcodeproj` is not committed. Bump
 `MARKETING_VERSION` / `CURRENT_PROJECT_VERSION` in `project.yml` for releases.
 
-See `docs/ARCHITECTURE.md` for the module-by-module map and data flow.
+See `docs/ARCHITECTURE.md` for the module-by-module map and data flow, and
+`docs/KIT-EXTRACTION-BACKLOG.md` for the ranked list of App/ logic still
+waiting to be extracted into OpenNekoKit.
 
 ## Cat states
 

@@ -73,7 +73,7 @@ final class CatScene: SKScene {
     }
 
     func setTypingAnimationSpeed(_ speed: Double) {
-        typingAnimationSpeed = CGFloat(min(1.8, max(0.8, speed)))
+        typingAnimationSpeed = CGFloat(CatAnimationTiming.clampedTypingSpeed(speed))
         if currentState == .typing {
             sprite.speed = typingAnimationSpeed
         }
@@ -210,18 +210,7 @@ final class CatScene: SKScene {
     }
 
     private func timePerFrame(for state: CatState) -> TimeInterval {
-        switch state {
-        case .typing, .click, .success, .jump:
-            0.125
-        case .walk:
-            0.12
-        case .nap:
-            0.4
-        case .thinking:
-            0.2
-        default:
-            0.18
-        }
+        CatAnimationTiming.timePerFrame(for: state)
     }
 
     private func walkBobAction() -> SKAction {

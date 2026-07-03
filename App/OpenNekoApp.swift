@@ -981,16 +981,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     private func cliExecutableAvailable(for type: AIProviderType) -> Bool? {
-        switch type {
-        case .codexCLI:
-            return commandExists("codex")
-        case .claudeCLI:
-            return commandExists("claude")
-        case .geminiCLI:
-            return commandExists("gemini")
-        case .openAICompatible, .gemini, .anthropic:
-            return nil
-        }
+        guard let executable = type.cliExecutableName else { return nil }
+        return commandExists(executable)
     }
 
     private func commandExists(_ executable: String) -> Bool {
@@ -1759,7 +1751,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     private func isBGMStopCommand(_ text: String) -> Bool {
-        ["stop", "off", "pause", "정지", "중지", "끄기"].contains(text.lowercased())
+        DailyBGMSelector.isStopCommand(text)
     }
 
     private func resetAIConnectionTest(refresh: Bool) {
@@ -1922,7 +1914,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     private var bridgeOneShotStates: Set<CatState> {
-        [.click, .yawn, .success, .error, .jump]
+        NekoStatePriority.oneShotStates
     }
 
     private func cancelActiveChatRequest() {

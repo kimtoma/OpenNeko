@@ -88,7 +88,7 @@ final class CatWindow: NSWindow {
     private let skView = CatSKView()
     private let scene: CatScene
     private let catSize = CatLayoutMetrics.primaryCatSize
-    private let oneShotStates: Set<CatState> = [.click, .yawn, .success, .error, .jump]
+    private let oneShotStates = NekoStatePriority.oneShotStates
     private var bubbleWindow: CatBubbleWindow?
     private var chatWindow: CatChatWindow?
     private let soundPlayer = CatSoundPlayer()

@@ -24,4 +24,14 @@ final class NekoStatePriorityTests: XCTestCase {
         XCTAssertFalse(NekoStatePriority.acceptsAgentCodingState(isChatAnswering: false, currentState: .thinking))
         XCTAssertFalse(NekoStatePriority.acceptsAgentCodingState(isChatAnswering: false, currentState: .typing))
     }
+
+    func testOneShotStatesPlayOnceWithoutIdleRevertTimer() {
+        XCTAssertEqual(NekoStatePriority.oneShotStates, [.click, .yawn, .success, .error, .jump])
+    }
+
+    func testStickyStatesAreNotOneShot() {
+        for state in [CatState.coding, .typing, .thinking, .nap, .lunch, .walk, .idle] {
+            XCTAssertFalse(NekoStatePriority.oneShotStates.contains(state))
+        }
+    }
 }

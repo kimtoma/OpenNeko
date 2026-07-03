@@ -8,6 +8,18 @@ final class DailyBGMSelectorTests: XCTestCase {
         return calendar
     }
 
+    func testStopCommandsAcrossLanguagesAndCase() {
+        for text in ["stop", "OFF", "Pause", "정지", "중지", "끄기"] {
+            XCTAssertTrue(DailyBGMSelector.isStopCommand(text), text)
+        }
+    }
+
+    func testNonStopPreferencesAreNotStopCommands() {
+        for text in ["lofi", "재즈", "", "stop the music"] {
+            XCTAssertFalse(DailyBGMSelector.isStopCommand(text), text)
+        }
+    }
+
     func testDateKeyFormatsLocalDate() {
         let date = calendar.date(from: DateComponents(year: 2026, month: 6, day: 24, hour: 9, minute: 30))!
 
