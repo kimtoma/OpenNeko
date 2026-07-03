@@ -1,0 +1,24 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(swift test:*)",
+      "Bash(swift build:*)",
+      "Bash(swift package:*)",
+      "Bash(xcodegen:*)",
+      "Bash(xcodebuild:*)",
+      "Bash(./script/build_and_run.sh:*)",
+      "Bash(scripts/release-preflight.sh:*)",
+      "Bash(scripts/verify-macos-package.sh:*)",
+      "Bash(git status:*)",
+      "Bash(git diff:*)",
+      "Bash(git log:*)",
+      "Bash(git show:*)",
+      "Bash(git branch:*)",
+      "Bash(git fetch:*)",
+      "Bash(rg:*)",
+      "Bash(ls:*)",
+      "Bash(curl -X POST http://127.0.0.1:48800/*)",
+      "Bash(curl http://127.0.0.1:48800/*)"
+    ]
+  }
+}
