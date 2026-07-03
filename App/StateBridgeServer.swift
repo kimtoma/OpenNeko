@@ -79,13 +79,7 @@ final class StateBridgeServer {
     }
 
     static func defaultPort(environment: [String: String] = ProcessInfo.processInfo.environment) -> UInt16 {
-        guard
-            let raw = environment["OPENNEKO_PORT"],
-            let port = UInt16(raw)
-        else {
-            return 48800
-        }
-        return port
+        StateBridgePort.resolve(environment: environment)
     }
 
     private func handle(_ connection: NWConnection) {
@@ -120,8 +114,8 @@ final class StateBridgeServer {
         }
     }
 
-    private func makeResponse(for data: Data) -> HTTPResponse? {
-        guard let request = HTTPRequest(data: data) else { return nil }
+    private func makeResponse(for data: Data) -> StateBridgeHTTPResponse? {
+        guard let request = StateBridgeHTTPRequest(data: data) else { return nil }
         switch (request.method, request.path) {
         case ("POST", "/state"):
             do {
@@ -205,74 +199,9 @@ final class StateBridgeServer {
         }
     }
 
-    private func send(_ response: HTTPResponse, on connection: NWConnection) {
+    private func send(_ response: StateBridgeHTTPResponse, on connection: NWConnection) {
         connection.send(content: response.data, completion: .contentProcessed { _ in
             connection.cancel()
         })
-    }
-}
-
-private struct HTTPRequest {
-    let method: String
-    let path: String
-    let body: Data
-
-    init?(data: Data) {
-        let separator = Data("\r\n\r\n".utf8)
-        guard let headerRange = data.range(of: separator) else { return nil }
-        guard let header = String(data: data[..<headerRange.lowerBound], encoding: .utf8) else { return nil }
-        let lines = header.split(separator: "\r\n", omittingEmptySubsequences: false)
-        guard let requestLine = lines.first else { return nil }
-        let parts = requestLine.split(separator: " ")
-        guard parts.count >= 2 else { return nil }
-
-        var headers: [String: String] = [:]
-        for line in lines.dropFirst() {
-            guard let colon = line.firstIndex(of: ":") else { continue }
-            let key = line[..<colon].lowercased()
-            let value = line[line.index(after: colon)...].trimmingCharacters(in: .whitespaces)
-            headers[key] = value
-        }
-
-        let contentLength = Int(headers["content-length"] ?? "0") ?? 0
-        guard contentLength <= StateBridgeRequest.maxBodyBytes else { return nil }
-        let bodyStart = headerRange.upperBound
-        guard data.count - bodyStart >= contentLength else { return nil }
-
-        method = String(parts[0])
-        path = String(parts[1])
-        body = Data(data[bodyStart..<bodyStart + contentLength])
-    }
-}
-
-private struct HTTPResponse {
-    let status: String
-    let contentType: String
-    let body: Data
-
-    static func ok(_ body: String) -> HTTPResponse {
-        HTTPResponse(status: "200 OK", contentType: "text/plain", body: Data(body.utf8))
-    }
-
-    static func json(_ body: String) -> HTTPResponse {
-        HTTPResponse(status: "200 OK", contentType: "application/json", body: Data(body.utf8))
-    }
-
-    static func png(_ body: Data) -> HTTPResponse {
-        HTTPResponse(status: "200 OK", contentType: "image/png", body: body)
-    }
-
-    static let badRequest = HTTPResponse(status: "400 Bad Request", contentType: "text/plain", body: Data("bad request".utf8))
-    static let notFound = HTTPResponse(status: "404 Not Found", contentType: "text/plain", body: Data())
-    static let serviceUnavailable = HTTPResponse(status: "503 Service Unavailable", contentType: "text/plain", body: Data())
-
-    var data: Data {
-        var header = ""
-        header += "HTTP/1.1 \(status)\r\n"
-        header += "Content-Type: \(contentType)\r\n"
-        header += "Content-Length: \(body.count)\r\n"
-        header += "Connection: close\r\n"
-        header += "\r\n"
-        return Data(header.utf8) + body
     }
 }
