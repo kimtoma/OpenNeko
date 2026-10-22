@@ -85,6 +85,7 @@ public enum SettingsCopyKey: String, CaseIterable, Sendable {
     case exampleCommand
     case version
     case defaultSkin
+    case creamSkin
     case noProfile
     case setupTypingPermission
     case setupAIConnection
@@ -315,6 +316,8 @@ public enum SettingsCopy {
             return localized(language, ko: "예시 명령", en: "Example Command", ja: "コマンド例", zh: "示例命令")
         case .version:
             return localized(language, ko: "버전", en: "Version", ja: "バージョン", zh: "版本")
+        case .creamSkin:
+            return localized(language, ko: "크림", en: "Cream", ja: "クリーム", zh: "奶油")
         case .defaultSkin:
             return localized(language, ko: "white", en: "white", ja: "white", zh: "white")
         case .noProfile:

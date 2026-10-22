@@ -47,6 +47,59 @@ final class SkinManagerTests: XCTestCase {
         XCTAssertEqual(skin.frameURLs(for: "idle").first?.deletingLastPathComponent().lastPathComponent, "black")
     }
 
+    func testEightFrameDefaultAndFourFrameCoatsUseTheirOwnManifests() throws {
+        func manifest(frameCount: Int) throws -> String {
+            let states = Dictionary(uniqueKeysWithValues: CatState.allCases.map { state in
+                (state.rawValue, (0..<frameCount).map { "\(state.rawValue)_\($0).png" })
+            })
+            return String(decoding: try JSONSerialization.data(withJSONObject: states), as: UTF8.self)
+        }
+        try writeManifest(tmp, manifest(frameCount: 8))
+        let coats = ["black", "orange", "calico", "pink"]
+        for coat in coats {
+            try writeManifest(tmp.appendingPathComponent(coat), manifest(frameCount: 4))
+        }
+        let manager = SkinManager(bundledRoot: tmp)
+        let white = manager.loadDefault()
+        for state in CatState.allCases {
+            XCTAssertEqual(white.frameURLs(for: state.rawValue), (0..<8).map {
+                tmp.appendingPathComponent("\(state.rawValue)_\($0).png")
+            })
+            for coat in coats {
+                let skin = try manager.loadSkin(id: coat)
+                XCTAssertEqual(skin.frameURLs(for: state.rawValue), (0..<4).map {
+                    tmp.appendingPathComponent(coat).appendingPathComponent("\(state.rawValue)_\($0).png")
+                })
+            }
+        }
+    }
+
+    func testBundledEffectFramesAreNotSelectableAsACatSkin() throws {
+        try writeManifest(tmp, #"{ "idle": ["idle_0.png"] }"#)
+        try FileManager.default.createDirectory(
+            at: tmp.appendingPathComponent("effects"), withIntermediateDirectories: true
+        )
+        let mgr = SkinManager(bundledRoot: tmp)
+
+        XCTAssertEqual(mgr.availableSkinIDs(), ["default"])
+        XCTAssertThrowsError(try mgr.loadSkin(id: "effects"))
+    }
+
+    func testExternalSkinCanStillBeNamedEffects() throws {
+        let bundled = tmp.appendingPathComponent("bundled")
+        let external = tmp.appendingPathComponent("external")
+        try writeManifest(bundled, #"{ "idle": ["idle_0.png"] }"#)
+        try FileManager.default.createDirectory(
+            at: bundled.appendingPathComponent("effects"), withIntermediateDirectories: true
+        )
+        let custom = external.appendingPathComponent("effects")
+        try writeManifest(custom, #"{ "idle": ["custom_0.png"] }"#)
+        let mgr = SkinManager(bundledRoot: bundled, externalRoot: external)
+
+        XCTAssertEqual(mgr.availableSkinIDs(), ["default", "effects"])
+        XCTAssertEqual(try mgr.loadSkin(id: "effects").directory.path, custom.path)
+    }
+
     func testExternalSkinRootIsAvailableAndPreferred() throws {
         try writeManifest(tmp, #"{ "idle": ["idle_0.png"] }"#)
         let bundledBlack = tmp.appendingPathComponent("black")

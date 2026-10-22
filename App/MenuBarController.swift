@@ -10,21 +10,14 @@ final class MenuBarController: NSObject, NSMenuDelegate {
     private let isCatVisible: () -> Bool
     private let isAlwaysOnTopEnabled: () -> Bool
     private let soundEffectsEnabled: () -> Bool
-    private let permissionMenu: () -> InputMonitoringPermissionMenu
     private let enabledSkills: () -> [NekoSkill]
-    private let neighborPeerCount: () -> Int
     private let updateStatus: () -> AppUpdateStatus
     private let languageCode: () -> String
     private let onToggleAlwaysOnTop: () -> Void
     private let onToggleSoundEffects: () -> Void
-    private let onPreviewState: (CatState) -> Void
     private let onRunSkill: (String) -> Void
-    private let onSendNeighborWave: () -> Void
     private let onCheckForUpdates: () -> Void
     private let onApplyUpdate: () -> Void
-    private let onOpenAccessibility: () -> Void
-    private let onOpenInputMonitoring: () -> Void
-    private let onRetryKeyboardMonitor: () -> Void
     private let menu = NSMenu()
 
     init(
@@ -35,21 +28,14 @@ final class MenuBarController: NSObject, NSMenuDelegate {
         isCatVisible: @escaping () -> Bool,
         isAlwaysOnTopEnabled: @escaping () -> Bool,
         soundEffectsEnabled: @escaping () -> Bool,
-        permissionMenu: @escaping () -> InputMonitoringPermissionMenu,
         enabledSkills: @escaping () -> [NekoSkill],
-        neighborPeerCount: @escaping () -> Int,
         updateStatus: @escaping () -> AppUpdateStatus,
         languageCode: @escaping () -> String,
         onToggleAlwaysOnTop: @escaping () -> Void,
         onToggleSoundEffects: @escaping () -> Void,
-        onPreviewState: @escaping (CatState) -> Void,
         onRunSkill: @escaping (String) -> Void,
-        onSendNeighborWave: @escaping () -> Void,
         onCheckForUpdates: @escaping () -> Void,
-        onApplyUpdate: @escaping () -> Void,
-        onOpenAccessibility: @escaping () -> Void,
-        onOpenInputMonitoring: @escaping () -> Void,
-        onRetryKeyboardMonitor: @escaping () -> Void
+        onApplyUpdate: @escaping () -> Void
     ) {
         self.onToggleCat = onToggleCat
         self.onOpenChatHistory = onOpenChatHistory
@@ -58,21 +44,14 @@ final class MenuBarController: NSObject, NSMenuDelegate {
         self.isCatVisible = isCatVisible
         self.isAlwaysOnTopEnabled = isAlwaysOnTopEnabled
         self.soundEffectsEnabled = soundEffectsEnabled
-        self.permissionMenu = permissionMenu
         self.enabledSkills = enabledSkills
-        self.neighborPeerCount = neighborPeerCount
         self.updateStatus = updateStatus
         self.languageCode = languageCode
         self.onToggleAlwaysOnTop = onToggleAlwaysOnTop
         self.onToggleSoundEffects = onToggleSoundEffects
-        self.onPreviewState = onPreviewState
         self.onRunSkill = onRunSkill
-        self.onSendNeighborWave = onSendNeighborWave
         self.onCheckForUpdates = onCheckForUpdates
         self.onApplyUpdate = onApplyUpdate
-        self.onOpenAccessibility = onOpenAccessibility
-        self.onOpenInputMonitoring = onOpenInputMonitoring
-        self.onRetryKeyboardMonitor = onRetryKeyboardMonitor
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
         super.init()
 
@@ -133,28 +112,10 @@ final class MenuBarController: NSObject, NSMenuDelegate {
         sound.state = soundEffectsEnabled() ? .on : .off
         menu.addItem(sound)
 
-        let permission = permissionMenu()
-        menu.addItem(.separator())
-        let status = NSMenuItem(title: permission.statusTitle(languageCode: language), action: nil, keyEquivalent: "")
-        status.isEnabled = false
-        menu.addItem(status)
-
-        let openAccessibility = NSMenuItem(title: permission.openAccessibilityTitle(languageCode: language), action: #selector(openAccessibilityTapped), keyEquivalent: "")
-        openAccessibility.target = self
-        menu.addItem(openAccessibility)
-
-        let openSettings = NSMenuItem(title: permission.openSettingsTitle(languageCode: language), action: #selector(openInputMonitoringTapped), keyEquivalent: "")
-        openSettings.target = self
-        menu.addItem(openSettings)
-
-        let retry = NSMenuItem(title: permission.retryTitle(languageCode: language), action: #selector(retryKeyboardMonitorTapped), keyEquivalent: "")
-        retry.target = self
-        menu.addItem(retry)
-
-        menu.addItem(.separator())
-        menu.addItem(skillsMenuItem())
-        menu.addItem(previewMenuItem())
-        menu.addItem(neighborMenuItem())
+        if !enabledSkills().isEmpty {
+            menu.addItem(.separator())
+            menu.addItem(skillsMenuItem())
+        }
 
         menu.addItem(.separator())
         menu.addItem(updateMenuItem())
@@ -205,10 +166,6 @@ final class MenuBarController: NSObject, NSMenuDelegate {
             menu.addItem(skillsMenuItem())
         }
 
-        if neighborPeerCount() > 0 {
-            menu.addItem(neighborMenuItem())
-        }
-
         let chatHistory = iconMenuItem(
             title: localized(.chatHistory, language: language),
             action: #selector(chatHistoryTapped),
@@ -235,17 +192,8 @@ final class MenuBarController: NSObject, NSMenuDelegate {
         let language = languageCode()
         let root = iconMenuItem(title: localized(.skills, language: language), action: nil, systemImage: "wand.and.stars")
         let submenu = NSMenu()
-        let skills = enabledSkills()
 
-        guard !skills.isEmpty else {
-            let empty = NSMenuItem(title: localized(.noSkills, language: language), action: nil, keyEquivalent: "")
-            empty.isEnabled = false
-            submenu.addItem(empty)
-            root.submenu = submenu
-            return root
-        }
-
-        for skill in skills {
+        for skill in enabledSkills() {
             let item = NSMenuItem(
                 title: "\(skill.name) · \(skill.input.title)",
                 action: #selector(skillTapped(_:)),
@@ -254,38 +202,6 @@ final class MenuBarController: NSObject, NSMenuDelegate {
             item.representedObject = skill.id
             item.target = self
             item.image = menuIcon(skill.input.menuSystemImage, title: skill.name)
-            submenu.addItem(item)
-        }
-        root.submenu = submenu
-        return root
-    }
-
-    private func neighborMenuItem() -> NSMenuItem {
-        let language = languageCode()
-        let count = neighborPeerCount()
-        let title = count > 0
-            ? localized(.waveNeighbor, language: language, count: count)
-            : localized(.findingNeighbors, language: language)
-        let item = NSMenuItem(title: title, action: #selector(neighborWaveTapped), keyEquivalent: "")
-        item.target = self
-        item.image = menuIcon("hand.wave", title: title)
-        item.isEnabled = count > 0
-        return item
-    }
-
-    private func previewMenuItem() -> NSMenuItem {
-        let language = languageCode()
-        let root = iconMenuItem(title: localized(.previewState, language: language), action: nil, systemImage: "play.rectangle")
-        let submenu = NSMenu()
-        for state in CatStateMenu.previewStates {
-            let item = NSMenuItem(
-                title: CatStateMenu.title(for: state, languageCode: language),
-                action: #selector(previewStateTapped(_:)),
-                keyEquivalent: ""
-            )
-            item.representedObject = state.rawValue
-            item.target = self
-            item.image = menuIcon(state.menuSystemImage, title: item.title)
             submenu.addItem(item)
         }
         root.submenu = submenu
@@ -333,27 +249,14 @@ final class MenuBarController: NSObject, NSMenuDelegate {
     @objc private func toggleTapped() { onToggleCat() }
     @objc private func chatHistoryTapped() { onOpenChatHistory() }
     @objc private func settingsTapped() { onOpenSettings() }
-    @objc private func neighborWaveTapped() { onSendNeighborWave() }
     @objc private func alwaysOnTopTapped() { onToggleAlwaysOnTop() }
     @objc private func soundTapped() { onToggleSoundEffects() }
     @objc private func checkForUpdatesTapped() { onCheckForUpdates() }
     @objc private func applyUpdateTapped() { onApplyUpdate() }
-    @objc private func previewStateTapped(_ sender: NSMenuItem) {
-        guard
-            let rawValue = sender.representedObject as? String,
-            let state = CatState(rawValue: rawValue)
-        else {
-            return
-        }
-        onPreviewState(state)
-    }
     @objc private func skillTapped(_ sender: NSMenuItem) {
         guard let id = sender.representedObject as? String else { return }
         onRunSkill(id)
     }
-    @objc private func openInputMonitoringTapped() { onOpenInputMonitoring() }
-    @objc private func openAccessibilityTapped() { onOpenAccessibility() }
-    @objc private func retryKeyboardMonitorTapped() { onRetryKeyboardMonitor() }
     @objc private func quitTapped() { onQuit() }
 
     private enum MenuCopy {
@@ -363,10 +266,6 @@ final class MenuBarController: NSObject, NSMenuDelegate {
         case settings
         case quit
         case skills
-        case noSkills
-        case waveNeighbor
-        case findingNeighbors
-        case previewState
     }
 
     private func localized(_ key: MenuCopy, language: String, count: Int = 0) -> String {
@@ -379,10 +278,6 @@ final class MenuBarController: NSObject, NSMenuDelegate {
             case .settings: "Settings..."
             case .quit: "Quit"
             case .skills: "Skills"
-            case .noSkills: "No Active Skills"
-            case .waveNeighbor: "Wave to Neighbor (\(count))"
-            case .findingNeighbors: "Finding Neighbors"
-            case .previewState: "Preview State"
             }
         case "ja":
             switch key {
@@ -392,10 +287,6 @@ final class MenuBarController: NSObject, NSMenuDelegate {
             case .settings: "設定..."
             case .quit: "終了"
             case .skills: "スキル"
-            case .noSkills: "有効なスキルなし"
-            case .waveNeighbor: "近くのねこに挨拶 (\(count))"
-            case .findingNeighbors: "近くのねこを検索中"
-            case .previewState: "状態プレビュー"
             }
         case "zh":
             switch key {
@@ -405,10 +296,6 @@ final class MenuBarController: NSObject, NSMenuDelegate {
             case .settings: "设置..."
             case .quit: "退出"
             case .skills: "技能"
-            case .noSkills: "没有启用的技能"
-            case .waveNeighbor: "向邻居打招呼 (\(count))"
-            case .findingNeighbors: "正在寻找邻居"
-            case .previewState: "预览状态"
             }
         default:
             switch key {
@@ -418,10 +305,6 @@ final class MenuBarController: NSObject, NSMenuDelegate {
             case .settings: "설정..."
             case .quit: "종료"
             case .skills: "스킬"
-            case .noSkills: "활성 스킬 없음"
-            case .waveNeighbor: "이웃 고양이에게 인사 (\(count))"
-            case .findingNeighbors: "이웃 고양이 찾는 중"
-            case .previewState: "상태 미리보기"
             }
         }
     }
@@ -433,27 +316,6 @@ private extension NekoSkillInput {
         case .prompt: "text.cursor"
         case .clipboard: "doc.on.clipboard"
         case .none: "play.circle"
-        }
-    }
-}
-
-private extension CatState {
-    var menuSystemImage: String {
-        switch self {
-        case .idle: "circle"
-        case .hover: "eye"
-        case .click: "cursorarrow.click"
-        case .coding: "chevron.left.forwardslash.chevron.right"
-        case .typing: "keyboard"
-        case .thinking: "brain"
-        case .lunch: "fork.knife"
-        case .yawn: "moon"
-        case .nap: "bed.double"
-        case .success: "checkmark.circle"
-        case .error: "exclamationmark.triangle"
-        case .dragging: "hand.draw"
-        case .walk: "figure.walk"
-        case .jump: "arrow.up"
         }
     }
 }

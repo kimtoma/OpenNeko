@@ -62,20 +62,49 @@ public enum CatDragGeometry {
         return CGFloat(sin(phase)) * idleSwayAmplitude
     }
 
-    public static func dangleFrameIndex(horizontalVelocity: CGFloat, time: TimeInterval) -> Int {
-        dangleFrameIndex(horizontalVelocity: horizontalVelocity, horizontalAcceleration: 0, time: time)
+    public static func dangleFrameIndex(
+        horizontalVelocity: CGFloat,
+        time: TimeInterval,
+        frameCount: Int = 4
+    ) -> Int {
+        dangleFrameIndex(
+            horizontalVelocity: horizontalVelocity,
+            horizontalAcceleration: 0,
+            time: time,
+            frameCount: frameCount
+        )
     }
 
     public static func dangleFrameIndex(
         horizontalVelocity: CGFloat,
         horizontalAcceleration: CGFloat,
-        time: TimeInterval
+        time: TimeInterval,
+        frameCount: Int = 4
     ) -> Int {
-        if horizontalAcceleration > 3 { return 1 }
-        if horizontalAcceleration < -3 { return 3 }
-        if horizontalVelocity > 2.5 { return 1 }
-        if horizontalVelocity < -2.5 { return 3 }
-        return Int(floor(time / idleWrigglePeriod)).isMultiple(of: 2) ? 0 : 2
+        guard frameCount > 0, time.isFinite else { return 0 }
+        let directionalPose: Int?
+        if horizontalAcceleration > 3 { directionalPose = 1 }
+        else if horizontalAcceleration < -3 { directionalPose = 3 }
+        else if horizontalVelocity > 2.5 { directionalPose = 1 }
+        else if horizontalVelocity < -2.5 { directionalPose = 3 }
+        else { directionalPose = nil }
+
+        if frameCount <= 4 {
+            let pose = directionalPose
+                ?? (Int(floor(time / idleWrigglePeriod)).isMultiple(of: 2) ? 0 : 2)
+            return min(pose, frameCount - 1)
+        }
+
+        // Eight-frame art interleaves the four original poses at 0, 2, 4, 6.
+        // Keep the old 0/2 idle beat while showing the intervening poses. During
+        // movement, phase the same wriggle from the matching directional pose.
+        let phase = CatAnimationTiming.frameIndex(
+            at: time,
+            cycleDuration: idleWrigglePeriod * 2,
+            frameCount: frameCount
+        )
+        let directionalOffset = (directionalPose ?? 0) * frameCount / 4
+        return (phase + directionalOffset) % frameCount
     }
 
     public static func dangleBodyOffset(

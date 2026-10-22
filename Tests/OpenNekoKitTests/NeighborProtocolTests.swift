@@ -55,6 +55,19 @@ final class NeighborProtocolTests: XCTestCase {
         XCTAssertEqual(NeighborEventPresentation.greeting(key: 3, languageCode: "ko"), "같이 일하자냥!")
     }
 
+    func testCodexPetPresentationTriggersOnlyForCodexPetSignatures() {
+        let codexPet = NeighborPeer(id: "codex-pet-1", name: "Codex Desktop Pet", skin: "robot")
+        let regularCodex = NeighborPeer(id: "codex-cli", name: "Codex", skin: "black")
+        let regularPet = NeighborPeer(id: "pet-1", name: "Desk Pet", skin: "black")
+
+        XCTAssertTrue(NeighborEventPresentation.isCodexPet(codexPet))
+        XCTAssertFalse(NeighborEventPresentation.isCodexPet(regularCodex))
+        XCTAssertFalse(NeighborEventPresentation.isCodexPet(regularPet))
+        XCTAssertEqual(NeighborEventPresentation.displayName(for: codexPet, languageCode: "ko"), "Codex pet")
+        XCTAssertEqual(NeighborEventPresentation.codexPetPunchText(languageCode: "ko"), "Codex pet 발견, 냥냥펀치!")
+        XCTAssertEqual(NeighborEventPresentation.codexPetOuchText(languageCode: "en"), "Ow, paws off!")
+    }
+
     func testNeighborEventPresentationLocalizesMainBubbleText() {
         let peer = NeighborPeer(id: "peer-1", name: "Desk Cat")
 

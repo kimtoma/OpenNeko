@@ -5,6 +5,9 @@ public enum NeighborEventPresentation {
     public static let guestBubbleExtension: TimeInterval = 6
 
     public static func displayName(for peer: NeighborPeer, languageCode: String?) -> String {
+        if isCodexPet(peer) {
+            return codexPetDisplayName(languageCode: languageCode)
+        }
         if !peer.name.isEmpty {
             return peer.name
         }
@@ -68,6 +71,44 @@ public enum NeighborEventPresentation {
         case "ja": return "近くのねこはオフです"
         case "zh": return "邻居功能已关闭"
         default: return "이웃 고양이 기능이 꺼져 있어요"
+        }
+    }
+
+    public static func isCodexPet(_ peer: NeighborPeer) -> Bool {
+        let signature = [peer.id, peer.name, peer.skin]
+            .joined(separator: " ")
+            .lowercased()
+        let hasCodex = signature.contains("codex")
+        let hasPet = signature.contains("pet") || signature.contains("buddy") || signature.contains("mascot")
+        return hasCodex && hasPet
+    }
+
+    public static func codexPetPunchText(languageCode: String?) -> String {
+        let language = AppLanguage.normalized(languageCode) ?? "ko"
+        switch language {
+        case "en": return "Codex pet spotted! Nya-punch!"
+        case "ja": return "Codexペット発見、にゃんパンチ!"
+        case "zh": return "发现 Codex 宠物，喵喵拳!"
+        default: return "Codex pet 발견, 냥냥펀치!"
+        }
+    }
+
+    public static func codexPetOuchText(languageCode: String?) -> String {
+        let language = AppLanguage.normalized(languageCode) ?? "ko"
+        switch language {
+        case "en": return "Ow, paws off!"
+        case "ja": return "いたっ、肉球つよい!"
+        case "zh": return "疼，肉球好强!"
+        default: return "아야, 젤리 강하다!"
+        }
+    }
+
+    private static func codexPetDisplayName(languageCode: String?) -> String {
+        let language = AppLanguage.normalized(languageCode) ?? "ko"
+        switch language {
+        case "ja": return "Codexペット"
+        case "zh": return "Codex 宠物"
+        default: return "Codex pet"
         }
     }
 

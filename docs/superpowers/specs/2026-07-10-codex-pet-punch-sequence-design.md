@@ -20,7 +20,7 @@ When OpenNeko sees the on-screen Codex pet, it should approach without animation
 
 `ScreenPetPixelCaptureDetector` performs full-screen capture and pixel analysis on a dedicated serial background queue. `AppDelegate` starts at most one scan at a time and consumes the most recently completed candidate list on the main thread.
 
-Once an encounter target is selected, the app locks that candidate through approach and punching. It does not start another expensive pixel scan until the interaction ends. Window metadata detection remains the inexpensive first choice.
+Once an encounter target is selected, the app locks that candidate through approach and punching. Background scans may revalidate and refresh that same target during approach, but cannot switch the encounter to a different pet. Scanning pauses for the punch sequence. Window metadata detection remains the inexpensive first choice.
 
 ### Encounter State
 

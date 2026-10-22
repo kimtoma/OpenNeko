@@ -23,6 +23,7 @@ public final class SkinManager {
         for root in [bundledRoot, externalRoot].compactMap({ $0 }) {
             let subdirs = (try? fm.contentsOfDirectory(at: root, includingPropertiesForKeys: nil)) ?? []
             for url in subdirs {
+                if root == bundledRoot && url.lastPathComponent == "effects" { continue }
                 var isDir: ObjCBool = false
                 if fm.fileExists(atPath: url.path, isDirectory: &isDir), isDir.boolValue {
                     ids.insert(url.lastPathComponent)
@@ -43,6 +44,7 @@ public final class SkinManager {
     private func directory(for id: String) -> URL? {
         if id == Self.defaultID { return bundledRoot }
         for root in [externalRoot, bundledRoot].compactMap({ $0 }) {
+            if root == bundledRoot && id == "effects" { continue }
             let dir = root.appendingPathComponent(id)
             var isDir: ObjCBool = false
             if fm.fileExists(atPath: dir.path, isDirectory: &isDir), isDir.boolValue { return dir }

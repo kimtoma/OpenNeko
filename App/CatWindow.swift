@@ -87,7 +87,7 @@ final class CatSKView: SKView {
 final class CatWindow: NSWindow {
     private let skView = CatSKView()
     private let scene: CatScene
-    private let catSize = CatLayoutMetrics.primaryCatSize
+    private var catSize = CatLayoutMetrics.primaryCatSize
     private let oneShotStates: Set<CatState> = [.click, .yawn, .success, .error, .jump]
     private var bubbleWindow: CatBubbleWindow?
     private var chatWindow: CatChatWindow?
@@ -495,8 +495,55 @@ final class CatWindow: NSWindow {
     }
 
     func applySkin(_ skin: Skin) {
+        let nextSize = CatScene.frameSize(for: skin)
+        let resized = nextSize != catSize
+        let wasLanding = landingTimer != nil
+        if resized {
+            let previousSize = catSize
+            let context = localGroundContext()
+            let wasGrounded = context.map {
+                abs(catOrigin.y - floorY(originX: catOrigin.x, context: $0)) <= 1
+            } ?? false
+            // A landing closure captured the old destination and must be restarted
+            // after the new frame has been clamped to its current support surface.
+            landingTimer?.invalidate()
+            landingTimer = nil
+            resetAutonomousMotion()
+            catSize = nextSize
+            scene.setCatFrameSize(nextSize)
+            var origin = CGPoint(
+                x: catOrigin.x + (previousSize.width - nextSize.width) / 2,
+                y: catOrigin.y
+            )
+            if let context {
+                origin = CatDragGeometry.clampedDragOrigin(
+                    origin,
+                    size: nextSize,
+                    screenFrame: context.screenFrame,
+                    visibleFrame: context.visibleFrame,
+                    dockFrame: context.dockFrame,
+                    floorMargin: floorMargin
+                )
+                if wasGrounded {
+                    origin.y = floorY(originX: origin.x, context: context)
+                }
+            }
+            setCatOrigin(origin)
+        }
         scene.apply(skin: skin)
-        playRestingState()
+        if resized && draggingActive {
+            if wasLanding {
+                dropAndFall()
+            } else {
+                updateDraggedCatPosition(mouse: NSEvent.mouseLocation)
+                updateDragVisual()
+            }
+        } else {
+            playRestingState()
+        }
+        if resized {
+            updateMousePassThrough()
+        }
     }
 
     func toggle() {
@@ -548,6 +595,60 @@ final class CatWindow: NSWindow {
             scene.play(state: .idle)
         }
         resetAutonomousMotion()
+    }
+
+    func canTrackScreenPetEncounter() -> Bool {
+        canStartAutonomousAction()
+    }
+
+    func walkTowardScreenPet(
+        targetFrame: CGRect,
+        distance: CGFloat,
+        deltaTime: TimeInterval = 1.0 / 60.0
+    ) -> Bool {
+        guard canTrackScreenPetEncounter(), let context = localGroundContext() else {
+            return false
+        }
+        let step = ScreenPetEncounter.approachStep(
+            catFrame: catScreenFrame,
+            targetFrame: targetFrame,
+            visibleFrame: screen?.visibleFrame ?? NSScreen.main?.visibleFrame ?? frame,
+            maxDistance: distance
+        )
+        if step.isContact {
+            stopAutonomousWalk()
+            return true
+        }
+
+        scene.playWalk(direction: step.direction)
+        var origin = localPoint(fromScreen: step.origin)
+        let previousFloorY = floorY(originX: catOrigin.x, context: context)
+        let targetFloorY = floorY(originX: origin.x, context: context)
+        let vertical = CatDragGeometry.walkVerticalMotionStep(
+            originY: catOrigin.y,
+            verticalVelocity: autonomousVerticalVelocity,
+            previousFloorY: previousFloorY,
+            targetFloorY: targetFloorY,
+            deltaTime: deltaTime
+        )
+        let wasAirborne = autonomousWalkAirborne
+        autonomousVerticalVelocity = vertical.verticalVelocity
+        autonomousWalkAirborne = !vertical.isGrounded
+        origin.y = vertical.originY
+        setCatOrigin(origin)
+        if vertical.didLaunch {
+            playSound(.pluck)
+        }
+        if wasAirborne, vertical.isGrounded {
+            scene.landingSquash()
+            playSound(.land)
+        }
+        return false
+    }
+
+    func playScreenPetPunch(direction: Int) {
+        resetAutonomousMotion()
+        scene.playPunch(direction: direction, sequence: .default)
     }
 
     func autonomousWalkStep(direction: Int, distance: CGFloat, deltaTime: TimeInterval = 1.0 / 60.0) -> Int {

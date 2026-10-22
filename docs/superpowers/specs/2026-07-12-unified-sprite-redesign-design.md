@@ -31,7 +31,7 @@ All states and skins share one canonical model:
 - circular integrated headset with a cyan luminous ring and one restrained magenta accent
 - small cyan collar core
 - deep navy paws and tail tip
-- one stable forehead marking whose color follows the skin palette
+- one stable AI sparkle sigil centered on the forehead: a compact, filled four-point mint fur marking with restrained one-pixel tuft integration
 - readable silhouette at 128 x 128 without exaggerated bloom or soft rendering
 
 The following measurements are locked across states unless the pose explicitly foreshortens them:
@@ -42,6 +42,7 @@ The following measurements are locked across states unless the pose explicitly f
 - torso length and paw size
 - tail thickness and band positions
 - collar-core size and placement
+- AI sparkle-sigil shape, center point, and inactive brightness
 
 Skin variants may change fur color and markings only. They must not change anatomy, equipment geometry, pose, alignment, or alpha silhouette.
 
@@ -56,18 +57,22 @@ Each state uses a deliberate four-frame cycle:
 | `click` | startle, lift paw, react, recover |
 | `coding` | panel lights, eye scan, panel pulse, settle |
 | `typing` | left paw press, transition, right paw press, keyboard response |
-| `thinking` | head tilt, tail sway, thought pixel, return |
+| `thinking` | head tilt with dim sigil, cyan activation pulse, bright AI sparkle with restrained particles, residual glow and return |
 | `lunch` | lift food, bite, chew, satisfied settle |
 | `yawn` | eyes narrow, mouth opens, full yawn, recover |
 | `nap` | settle down, breathe in, ear twitch, breathe out |
 | `success` | brace, raise paws, joyful lift with sparkle, land |
 | `error` | flinch, ears drop, error indicator, recover |
-| `dragging` | dangle center, swing left, center stretch, swing right |
+| `dragging` | dangle with front paw pads visible, frantic swing left, scrambling center pass, frantic swing right |
 | `walk` | contact, passing, push-off, opposite passing |
 | `jump` | crouch, rise, apex, landing preparation |
 | `punch` | lower body, extend front paw, impact, retract |
 
 Props and particles remain inside their frame cell and may not hide the face or destroy the body silhouette. Motion should be expressive through pose, ears, eyes, tail, and paws rather than by changing the character's proportions.
+
+The forehead sigil is a fur marking, not a rendered Unicode glyph, text, or floating icon. It remains filled mint and non-luminous in every normal state. Only `thinking` animates its light: frame 0 is the inactive mint marking, frame 1 adds a tight cyan-white center and circular mint halo, frame 2 reaches maximum cyan-white brightness inside a compact circular mint-to-ivory-to-pale-yellow bloom with no more than three cyan-mint particles, and frame 3 leaves a small residual halo before returning to the inactive marking. Red and magenta pixels are forbidden inside the marking and its emitted light.
+
+The sigil, glow, and detached particles are drawn directly into each generated PNG frame. The app must not add a separate SpriteKit node, shader, particle emitter, or runtime overlay for this animation. Baking the mark into the sprite art keeps it attached to the forehead through pose, scale, direction, and silhouette changes.
 
 ## Generation Strategy
 
@@ -117,6 +122,8 @@ The validator checks all 300 frames and fails on:
 - excessive body-scale change within one state
 - isolated noise, white matte fringe, or baked checkerboard pixels
 - duplicate frames where visible motion is required
+- missing, displaced, malformed, or inconsistently colored AI forehead sigils
+- `thinking` frames whose sigil luminance does not follow inactive < pulse < peak > residual
 
 It produces:
 

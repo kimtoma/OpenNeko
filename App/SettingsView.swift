@@ -284,16 +284,6 @@ struct SettingsView: View {
                 tint: readinessTint(aiProviderReadiness.severity)
             )
 
-            SettingsGlassToggleRow(
-                title: copy(.agentDetection),
-                subtitle: copy(.agentDetectionDetail),
-                systemImage: "dot.radiowaves.left.and.right",
-                isOn: Binding(
-                    get: { agentProcessDetectionEnabled },
-                    set: { setAgentProcessDetection($0) }
-                )
-            )
-
             if preset.fields.contains(.baseURL) {
                 SettingsGlassTextFieldRow(
                     title: "Base URL",
@@ -334,6 +324,16 @@ struct SettingsView: View {
                     tint: .secondary
                 )
             }
+
+            SettingsGlassToggleRow(
+                title: copy(.agentDetection),
+                subtitle: copy(.agentDetectionDetail),
+                systemImage: "dot.radiowaves.left.and.right",
+                isOn: Binding(
+                    get: { agentProcessDetectionEnabled },
+                    set: { setAgentProcessDetection($0) }
+                )
+            )
 
             SettingsGlassToggleRow(
                 title: copy(.webSearch),
@@ -847,13 +847,15 @@ struct SettingsView: View {
                     selectPane(.profile)
                 }
 
-                SettingsGlassSetupTile(
-                    title: copy(.typing),
-                    subtitle: permissionMenu.statusTitle(languageCode: resolvedLanguageCode),
-                    systemImage: permissionMenu.needsUserAction ? "hand.raised.fill" : "checkmark.circle.fill",
-                    tint: permissionMenu.needsUserAction ? .orange : .green
-                ) {
-                    selectPane(.general)
+                if permissionMenu.needsUserAction {
+                    SettingsGlassSetupTile(
+                        title: copy(.typing),
+                        subtitle: permissionMenu.statusTitle(languageCode: resolvedLanguageCode),
+                        systemImage: "hand.raised.fill",
+                        tint: .orange
+                    ) {
+                        selectPane(.general)
+                    }
                 }
 
                 SettingsGlassSetupTile(
@@ -929,7 +931,9 @@ struct SettingsView: View {
                 )
             )
 
-            compactPermissionsSection
+            if permissionMenu.needsUserAction {
+                compactPermissionsSection
+            }
         }
     }
 
@@ -1010,26 +1014,6 @@ struct SettingsView: View {
                 autoApplyDetected: false
             )
 
-            SettingsGlassToggleRow(
-                title: copy(.agentDetection),
-                subtitle: copy(.agentDetectionDetail),
-                systemImage: "dot.radiowaves.left.and.right",
-                isOn: Binding(
-                    get: { agentProcessDetectionEnabled },
-                    set: { setAgentProcessDetection($0) }
-                )
-            )
-
-            SettingsGlassToggleRow(
-                title: copy(.webSearch),
-                subtitle: webSearchEnabled ? copy(.webSearchOn) : copy(.webSearchOff),
-                systemImage: "magnifyingglass.circle",
-                isOn: Binding(
-                    get: { webSearchEnabled },
-                    set: { setWebSearch($0) }
-                )
-            )
-
             if preset.fields.contains(.apiKey) {
                 SettingsGlassAPIKeyRow(
                     hasKey: aiProviderHasAPIKey,
@@ -1065,6 +1049,26 @@ struct SettingsView: View {
                     monospaced: true
                 )
             }
+
+            SettingsGlassToggleRow(
+                title: copy(.agentDetection),
+                subtitle: copy(.agentDetectionDetail),
+                systemImage: "dot.radiowaves.left.and.right",
+                isOn: Binding(
+                    get: { agentProcessDetectionEnabled },
+                    set: { setAgentProcessDetection($0) }
+                )
+            )
+
+            SettingsGlassToggleRow(
+                title: copy(.webSearch),
+                subtitle: webSearchEnabled ? copy(.webSearchOn) : copy(.webSearchOff),
+                systemImage: "magnifyingglass.circle",
+                isOn: Binding(
+                    get: { webSearchEnabled },
+                    set: { setWebSearch($0) }
+                )
+            )
         }
     }
 
@@ -1251,7 +1255,8 @@ struct SettingsView: View {
     }
 
     private func skinLabel(_ id: String) -> String {
-        id == SkinManager.defaultID ? copy(.defaultSkin) : id
+        if id == "pink" { return copy(.creamSkin) }
+        return id == SkinManager.defaultID ? copy(.defaultSkin) : id
     }
 
     private var aiProviderSummary: String {
@@ -2588,14 +2593,17 @@ private struct SettingsPixelMiniCat: View {
     let frameURLs: [URL]
     let size: CGFloat
     @State private var images: [NSImage] = []
+    @State private var imageInterpolation: Image.Interpolation = .none
 
-    private let frameDuration: TimeInterval = 0.12
+    private let cycleDuration = CatAnimationTiming.previewCycleDuration
 
     var body: some View {
         TimelineView(.animation(minimumInterval: 1.0 / 20.0)) { context in
-            let frameIndex = images.isEmpty
-                ? 0
-                : Int(context.date.timeIntervalSinceReferenceDate / frameDuration) % images.count
+            let frameIndex = CatAnimationTiming.frameIndex(
+                at: context.date.timeIntervalSinceReferenceDate,
+                cycleDuration: cycleDuration,
+                frameCount: images.count
+            )
 
             Group {
                 if images.isEmpty {
@@ -2604,7 +2612,7 @@ private struct SettingsPixelMiniCat: View {
                         .foregroundStyle(.secondary)
                 } else {
                     Image(nsImage: images[frameIndex])
-                        .interpolation(.none)
+                        .interpolation(imageInterpolation)
                         .resizable()
                         .scaledToFit()
                 }
@@ -2618,6 +2626,7 @@ private struct SettingsPixelMiniCat: View {
     }
 
     private func loadImages() {
+        imageInterpolation = skinPreviewInterpolation(for: frameURLs)
         images = frameURLs.compactMap { url in
             NSImage(contentsOf: url)
         }
@@ -3869,21 +3878,32 @@ private struct SettingsSkinWalkPreview: View {
     var catSize: CGFloat = 58
     var previewHeight: CGFloat = 74
     @State private var images: [NSImage] = []
+    @State private var imageInterpolation: Image.Interpolation = .none
 
-    private let frameDuration: TimeInterval = 0.12
+    private let cycleDuration = CatAnimationTiming.previewCycleDuration
     private let travelDuration: TimeInterval = 2.4
 
     var body: some View {
         TimelineView(.animation(minimumInterval: 1.0 / 30.0)) { context in
             GeometryReader { proxy in
                 let elapsed = context.date.timeIntervalSinceReferenceDate
-                let frameIndex = images.isEmpty ? 0 : Int(elapsed / frameDuration) % images.count
+                let frameIndex = CatAnimationTiming.frameIndex(
+                    at: elapsed,
+                    cycleDuration: cycleDuration,
+                    frameCount: images.count
+                )
                 let cyclePosition = elapsed.truncatingRemainder(dividingBy: travelDuration) / travelDuration
                 let movingRight = cyclePosition < 0.5
                 let progress = movingRight ? cyclePosition * 2 : (1 - cyclePosition) * 2
                 let travel = max(proxy.size.width - catSize, 0)
                 let xOffset = -travel / 2 + CGFloat(progress) * travel
-                let bobOffset: CGFloat = frameIndex.isMultiple(of: 2) ? 0 : -2
+                // Retain the existing 0.12-second step even with in-between frames.
+                let bobPhase = CatAnimationTiming.frameIndex(
+                    at: elapsed,
+                    cycleDuration: 0.24,
+                    frameCount: 2
+                )
+                let bobOffset: CGFloat = bobPhase == 0 ? 0 : -2
 
                 ZStack(alignment: .bottom) {
                     RoundedRectangle(cornerRadius: 8, style: .continuous)
@@ -3902,7 +3922,7 @@ private struct SettingsSkinWalkPreview: View {
                             .frame(maxWidth: .infinity, maxHeight: .infinity)
                     } else {
                         Image(nsImage: images[frameIndex])
-                            .interpolation(.none)
+                            .interpolation(imageInterpolation)
                             .resizable()
                             .scaledToFit()
                             .scaleEffect(x: movingRight ? 1 : -1, y: 1)
@@ -3925,10 +3945,20 @@ private struct SettingsSkinWalkPreview: View {
     }
 
     private func loadImages() {
+        imageInterpolation = skinPreviewInterpolation(for: frameURLs)
         images = frameURLs.compactMap { url in
             NSImage(contentsOf: url)
         }
     }
+}
+
+private func skinPreviewInterpolation(for frameURLs: [URL]) -> Image.Interpolation {
+    guard let directory = frameURLs.first?.deletingLastPathComponent(),
+          let data = try? Data(contentsOf: directory.appendingPathComponent("render-info.json")),
+          let info = (try? JSONSerialization.jsonObject(with: data)) as? [String: Any],
+          info["filtering"] as? String == "linear"
+    else { return .none }
+    return .high
 }
 
 private struct SettingsGlassBackground: View {

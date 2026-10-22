@@ -102,8 +102,21 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var autonomousWalkDirection = 1
     private var autonomousWalkUntil: TimeInterval = 0
     private var autonomousModeUntil: TimeInterval = ProcessInfo.processInfo.systemUptime + 3
+    private var autonomousDecisionCadence = CatAutonomousDecisionCadence()
+    private var screenPetCandidates: [ScreenPetCandidate] = []
+    private var screenPetCandidateRevision = 0
+    private var screenPetHandledRevision = 0
+    private var screenPetSession = ScreenPetEncounterSession()
+    private var screenPetScanGate = ScreenPetScanGate()
+    private var screenPetTrackingEnabled = false
+    private var screenPetInteractionUntil: TimeInterval = 0
+    private let screenPetDetectionQueue = DispatchQueue(
+        label: "com.openneko.screen-pet-detection",
+        qos: .utility
+    )
     private let autonomousTickInterval: TimeInterval = 1.0 / 60.0
     private let autonomousWalkSpeed: CGFloat = 90
+    private let screenPetScanInterval: TimeInterval = 0.8
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.setActivationPolicy(.accessory)
@@ -287,14 +300,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             isCatVisible: { [weak cat] in cat?.isVisible ?? false },
             isAlwaysOnTopEnabled: { [weak cat] in cat?.isAlwaysOnTopEnabled ?? false },
             soundEffectsEnabled: { [weak self] in self?.appSettings.soundEffectsEnabled ?? true },
-            permissionMenu: { [weak self] in
-                self?.runtimeTypingPermissionMenu() ?? InputMonitoringPermissionController.menu
-            },
             enabledSkills: { [weak self] in
                 self?.enabledSkills() ?? []
-            },
-            neighborPeerCount: { [weak self] in
-                self?.neighborNetwork?.peers.count ?? 0
             },
             updateStatus: { [weak self] in
                 self?.updateStatus ?? .idle
@@ -308,29 +315,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             onToggleSoundEffects: { [weak self] in
                 self?.toggleSoundEffects()
             },
-            onPreviewState: { [weak self] state in
-                self?.previewState(state)
-            },
             onRunSkill: { [weak self] id in
                 self?.runSkill(id: id)
-            },
-            onSendNeighborWave: { [weak self] in
-                self?.sendNeighborWave()
             },
             onCheckForUpdates: { [weak self] in
                 self?.checkForUpdates(silent: false)
             },
             onApplyUpdate: { [weak self] in
                 self?.applyUpdate()
-            },
-            onOpenAccessibility: { [weak self] in
-                self?.openAccessibilitySettings()
-            },
-            onOpenInputMonitoring: { [weak self] in
-                self?.openInputMonitoringSettings()
-            },
-            onRetryKeyboardMonitor: { [weak self, weak cat] in
-                self?.restartKeyboardMonitor(for: cat)
             }
         )
         startKeyboardMonitor(for: cat)
@@ -558,21 +550,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         setSoundEffects(!appSettings.soundEffectsEnabled)
     }
 
-    private func previewState(_ state: CatState) {
-        noteUserInteraction()
-        bridgeIdleTimer?.invalidate()
-        autonomousStateTimer?.invalidate()
-        catWindow?.applyBridgeState(state)
-        neighborNetwork?.setPresence(NeighborPresence.coarse(for: state))
-        if state != .idle, !bridgeOneShotStates.contains(state) {
-            bridgeIdleTimer = Timer.scheduledTimer(withTimeInterval: 12, repeats: false) { [weak self] _ in
-                self?.catWindow?.applyBridgeState(.idle)
-                self?.neighborNetwork?.setPresence(.idle)
-            }
-        }
-        menuBar?.refresh()
-    }
-
     private func noteUserInteraction(showWakeBubble: Bool = true) {
         lastUserInteraction = ProcessInfo.processInfo.systemUptime
         nextAutoEffect = max(nextAutoEffect, lastUserInteraction + 25)
@@ -591,6 +568,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         lastStretchAt = now
         nextAutoEffect = now + 25
         autonomousModeUntil = now + 3
+        autonomousDecisionCadence = CatAutonomousDecisionCadence()
         autonomousTimer = Timer.scheduledTimer(withTimeInterval: autonomousTickInterval, repeats: true) { [weak self] _ in
             self?.runAutonomousTick()
         }
@@ -599,7 +577,18 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private func runAutonomousTick() {
         guard let cat = catWindow else { return }
         let now = ProcessInfo.processInfo.systemUptime
-        updateDailyRitualFlags()
+        let decisionHour: Int?
+        if autonomousDecisionCadence.shouldEvaluate(at: now) {
+            let hour = Calendar.current.component(.hour, from: Date())
+            updateDailyRitualFlags(hour: hour)
+            decisionHour = hour
+        } else {
+            decisionHour = nil
+        }
+
+        if handleScreenPetEncounter(now: now, cat: cat) {
+            return
+        }
 
         if now < autonomousWalkUntil || cat.isAutonomousMotionSettling {
             guard cat.canContinueAutonomousWalk(), cat.canStartAutonomousAction() || cat.currentState == .walk else {
@@ -616,11 +605,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             stopAutonomousWalk(now: now)
         }
 
-        guard cat.canStartAutonomousAction() else { return }
+        guard let decisionHour, cat.canStartAutonomousAction() else { return }
 
         let context = CatAutonomousContext(
             uptime: now,
-            hour: Calendar.current.component(.hour, from: Date()),
+            hour: decisionHour,
             lastInteraction: lastUserInteraction,
             lastStretch: lastStretchAt,
             nextAutoEffect: nextAutoEffect,
@@ -672,6 +661,142 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         autonomousWalkSpeed * CGFloat(autonomousTickInterval)
     }
 
+    private var screenPetWalkDistance: CGFloat {
+        autonomousWalkDistance
+    }
+
+    private func handleScreenPetEncounter(now: TimeInterval, cat: CatWindow) -> Bool {
+        if screenPetSession.phase == .punching {
+            guard now >= screenPetSession.phaseEndsAt else { return true }
+            screenPetSession.beginCooldown(at: now)
+            screenPetCandidates.removeAll()
+            screenPetHandledRevision = screenPetCandidateRevision
+            autonomousModeUntil = now + 1
+            return false
+        }
+
+        if screenPetSession.phase == .cooldown {
+            _ = screenPetSession.resetIfCooldownExpired(at: now)
+            return false
+        }
+
+        guard cat.canTrackScreenPetEncounter() else {
+            if screenPetTrackingEnabled {
+                screenPetTrackingEnabled = false
+                invalidateScreenPetScanResults()
+            }
+            if screenPetSession.phase == .approaching {
+                screenPetSession.cancel()
+                cat.stopAutonomousWalk()
+            }
+            return false
+        }
+        screenPetTrackingEnabled = true
+
+        requestScreenPetScan(now: now, cat: cat)
+
+        if screenPetSession.phase == .approaching,
+           screenPetCandidateRevision > screenPetHandledRevision {
+            screenPetHandledRevision = screenPetCandidateRevision
+            guard
+                let lockedTarget = screenPetSession.target,
+                let refreshedTarget = ScreenPetEncounter.refreshedCandidate(
+                    matching: lockedTarget,
+                    candidates: screenPetCandidates
+                )
+            else {
+                screenPetSession.cancel()
+                invalidateScreenPetScanResults()
+                cat.stopAutonomousWalk()
+                return false
+            }
+            screenPetSession.refreshTarget(refreshedTarget, relativeTo: cat.catScreenFrame)
+        }
+
+        if screenPetSession.phase == .searching {
+            guard let target = ScreenPetEncounter.nearestCodexPetCandidate(
+                to: cat.catScreenFrame,
+                candidates: screenPetCandidates
+            ) else {
+                return false
+            }
+            screenPetSession.lock(target: target, relativeTo: cat.catScreenFrame)
+            screenPetHandledRevision = screenPetCandidateRevision
+        }
+
+        guard
+            screenPetSession.phase == .approaching,
+            let target = screenPetSession.target
+        else {
+            return false
+        }
+
+        autonomousWalkUntil = 0
+        screenPetInteractionUntil = now + 1
+        let reached = cat.walkTowardScreenPet(
+            targetFrame: target.frame,
+            distance: screenPetWalkDistance,
+            deltaTime: autonomousTickInterval
+        )
+        guard reached else { return true }
+
+        screenPetSession.beginPunching(at: now)
+        screenPetInteractionUntil = screenPetSession.phaseEndsAt
+        cat.playScreenPetPunch(direction: screenPetSession.direction)
+        cat.showBubble(NeighborEventPresentation.codexPetPunchText(languageCode: currentLanguageCode()))
+        return true
+    }
+
+    private func requestScreenPetScan(now: TimeInterval, cat: CatWindow) {
+        guard let ticket = screenPetScanGate.beginScan(
+            now: now,
+            minimumInterval: screenPetScanInterval
+        ) else {
+            return
+        }
+
+        // AppKit geometry and encounter state are read only on the main thread.
+        let screenFrames = NSScreen.screens.map(\.frame)
+        let fallbackScreenFrame = NSScreen.main?.frame
+        let displayFrames = ScreenPetPixelCaptureDetector.displayFrames()
+        let excludedFrames = [cat.catScreenFrame.insetBy(dx: -12, dy: -12)]
+        let lockedTarget = screenPetSession.target
+        screenPetDetectionQueue.async { [weak self] in
+            let windowCandidates = ScreenPetWindowDetector.candidates(
+                screenFrames: screenFrames,
+                fallbackScreenFrame: fallbackScreenFrame
+            )
+            let candidates: [ScreenPetCandidate]
+            if ScreenPetEncounter.shouldUseWindowCandidates(windowCandidates, lockedTarget: lockedTarget) {
+                candidates = windowCandidates
+            } else {
+                candidates = ScreenPetPixelCaptureDetector.candidates(
+                    displayFrames: displayFrames,
+                    excludingFrames: excludedFrames
+                )
+            }
+            DispatchQueue.main.async {
+                self?.completeScreenPetScan(with: candidates, ticket: ticket)
+            }
+        }
+    }
+
+    private func completeScreenPetScan(
+        with candidates: [ScreenPetCandidate],
+        ticket: ScreenPetScanTicket
+    ) {
+        guard screenPetScanGate.finishScan(ticket) else { return }
+        guard screenPetSession.acceptsScanResults else { return }
+        screenPetCandidates = candidates
+        screenPetCandidateRevision &+= 1
+    }
+
+    private func invalidateScreenPetScanResults() {
+        screenPetScanGate.invalidateResults()
+        screenPetCandidates.removeAll()
+        screenPetHandledRevision = screenPetCandidateRevision
+    }
+
     private func stopAutonomousWalk(now: TimeInterval) {
         autonomousWalkUntil = 0
         autonomousModeUntil = now + Double.random(in: 2...5)
@@ -702,8 +827,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         nextAutoEffect = now + Double.random(in: 30...70)
     }
 
-    private func updateDailyRitualFlags() {
-        let hour = Calendar.current.component(.hour, from: Date())
+    private func updateDailyRitualFlags(hour: Int) {
         if hour < CatAutonomousBehavior.lunchHour {
             lunchedToday = false
         }
@@ -1312,6 +1436,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         agentProcessActivities = activities
         guard appSettings.agentProcessDetectionEnabled else { return }
         guard let cat = catWindow else { return }
+        guard ProcessInfo.processInfo.systemUptime >= screenPetInteractionUntil else { return }
         guard let activity = AgentProcessDetector.topBusyActivity(in: activities) else {
             scheduleAgentProcessIdle(resetExisting: false)
             return

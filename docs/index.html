@@ -3,1957 +3,250 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>OpenNeko - Open-source desktop pixel cat for AI Agents</title>
-  <meta name="description" content="OpenNeko is an open-source desktop pixel cat that chats with AI Agents and reacts to typing and agent activity.">
+  <title>OpenNeko — A little company for your Mac</title>
+  <meta name="description" content="Meet OpenNeko, an open-source native macOS pixel cat. A small desktop companion that reacts to your work and connects to your favorite AI.">
   <link rel="canonical" href="https://kimtoma.github.io/OpenNeko/">
-  <meta property="og:title" content="OpenNeko">
-  <meta property="og:description" content="An open-source desktop pixel cat for talking with AI Agents">
+  <meta property="og:title" content="OpenNeko — A little company for your Mac">
+  <meta property="og:description" content="A pixel cat. A little AI. A happier desktop. Meet your open-source native macOS companion.">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://kimtoma.github.io/OpenNeko/">
   <meta property="og:image" content="https://kimtoma.github.io/OpenNeko/assets/og/openneko-og-v2.png">
-  <meta property="og:image:secure_url" content="https://kimtoma.github.io/OpenNeko/assets/og/openneko-og-v2.png">
-  <meta property="og:image:type" content="image/png">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
-  <meta property="og:image:alt" content="OpenNeko desktop pixel cat walking above a dock">
-  <meta property="og:locale" content="en_US">
-  <meta property="og:locale:alternate" content="ko_KR">
-  <meta property="og:locale:alternate" content="ja_JP">
-  <meta property="og:locale:alternate" content="zh_CN">
+  <meta property="og:image:alt" content="OpenNeko desktop pixel cat">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="OpenNeko">
-  <meta name="twitter:description" content="An open-source desktop pixel cat for talking with AI Agents">
+  <meta name="twitter:title" content="OpenNeko — A little company for your Mac">
+  <meta name="twitter:description" content="A pixel cat. A little AI. A happier desktop.">
   <meta name="twitter:image" content="https://kimtoma.github.io/OpenNeko/assets/og/openneko-og-v2.png">
-  <meta name="theme-color" content="#00a8c8">
+  <meta name="theme-color" content="#f6f3eb">
   <link rel="icon" type="image/png" href="assets/sprites/black/idle_0.png">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;520;650;700;800;900&display=swap" rel="stylesheet">
-  <style>
-    /* Geist Pixel (Square) — Vercel, SIL OFL 1.1. See assets/fonts/GeistPixel-LICENSE.txt */
-    @font-face {
-      font-family: "Geist Pixel";
-      src: url("assets/fonts/GeistPixel-Square.woff2") format("woff2");
-      font-weight: 100 900;
-      font-style: normal;
-      font-display: swap;
-    }
-    :root {
-      --bg: #ffffff;
-      --ink: #111318;
-      --muted: #626a73;
-      --line: #d9e1e8;
-      --soft: #f5f8fa;
-      --cyan: #00a8c8;
-      --cyan-dark: #007e98;
-      --coral: #ff6b57;
-      --yellow: #ffd866;
-      --green: #43b97f;
-      --shadow: 0 18px 48px rgba(17, 19, 24, 0.12);
-      --max: 1120px;
-      --ui-font: "Inter", ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
-      --display-font: "Geist Pixel", var(--ui-font);
-      color-scheme: light;
-      font-family: var(--ui-font);
-    }
-
-    * {
-      box-sizing: border-box;
-    }
-
-    html {
-      scroll-behavior: smooth;
-    }
-
-    body {
-      margin: 0;
-      background: var(--bg);
-      color: var(--ink);
-      letter-spacing: 0;
-      word-break: keep-all;
-      overflow-wrap: break-word;
-      line-break: strict;
-    }
-
-    a {
-      color: inherit;
-      text-decoration: none;
-    }
-
-    button,
-    input {
-      font: inherit;
-    }
-
-    .page {
-      min-height: 100vh;
-      overflow: hidden;
-      padding-top: 68px;
-    }
-
-    .site-header {
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      z-index: 20;
-      background: rgba(255, 255, 255, 0.92);
-      backdrop-filter: blur(18px);
-      border-bottom: 1px solid rgba(217, 225, 232, 0.78);
-    }
-
-    .nav {
-      width: min(var(--max), calc(100% - 40px));
-      min-height: 68px;
-      margin: 0 auto;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 24px;
-    }
-
-    .brand {
-      display: inline-flex;
-      align-items: center;
-      gap: 10px;
-      font-family: var(--display-font);
-      font-weight: 900;
-      font-size: 18px;
-      word-break: normal;
-      overflow-wrap: normal;
-    }
-
-    .brand img {
-      width: 32px;
-      height: 32px;
-      image-rendering: pixelated;
-    }
-
-    .nav-links {
-      display: flex;
-      align-items: center;
-      gap: 22px;
-      color: var(--muted);
-      font-family: var(--ui-font);
-      font-size: 14px;
-      font-weight: 900;
-    }
-
-    .language-menu {
-      position: relative;
-      z-index: 30;
-    }
-
-    .language-toggle {
-      height: 42px;
-      min-width: 142px;
-      display: inline-flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 10px;
-      border: 2px solid var(--ink);
-      border-radius: 8px;
-      background: #fff;
-      color: var(--ink);
-      padding: 0 11px 0 12px;
-      font-family: var(--ui-font);
-      font-size: 14px;
-      font-weight: 900;
-      cursor: pointer;
-      box-shadow: 4px 4px 0 var(--ink);
-      transition: transform 150ms ease, box-shadow 150ms ease;
-    }
-
-    .language-toggle:hover,
-    .language-toggle:focus-visible,
-    .language-menu.open .language-toggle {
-      transform: translate(2px, 2px);
-      box-shadow: 2px 2px 0 var(--ink);
-      outline: none;
-    }
-
-    .language-current {
-      display: inline-flex;
-      align-items: center;
-      gap: 7px;
-      white-space: nowrap;
-    }
-
-    .chevron {
-      width: 15px;
-      height: 15px;
-      flex: 0 0 auto;
-      transition: transform 150ms ease;
-    }
-
-    .language-menu.open .chevron {
-      transform: rotate(180deg);
-    }
-
-    .language-options {
-      position: absolute;
-      top: calc(100% + 10px);
-      right: 0;
-      width: 180px;
-      display: grid;
-      gap: 6px;
-      padding: 8px;
-      border: 2px solid var(--ink);
-      border-radius: 8px;
-      background: #fff;
-      box-shadow: 4px 4px 0 var(--ink);
-      opacity: 0;
-      transform: translateY(-4px);
-      pointer-events: none;
-      transition: opacity 150ms ease, transform 150ms ease;
-    }
-
-    .language-menu.open .language-options {
-      opacity: 1;
-      transform: translateY(0);
-      pointer-events: auto;
-    }
-
-    .language-option {
-      min-height: 38px;
-      display: flex;
-      align-items: center;
-      gap: 9px;
-      border: 0;
-      border-radius: 6px;
-      background: transparent;
-      color: var(--ink);
-      padding: 0 9px;
-      text-align: left;
-      font-size: 14px;
-      font-weight: 850;
-      cursor: pointer;
-    }
-
-    .language-option:hover,
-    .language-option:focus-visible,
-    .language-option[aria-selected="true"] {
-      background: var(--soft);
-      outline: none;
-    }
-
-    .nav-links a:hover {
-      color: var(--ink);
-    }
-
-    .hero {
-      width: min(var(--max), calc(100% - 40px));
-      margin: 0 auto;
-      min-height: calc(100vh - 164px);
-      padding: 52px 0 42px;
-      display: grid;
-      grid-template-columns: minmax(480px, 0.92fr) minmax(0, 1.08fr);
-      gap: 48px;
-      align-items: center;
-    }
-
-    .hero-copy h1 {
-      margin: 0;
-      font-family: var(--display-font);
-      font-size: clamp(58px, 7.2vw, 104px);
-      line-height: 1;
-      font-weight: 900;
-      letter-spacing: 0;
-      white-space: nowrap;
-    }
-
-    #hero-title {
-      font-family: var(--display-font);
-      font-weight: 900;
-    }
-
-    .hero-copy p {
-      margin: 28px 0 0;
-      max-width: 560px;
-      color: #252b31;
-      font-size: clamp(20px, 2.4vw, 30px);
-      line-height: 1.32;
-      font-weight: 750;
-    }
-
-    .hero-copy .support {
-      margin-top: 18px;
-      color: var(--muted);
-      font-size: 16px;
-      line-height: 1.72;
-      font-weight: 520;
-    }
-
-    .actions {
-      margin-top: 34px;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 14px;
-    }
-
-    .button {
-      min-height: 48px;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-      border-radius: 8px;
-      padding: 0 20px;
-      border: 2px solid var(--ink);
-      font-family: var(--ui-font);
-      font-size: 15px;
-      font-weight: 900;
-      transition: transform 150ms ease, box-shadow 150ms ease, background 150ms ease;
-      word-break: keep-all;
-      overflow-wrap: normal;
-    }
-
-    .button.primary {
-      background: var(--ink);
-      color: #fff;
-      box-shadow: 4px 4px 0 var(--cyan);
-    }
-
-    .button.secondary {
-      background: #fff;
-      color: var(--ink);
-      box-shadow: 4px 4px 0 var(--coral);
-    }
-
-    .button:hover {
-      transform: translate(2px, 2px);
-      box-shadow: 1px 1px 0 currentColor;
-    }
-
-    .hero-stage {
-      position: relative;
-      min-height: 560px;
-      border: 2px solid var(--ink);
-      border-radius: 8px;
-      background:
-        linear-gradient(90deg, rgba(17, 19, 24, 0.04) 1px, transparent 1px),
-        linear-gradient(180deg, rgba(17, 19, 24, 0.04) 1px, transparent 1px),
-        #f7fbfd;
-      background-size: 34px 34px;
-      box-shadow: var(--shadow), 7px 7px 0 var(--ink);
-      overflow: hidden;
-    }
-
-    .window-bar {
-      height: 42px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      padding: 0 18px;
-      border-bottom: 2px solid var(--ink);
-      background: #fff;
-    }
-
-    .dot {
-      width: 12px;
-      height: 12px;
-      border-radius: 999px;
-      border: 2px solid var(--ink);
-      display: inline-block;
-    }
-
-    .dot.red { background: var(--coral); }
-    .dot.yellow { background: var(--yellow); }
-    .dot.green { background: var(--green); }
-
-    .desktop-plane {
-      position: absolute;
-      inset: 42px 0 0;
-      overflow: hidden;
-      background:
-        radial-gradient(circle at 14% 22%, rgba(255, 255, 255, 0.86) 0 9%, transparent 24%),
-        radial-gradient(circle at 74% 18%, rgba(255, 125, 98, 0.92) 0 13%, transparent 32%),
-        radial-gradient(circle at 88% 74%, rgba(105, 80, 255, 0.92) 0 14%, transparent 34%),
-        radial-gradient(circle at 28% 82%, rgba(0, 180, 216, 0.82) 0 15%, transparent 34%),
-        linear-gradient(135deg, #ffe9cf 0%, #ffb6a7 28%, #7667ff 62%, #1b6fe8 100%);
-      background-size: cover;
-    }
-
-    .chat-bubble {
-      position: absolute;
-      left: 50%;
-      top: 138px;
-      width: min(270px, calc(100% - 72px));
-      padding: 14px 17px;
-      border: 2px solid var(--ink);
-      border-radius: 18px 18px 18px 6px;
-      background: #111318;
-      color: #fff;
-      box-shadow: 6px 6px 0 var(--cyan);
-      font-size: 14px;
-      line-height: 1.45;
-      font-weight: 740;
-      transform: translateX(-8%);
-      z-index: 4;
-    }
-
-    .chat-bubble::after {
-      content: "";
-      position: absolute;
-      left: 34px;
-      bottom: -16px;
-      width: 24px;
-      height: 18px;
-      background: #111318;
-      border-left: 2px solid var(--ink);
-      border-bottom: 2px solid var(--ink);
-      clip-path: polygon(0 0, 100% 0, 18% 100%);
-    }
-
-    .dock {
-      position: absolute;
-      left: 50%;
-      bottom: 30px;
-      width: min(76%, 620px);
-      min-height: 92px;
-      transform: translateX(-50%);
-      border: 1px solid rgba(255, 255, 255, 0.58);
-      border-radius: 24px;
-      background: rgba(255, 255, 255, 0.38);
-      box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, 0.72),
-        0 18px 46px rgba(36, 45, 64, 0.24);
-      backdrop-filter: blur(16px) saturate(1.3);
-    }
-
-    .dock-icons {
-      position: absolute;
-      left: 18px;
-      right: 18px;
-      bottom: 16px;
-      display: grid;
-      grid-template-columns: repeat(8, 1fr);
-      gap: 10px;
-      align-items: end;
-    }
-
-    .dock-icons span {
-      position: relative;
-      aspect-ratio: 1;
-      border: 1px solid rgba(255, 255, 255, 0.58);
-      border-radius: 15px;
-      background: var(--icon-bg, linear-gradient(135deg, #f8fbff, #b7c8ff));
-      box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, 0.7),
-        0 8px 16px rgba(17, 19, 24, 0.22);
-      overflow: hidden;
-    }
-
-    .dock-icons span::before {
-      content: attr(data-icon);
-      position: absolute;
-      inset: 0;
-      display: grid;
-      place-items: center;
-      color: #fff;
-      font-size: 20px;
-      font-weight: 900;
-      text-shadow: 0 1px 3px rgba(0, 0, 0, 0.28);
-    }
-
-    .dock-icon.finder { --icon-bg: linear-gradient(90deg, #66d1ff 0 49%, #ffffff 50% 100%); }
-    .dock-icon.safari { --icon-bg: radial-gradient(circle at 50% 50%, #fff 0 12%, transparent 13%), conic-gradient(from 18deg, #e6425e, #1a78ff, #19c4ff, #e6425e); }
-    .dock-icon.messages { --icon-bg: linear-gradient(135deg, #66f087, #14b85a); }
-    .dock-icon.mail { --icon-bg: linear-gradient(135deg, #4cc9ff, #2267ff); }
-    .dock-icon.photos { --icon-bg: conic-gradient(#ff4e60, #ffa63d, #ffe66d, #52d273, #4fc3ff, #8b6bff, #ff4e60); }
-    .dock-icon.music { --icon-bg: linear-gradient(135deg, #ff6aa2, #ff244f); }
-    .dock-icon.terminal { --icon-bg: linear-gradient(135deg, #1b2028, #030507); }
-    .dock-icon.settings { --icon-bg: linear-gradient(135deg, #cbd3de, #6f7f91); }
-
-    .dock-icons span::after {
-      content: "";
-      position: absolute;
-      left: 17%;
-      right: 17%;
-      top: 12%;
-      height: 22%;
-      border-radius: 999px;
-      background: rgba(255, 255, 255, 0.3);
-    }
-
-    .hero-cat {
-      position: absolute;
-      left: 50%;
-      bottom: 92px;
-      width: 192px;
-      height: 192px;
-      transform: translateX(-50%);
-      image-rendering: pixelated;
-      filter: drop-shadow(0 14px 0 rgba(17, 19, 24, 0.14));
-      animation: cat-hop 1.4s steps(2, end) infinite;
-    }
-
-    .dock-shadow {
-      position: absolute;
-      left: 50%;
-      bottom: 94px;
-      width: 124px;
-      height: 16px;
-      transform: translateX(-50%);
-      border-radius: 999px;
-      background: rgba(17, 19, 24, 0.2);
-      filter: blur(1px);
-    }
-
-    .section {
-      width: min(var(--max), calc(100% - 40px));
-      margin: 0 auto;
-      padding: 92px 0;
-      border-top: 1px solid var(--line);
-    }
-
-    #features {
-      padding-top: 44px;
-    }
-
-    .section-head {
-      display: flex;
-      align-items: flex-end;
-      justify-content: space-between;
-      gap: 36px;
-      margin-bottom: 36px;
-    }
-
-    .section h2 {
-      margin: 0;
-      max-width: 720px;
-      font-family: var(--ui-font);
-      font-size: clamp(34px, 5vw, 64px);
-      line-height: 1.08;
-      font-weight: 900;
-      letter-spacing: 0;
-    }
-
-    .section-head p {
-      margin: 0;
-      max-width: 360px;
-      color: var(--muted);
-      font-size: 15px;
-      line-height: 1.75;
-      font-weight: 520;
-    }
-
-    .feature-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 16px;
-    }
-
-    .feature {
-      min-height: 220px;
-      padding: 22px;
-      border: 2px solid var(--ink);
-      border-radius: 8px;
-      background: #fff;
-      box-shadow: 4px 4px 0 rgba(17, 19, 24, 0.15);
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      gap: 22px;
-    }
-
-    .feature img {
-      width: 82px;
-      height: 82px;
-      image-rendering: pixelated;
-      align-self: flex-end;
-    }
-
-    .feature-scene {
-      min-height: 96px;
-      display: flex;
-      align-items: flex-end;
-      justify-content: flex-end;
-      gap: 10px;
-    }
-
-    .feature-cat {
-      transform-origin: 50% 100%;
-      animation: feature-cat-bob 1.8s ease-in-out infinite;
-      will-change: transform;
-    }
-
-    .feature:nth-child(2n) .feature-cat {
-      animation-delay: -0.35s;
-    }
-
-    .feature:nth-child(3n) .feature-cat {
-      animation-delay: -0.7s;
-    }
-
-    .feature h3 {
-      margin: 0 0 10px;
-      font-size: 20px;
-      line-height: 1.2;
-    }
-
-    .feature p {
-      margin: 0;
-      color: var(--muted);
-      font-size: 14px;
-      line-height: 1.65;
-    }
-
-    .slash-demo {
-      width: 100%;
-      max-width: 236px;
-      margin-left: auto;
-      padding: 10px;
-      border: 2px solid var(--ink);
-      border-radius: 8px;
-      background: #111318;
-      box-shadow: 4px 4px 0 rgba(17, 19, 24, 0.14);
-    }
-
-    .slash-list {
-      height: 34px;
-      overflow: hidden;
-      border-radius: 6px;
-    }
-
-    .slash-list-track {
-      display: grid;
-      gap: 7px;
-      animation: slash-roll 7.2s steps(1, end) infinite;
-    }
-
-    .slash-line {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      min-height: 34px;
-      padding: 0 10px;
-      border-radius: 6px;
-      background: #fff;
-      color: var(--ink);
-      font-size: 13px;
-      font-weight: 760;
-      white-space: nowrap;
-    }
-
-    .slash-line span {
-      color: var(--cyan-dark);
-    }
-
-    .slash-demo img {
-      width: 48px;
-      height: 48px;
-      margin-top: 6px;
-      margin-left: auto;
-      display: block;
-      image-rendering: pixelated;
-    }
-
-    .skin-stack {
-      position: relative;
-      min-height: 112px;
-      width: 100%;
-    }
-
-    .skin-stack img {
-      position: absolute;
-      bottom: 0;
-      width: 68px;
-      height: 68px;
-      object-fit: contain;
-      object-position: center bottom;
-      image-rendering: pixelated;
-    }
-
-    .skin-stack img:nth-child(1) {
-      left: 10px;
-    }
-
-    .skin-stack img:nth-child(2) {
-      left: 58px;
-    }
-
-    .skin-stack img:nth-child(3) {
-      left: 106px;
-    }
-
-    .skin-stack img:nth-child(4) {
-      left: 154px;
-    }
-
-    .skin-stack img:nth-child(5) {
-      left: 202px;
-    }
-
-    .neighbor-scene {
-      position: relative;
-      width: 100%;
-      min-height: 100px;
-      overflow: hidden;
-      border-bottom: 3px solid var(--ink);
-    }
-
-    .neighbor-scene img {
-      position: absolute;
-      bottom: 0;
-      width: 72px;
-      height: 72px;
-      image-rendering: pixelated;
-    }
-
-    .neighbor-scene .home-cat {
-      right: 26px;
-    }
-
-    .cat-label {
-      position: absolute;
-      bottom: 70px;
-      padding: 4px 7px;
-      border: 2px solid var(--ink);
-      border-radius: 8px;
-      background: #fff;
-      font-size: 11px;
-      font-weight: 850;
-      box-shadow: 2px 2px 0 rgba(17, 19, 24, 0.14);
-      white-space: nowrap;
-      z-index: 2;
-    }
-
-    .cat-label.mine {
-      right: 30px;
-    }
-
-    .cat-label.friend {
-      left: 18px;
-      animation: friend-label-visit 2.6s ease-in-out infinite;
-    }
-
-    .neighbor-scene .friend-cat {
-      left: 8px;
-      animation: friend-visit 2.6s ease-in-out infinite;
-    }
-
-    .feature.accent-cyan {
-      background: #ecfbff;
-    }
-
-    .feature.accent-coral {
-      background: #fff2ef;
-    }
-
-    .feature.accent-yellow {
-      background: #fff9db;
-    }
-
-    .install-panel {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 18px;
-      align-items: stretch;
-      padding: 28px;
-      border: 2px solid var(--ink);
-      border-radius: 8px;
-      background: #111318;
-      color: #fff;
-      box-shadow: 7px 7px 0 var(--cyan);
-    }
-
-    .download-card {
-      display: grid;
-      grid-template-columns: minmax(0, 1fr) auto;
-      gap: 24px;
-      align-items: center;
-      padding: 22px;
-      border: 2px solid #fff;
-      border-radius: 8px;
-      background: #fff;
-      color: var(--ink);
-      box-shadow: 5px 5px 0 var(--yellow);
-    }
-
-    .download-card h3 {
-      margin: 7px 0 8px;
-      font-size: clamp(24px, 3vw, 34px);
-      line-height: 1.1;
-      font-weight: 900;
-    }
-
-    .download-card p {
-      margin: 0;
-      max-width: 600px;
-      color: #414a53;
-      font-size: 15px;
-      line-height: 1.65;
-      font-weight: 650;
-    }
-
-    .download-actions {
-      display: grid;
-      gap: 12px;
-      min-width: 190px;
-    }
-
-    .download-button {
-      min-width: 190px;
-      white-space: nowrap;
-    }
-
-    .source-install {
-      border-top: 1px solid rgba(255, 255, 255, 0.22);
-      padding-top: 18px;
-    }
-
-    .source-note {
-      border-top: 0;
-      padding-top: 12px;
-    }
-
-    .terminal {
-      min-width: 0;
-      display: grid;
-      gap: 14px;
-    }
-
-    .terminal-label {
-      color: #b8c4ce;
-      font-size: 13px;
-      font-weight: 750;
-    }
-
-    .command-row {
-      display: grid;
-      grid-template-columns: minmax(0, 1fr) auto;
-      gap: 12px;
-      align-items: center;
-    }
-
-    code {
-      display: block;
-      min-width: 0;
-      overflow-x: hidden;
-      padding: 16px;
-      border: 1px solid #2b333c;
-      border-radius: 8px;
-      background: #06080b;
-      color: #e7fbff;
-      font-family: var(--ui-font);
-      font-size: 14px;
-      line-height: 1.65;
-      white-space: normal;
-      word-break: break-word;
-      overflow-wrap: anywhere;
-    }
-
-    .copy-button {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
-      min-height: 45px;
-      border: 2px solid #111318;
-      border-radius: 8px;
-      background: #ffd866;
-      color: #111318;
-      padding: 0 20px;
-      cursor: pointer;
-      font-family: var(--ui-font);
-      font-size: 14px;
-      font-weight: 900;
-      box-shadow: 4px 4px 0 #00a8c8;
-      transition: transform 150ms ease, box-shadow 150ms ease, background 150ms ease;
-    }
-
-    .copy-button:hover,
-    .copy-button:focus-visible {
-      background: #fff;
-      transform: translate(2px, 2px);
-      box-shadow: 2px 2px 0 #00a8c8;
-    }
-
-    .install-note {
-      border-top: 1px solid rgba(255, 255, 255, 0.22);
-      padding-top: 18px;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px 18px;
-      color: #d4dde5;
-      font-size: 14px;
-      line-height: 1.65;
-    }
-
-    .providers {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 14px;
-    }
-
-    .provider {
-      padding: 20px;
-      border: 2px solid var(--ink);
-      border-radius: 8px;
-      background: var(--soft);
-      min-height: 170px;
-    }
-
-    .provider-icons {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      min-height: 36px;
-      margin-bottom: 14px;
-    }
-
-    .provider-icons img {
-      width: 30px;
-      height: 30px;
-      object-fit: contain;
-    }
-
-    .provider strong {
-      display: block;
-      margin-bottom: 12px;
-      font-size: 18px;
-    }
-
-    .provider span {
-      color: var(--muted);
-      font-size: 14px;
-      line-height: 1.6;
-    }
-
-    .opensource {
-      display: grid;
-      grid-template-columns: minmax(0, 1fr) minmax(320px, 0.48fr);
-      gap: 40px;
-      align-items: center;
-      padding: 44px;
-      border: 2px solid var(--ink);
-      border-radius: 8px;
-      background:
-        linear-gradient(135deg, rgba(0, 168, 200, 0.14), transparent 46%),
-        linear-gradient(315deg, rgba(255, 107, 87, 0.16), transparent 42%),
-        #fff;
-      box-shadow: 7px 7px 0 var(--ink);
-    }
-
-    .opensource h2 {
-      font-size: clamp(36px, 5vw, 70px);
-    }
-
-    .opensource p {
-      margin: 22px 0 0;
-      max-width: 680px;
-      color: #252b31;
-      font-size: 18px;
-      line-height: 1.7;
-      font-weight: 560;
-    }
-
-    .skin-row {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 10px;
-    }
-
-    .skin-row img {
-      width: 100%;
-      aspect-ratio: 1;
-      object-fit: contain;
-      image-rendering: pixelated;
-      border: 2px solid var(--ink);
-      border-radius: 8px;
-      background: #fff;
-      padding: 10px;
-    }
-
-    .footer {
-      width: min(var(--max), calc(100% - 40px));
-      margin: 0 auto;
-      padding: 42px 0 58px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 24px;
-      color: var(--muted);
-      font-size: 14px;
-      border-top: 1px solid var(--line);
-    }
-
-    .footer-links {
-      display: flex;
-      gap: 18px;
-      font-weight: 700;
-    }
-
-    .footer-made {
-      display: block;
-      margin-top: 6px;
-    }
-
-    .footer-made a {
-      color: var(--ink);
-      font-weight: 800;
-    }
-
-    @keyframes cat-hop {
-      0%, 100% { transform: translateX(-50%) translateY(0); }
-      50% { transform: translateX(-50%) translateY(-8px); }
-    }
-
-    @keyframes feature-cat-bob {
-      0%, 100% { transform: translateY(0) scale(1); }
-      50% { transform: translateY(-5px) scale(1.02); }
-    }
-
-    @keyframes friend-visit {
-      0%, 100% { transform: translateX(0) translateY(0); }
-      42% { transform: translateX(132px) translateY(0); }
-      55% { transform: translateX(144px) translateY(-9px); }
-      68% { transform: translateX(132px) translateY(0); }
-    }
-
-    @keyframes friend-label-visit {
-      0%, 100% { transform: translateX(0); }
-      42%, 68% { transform: translateX(132px); }
-      55% { transform: translateX(144px); }
-    }
-
-    @keyframes slash-roll {
-      0%, 28% { transform: translateY(0); }
-      33%, 61% { transform: translateY(-41px); }
-      66%, 94% { transform: translateY(-82px); }
-      100% { transform: translateY(0); }
-    }
-
-    @media (prefers-reduced-motion: reduce) {
-      html {
-        scroll-behavior: auto;
-      }
-
-      .hero-cat,
-      .feature-cat,
-      .neighbor-scene .friend-cat {
-        animation: none;
-      }
-
-      .slash-list-track {
-        animation: none;
-      }
-
-      .button,
-      .language-toggle,
-      .language-options {
-        transition: none;
-      }
-    }
-
-    @media (max-width: 960px) {
-      .nav {
-        width: min(var(--max), calc(100% - 28px));
-      }
-
-      .nav-links > a {
-        display: none;
-      }
-
-      .hero {
-        width: min(var(--max), calc(100% - 28px));
-        min-height: auto;
-        padding: 42px 0 34px;
-        grid-template-columns: 1fr;
-        gap: 32px;
-      }
-
-      .hero-stage {
-        min-height: 500px;
-      }
-
-      .chat-bubble {
-        top: 128px;
-        transform: translateX(-18%);
-      }
-
-      .section {
-        width: min(var(--max), calc(100% - 28px));
-        padding: 70px 0;
-      }
-
-      #features {
-        padding-top: 24px;
-      }
-
-      .section-head {
-        display: grid;
-        gap: 16px;
-      }
-
-      .feature-grid,
-      .providers {
-        grid-template-columns: repeat(2, 1fr);
-      }
-
-      .opensource {
-        grid-template-columns: 1fr;
-      }
-    }
-
-    @media (max-width: 640px) {
-      .nav {
-        min-height: 60px;
-      }
-
-      .page {
-        padding-top: 60px;
-      }
-
-      .brand {
-        font-size: 16px;
-      }
-
-      .language-toggle {
-        height: 40px;
-        min-width: 124px;
-        padding-left: 10px;
-        font-size: 13px;
-      }
-
-      .language-options {
-        width: 168px;
-      }
-
-      .hero {
-        padding: 34px 0 28px;
-        gap: 26px;
-      }
-
-      .hero-copy h1 {
-        font-size: clamp(54px, 16vw, 68px);
-      }
-
-      .hero-copy p {
-        margin-top: 20px;
-        font-size: 20px;
-      }
-
-      .hero-copy .support {
-        margin-top: 14px;
-        font-size: 15px;
-        line-height: 1.6;
-      }
-
-      .actions {
-        display: grid;
-        margin-top: 26px;
-        gap: 12px;
-      }
-
-      .button {
-        min-height: 46px;
-      }
-
-      .hero-stage {
-        min-height: 300px;
-      }
-
-      .window-bar {
-        height: 38px;
-        padding: 0 14px;
-      }
-
-      .desktop-plane {
-        inset: 38px 0 0;
-      }
-
-      .chat-bubble {
-        left: 48%;
-        top: 72px;
-        width: min(210px, calc(100% - 42px));
-        padding: 10px 12px;
-        font-size: 12px;
-        transform: translateX(-18%);
-      }
-
-      .dock {
-        left: 50%;
-        right: auto;
-        width: calc(100% - 28px);
-        bottom: 14px;
-        min-height: 64px;
-      }
-
-      .dock-icons {
-        grid-template-columns: repeat(8, 1fr);
-        gap: 5px;
-        left: 10px;
-        right: 10px;
-        bottom: 10px;
-      }
-
-      .dock-icons span {
-        border-radius: 10px;
-      }
-
-      .dock-icons span::before {
-        font-size: 14px;
-      }
-
-      .hero-cat {
-        width: 122px;
-        height: 122px;
-        bottom: 62px;
-      }
-
-      .dock-shadow {
-        width: 86px;
-        bottom: 64px;
-      }
-
-      .feature-grid,
-      .providers {
-        grid-template-columns: 1fr;
-      }
-
-      .command-row {
-        grid-template-columns: 1fr;
-      }
-
-      .download-card {
-        grid-template-columns: 1fr;
-      }
-
-      .download-actions {
-        grid-template-columns: 1fr;
-      }
-
-      .download-button {
-        width: 100%;
-      }
-
-      .copy-button {
-        width: 100%;
-      }
-
-      .opensource {
-        padding: 28px;
-      }
-
-      .skin-row {
-        grid-template-columns: repeat(2, 1fr);
-      }
-
-      .skin-stack {
-        padding-right: 16px;
-      }
-
-      .skin-stack img {
-        width: 64px;
-        height: 64px;
-        margin-right: -20px;
-      }
-
-      .footer {
-        width: min(var(--max), calc(100% - 28px));
-        display: grid;
-      }
-    }
-  </style>
+  <link rel="preload" href="assets/fonts/GeistPixel-Square.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="assets/homepage.css">
+  <script src="assets/homepage.js" defer></script>
 </head>
 <body>
-  <div class="page">
-    <header class="site-header">
-      <nav class="nav" aria-label="주요 메뉴" data-i18n-attr="aria-label:navAria">
-        <a class="brand" href="#top" aria-label="OpenNeko 홈" data-i18n-attr="aria-label:brandAria">
-          <img src="assets/sprites/black/idle_0.png" alt="">
-          <span>OpenNeko</span>
-        </a>
-        <div class="nav-links">
-          <a href="#features" data-i18n="navFeatures">Features</a>
-          <a href="#install" data-i18n="navInstall">Install</a>
-          <a href="#providers" data-i18n="navProviders">Providers</a>
-          <a href="#community" data-i18n="navCommunity">Community</a>
-          <div class="language-menu" id="language-menu">
-            <button class="language-toggle" id="language-toggle" type="button" aria-haspopup="listbox" aria-expanded="false" aria-label="Language">
-              <span class="language-current" id="language-current">🇰🇷 한국어</span>
-              <svg class="chevron" viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"></path>
-              </svg>
-            </button>
-            <div class="language-options" id="language-options" role="listbox" aria-label="Language">
-              <button class="language-option" type="button" role="option" data-lang="ko">🇰🇷 한국어</button>
-              <button class="language-option" type="button" role="option" data-lang="en">🇺🇸 English</button>
-              <button class="language-option" type="button" role="option" data-lang="ja">🇯🇵 日本語</button>
-              <button class="language-option" type="button" role="option" data-lang="zh">🇨🇳 简体中文</button>
-            </div>
-          </div>
-        </div>
-      </nav>
-    </header>
-
-    <main id="top">
-      <section class="hero" aria-labelledby="hero-title">
-        <div class="hero-copy">
-          <h1 id="hero-title">OpenNeko</h1>
-          <p data-i18n="heroLead">AI Agent와 대화하는 오픈소스 데스크탑 픽셀 고양이</p>
-          <p class="support" data-i18n="heroSupport">화면 하단을 사뿐히 걸어다니며 타이핑, 코딩 에이전트 상태, 짧은 질문에 반응합니다. OpenAI/Codex, Claude, Gemini 로그인과 Ollama 같은 로컬 모델을 우선 지원합니다.</p>
-          <div class="actions">
-            <a class="button primary" href="https://github.com/kimtoma/OpenNeko" data-i18n="heroGithub">GitHub에서 보기</a>
-            <a class="button secondary" href="#install"><span aria-hidden="true">🐾</span> <span data-i18n="heroInstall">Mac용 다운로드</span></a>
-          </div>
-        </div>
-
-        <div class="hero-stage" aria-label="OpenNeko 데스크탑 프리뷰" data-i18n-attr="aria-label:heroPreviewAria">
-          <div class="window-bar" aria-hidden="true">
-            <span class="dot red"></span>
-            <span class="dot yellow"></span>
-            <span class="dot green"></span>
-          </div>
-          <div class="desktop-plane">
-            <div class="chat-bubble" data-i18n="heroBubble">반갑다냥~ 오늘도 같이 작업하자냥.</div>
-            <div class="dock" aria-hidden="true">
-              <div class="dock-icons">
-                <span class="dock-icon finder" data-icon="📁"></span>
-                <span class="dock-icon safari" data-icon="🌐"></span>
-                <span class="dock-icon messages" data-icon="💬"></span>
-                <span class="dock-icon mail" data-icon="✉"></span>
-                <span class="dock-icon photos" data-icon="✹"></span>
-                <span class="dock-icon music" data-icon="♪"></span>
-                <span class="dock-icon terminal" data-icon="›_"></span>
-                <span class="dock-icon settings" data-icon="⚙"></span>
-              </div>
-            </div>
-            <span class="dock-shadow" aria-hidden="true"></span>
-            <img class="hero-cat" id="hero-cat" src="assets/sprites/black/walk_0.png" alt="OpenNeko pixel cat">
-          </div>
-        </div>
-      </section>
-
-      <section class="section" id="features" aria-labelledby="features-title">
-        <div class="section-head">
-          <h2 id="features-title" data-i18n="featuresTitle">작업 흐름을 방해하지 않는 작은 AI 동료</h2>
-          <p data-i18n="featuresBody">OpenNeko는 데스크탑 위에 가볍게 머무는 반응형 펫입니다. 채팅, 상태 표시, 스킬 실행, 스킨 교체가 모두 로컬 앱 안에서 동작합니다.</p>
-        </div>
-        <div class="feature-grid">
-          <article class="feature accent-cyan">
-            <div>
-              <h3 data-i18n="featureTypingTitle">타이핑 반응</h3>
-              <p data-i18n="featureTypingBody">키보드를 타이핑할 때마다 고양이가 타이핑 애니메이션으로 반응합니다. 키 내용은 읽지 않습니다.</p>
-            </div>
-            <div class="feature-scene">
-              <img class="feature-cat" src="assets/sprites/black/typing_0.png" alt="" data-frames="assets/sprites/black/typing_0.png|assets/sprites/black/typing_1.png|assets/sprites/black/typing_2.png|assets/sprites/black/typing_3.png" data-interval="150">
-            </div>
-          </article>
-          <article class="feature">
-            <div>
-              <h3 data-i18n="featureChatTitle">짧은 AI Agent 대화</h3>
-              <p data-i18n="featureChatBody">고양이를 클릭하면 작은 말풍선 입력창이 열리고, 선택한 Agent의 답변이 고양이 말투로 돌아옵니다.</p>
-            </div>
-            <div class="feature-scene">
-              <img class="feature-cat" src="assets/sprites/black/success_0.png" alt="" data-frames="assets/sprites/black/success_0.png|assets/sprites/black/success_1.png|assets/sprites/black/success_2.png|assets/sprites/black/success_3.png" data-interval="170">
-            </div>
-          </article>
-          <article class="feature accent-coral">
-            <div>
-              <h3 data-i18n="featureBridgeTitle">에이전트 상태 브리지</h3>
-              <p data-i18n="featureBridgeBody">Codex, Claude, Gemini, Cursor 등과 같은 에이전트 활동에 따라 다양한 모션으로 반응합니다.</p>
-            </div>
-            <div class="feature-scene">
-              <img class="feature-cat" src="assets/sprites/black/coding_0.png" alt="" data-frames="assets/sprites/black/coding_0.png|assets/sprites/black/coding_1.png|assets/sprites/black/coding_2.png|assets/sprites/black/coding_3.png" data-interval="165">
-            </div>
-          </article>
-          <article class="feature">
-            <div>
-              <h3 data-i18n="featureSkillTitle">스킬 프롬프트</h3>
-              <p data-i18n="featureSkillBody">번들 또는 사용자 SKILL.md를 메뉴와 슬래시 명령으로 실행합니다.</p>
-            </div>
-            <div class="slash-demo" aria-label="OpenNeko slash command preview">
-              <div class="slash-list">
-                <div class="slash-list-track">
-                  <div class="slash-line"><span>/</span> <span data-i18n="slashTranslate">translate 이거 얼마에요?</span></div>
-                  <div class="slash-line"><span>/</span> <span data-i18n="slashFortune">daily-fortune 오늘의 운세</span></div>
-                  <div class="slash-line"><span>/</span> <span data-i18n="slashBgm">daily-bgm 초집중 열공모드</span></div>
-                </div>
-              </div>
-              <img src="assets/sprites/black/idle_0.png" alt="" data-frames="assets/sprites/black/idle_0.png|assets/sprites/black/idle_1.png|assets/sprites/black/idle_2.png|assets/sprites/black/idle_3.png" data-interval="230">
-            </div>
-          </article>
-          <article class="feature accent-yellow">
-            <div>
-              <h3 data-i18n="featureSkinTitle">다양한 모습의 싸이버네꼬</h3>
-              <p data-i18n="featureSkinBody">기본 스킨 5종과 외부 스킨 폴더를 지원해 픽셀 고양이를 바꿀 수 있습니다.</p>
-            </div>
-            <div class="skin-stack" aria-label="OpenNeko skin variants">
-              <img src="assets/sprites/jump_0.png" alt="" data-frames="assets/sprites/jump_0.png|assets/sprites/jump_1.png|assets/sprites/jump_2.png|assets/sprites/jump_3.png" data-interval="160">
-              <img src="assets/sprites/black/jump_0.png" alt="" data-frames="assets/sprites/black/jump_0.png|assets/sprites/black/jump_1.png|assets/sprites/black/jump_2.png|assets/sprites/black/jump_3.png" data-interval="160">
-              <img src="assets/sprites/orange/jump_0.png" alt="" data-frames="assets/sprites/orange/jump_0.png|assets/sprites/orange/jump_1.png|assets/sprites/orange/jump_2.png|assets/sprites/orange/jump_3.png" data-interval="160">
-              <img src="assets/sprites/calico/jump_0.png" alt="" data-frames="assets/sprites/calico/jump_0.png|assets/sprites/calico/jump_1.png|assets/sprites/calico/jump_2.png|assets/sprites/calico/jump_3.png" data-interval="160">
-              <img src="assets/sprites/pink/jump_0.png" alt="" data-frames="assets/sprites/pink/jump_0.png|assets/sprites/pink/jump_1.png|assets/sprites/pink/jump_2.png|assets/sprites/pink/jump_3.png" data-interval="160">
-            </div>
-          </article>
-          <article class="feature">
-            <div>
-              <h3 data-i18n="featureNeighborTitle">이웃집 고양이 방문</h3>
-              <p data-i18n="featureNeighborBody">근처에 같은 Wi-Fi로 접속한 OpenNeko 친구를 발견해 화면에 찾아오게 합니다.</p>
-            </div>
-            <div class="neighbor-scene" aria-label="neighbor cat visiting">
-              <span class="cat-label friend" data-i18n="catFriend">모찌</span>
-              <span class="cat-label mine" data-i18n="catMine">네꼬</span>
-              <img class="friend-cat" src="assets/sprites/calico/walk_0.png" alt="" data-frames="assets/sprites/calico/walk_0.png|assets/sprites/calico/walk_1.png|assets/sprites/calico/walk_2.png|assets/sprites/calico/walk_3.png" data-interval="150">
-              <img class="home-cat" src="assets/sprites/black/idle_0.png" alt="" data-frames="assets/sprites/black/idle_0.png|assets/sprites/black/idle_1.png|assets/sprites/black/idle_2.png|assets/sprites/black/idle_3.png" data-interval="225">
-            </div>
-          </article>
-        </div>
-      </section>
-
-      <section class="section" id="install" aria-labelledby="install-title">
-        <div class="section-head">
-          <h2 id="install-title" data-i18n="installTitle">Mac용 앱 다운로드</h2>
-          <p data-i18n="installBody">DMG를 내려받아 Applications 폴더에 넣으면 바로 시작할 수 있습니다. 개발자는 소스 설치 명령도 사용할 수 있습니다.</p>
-        </div>
-        <div class="install-panel">
-          <div class="download-card">
-            <div>
-              <div class="terminal-label" data-i18n="downloadLabel">macOS 14+</div>
-              <h3 data-i18n="downloadTitle">OpenNeko for Mac</h3>
-              <p data-i18n="downloadBody">가장 쉬운 방법은 DMG를 내려받아 OpenNeko를 Applications로 옮기는 것입니다.</p>
-            </div>
-            <div class="download-actions">
-              <a class="button primary download-button" href="https://github.com/kimtoma/OpenNeko/releases/latest/download/OpenNeko-macOS-Release.dmg" data-i18n="downloadDmg">DMG 다운로드</a>
-              <a class="button secondary download-button" href="https://github.com/kimtoma/OpenNeko/releases/latest/download/OpenNeko-macOS-Release.zip" data-i18n="downloadZip">ZIP 다운로드</a>
-            </div>
-          </div>
-          <div class="install-note">
-            <span data-i18n="downloadReq">macOS 14 이상이 필요합니다.</span>
-            <span data-i18n="downloadSecurity">현재 빌드는 미공증 preview라 처음 실행할 때 macOS 보안 확인이 표시될 수 있습니다.</span>
-          </div>
-          <div class="source-install">
-            <div class="terminal">
-              <div class="terminal-label" data-i18n="sourceInstallLabel">소스에서 실행</div>
-              <div class="command-row">
-                <code id="install-command">git clone https://github.com/kimtoma/OpenNeko.git && cd OpenNeko && xcodegen generate && ./script/build_and_run.sh</code>
-                <button class="copy-button" type="button" data-copy="#install-command"><span aria-hidden="true">🐾</span> <span data-i18n="copy">복사</span></button>
-              </div>
-            </div>
-            <div class="install-note source-note">
-              <span data-i18n="sourceReq">소스 실행에는 Xcode, XcodeGen, git이 필요합니다.</span>
-              <span data-i18n-html="sourceSteps">소스 실행은 <strong>xcodegen generate</strong> 후 <strong>./script/build_and_run.sh</strong>를 사용합니다.</span>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section class="section" id="providers" aria-labelledby="providers-title">
-        <div class="section-head">
-          <h2 id="providers-title" data-i18n="providersTitle">원하는 AI 연결 방식 선택</h2>
-          <p data-i18n="providersBody">기본은 OAuth 로그인 기반 Agent입니다. 필요하면 API 키 provider나 로컬 OpenAI 호환 엔드포인트를 설정에서 추가합니다.</p>
-        </div>
-        <div class="providers">
-          <div class="provider">
-            <div class="provider-icons" aria-hidden="true">
-              <img src="assets/icons/openai.svg" alt="">
-            </div>
-            <strong data-i18n="providerOpenAITitle">ChatGPT 로그인</strong>
-            <span data-i18n="providerOpenAIBody">ChatGPT나 Codex 로그인 세션을 사용합니다. 앱에 OpenAI API 키를 입력하지 않아도 됩니다.</span>
-          </div>
-          <div class="provider">
-            <div class="provider-icons" aria-hidden="true">
-              <img src="assets/icons/claude.svg" alt="">
-            </div>
-            <strong data-i18n="providerClaudeTitle">Claude 로그인</strong>
-            <span data-i18n="providerClaudeBody">Claude CLI의 로컬 OAuth 로그인 세션을 사용해 API 키 입력을 줄입니다.</span>
-          </div>
-          <div class="provider">
-            <div class="provider-icons" aria-hidden="true">
-              <img src="assets/icons/gemini.svg" alt="">
-            </div>
-            <strong data-i18n="providerGeminiTitle">Gemini 로그인</strong>
-            <span data-i18n="providerGeminiBody">Gemini CLI의 로컬 OAuth 로그인 세션을 사용해 대화할 수 있습니다.</span>
-          </div>
-          <div class="provider">
-            <div class="provider-icons" aria-hidden="true">
-              <img src="assets/icons/ollama.svg" alt="">
-            </div>
-            <strong data-i18n="providerLocalTitle">Ollama 로컬 모델 / API 키 설정</strong>
-            <span data-i18n="providerLocalBody">Ollama, 로컬 OpenAI 호환 서버, Gemini API 키, Anthropic API 키를 설정할 수 있습니다.</span>
-          </div>
-        </div>
-      </section>
-
-      <section class="section" id="community" aria-labelledby="community-title">
-        <div class="opensource">
-          <div>
-            <h2 id="community-title" data-i18n="communityTitle">MIT 라이선스로 열어두는 작은 데스크탑 실험</h2>
-            <p data-i18n="communityBody">스프라이트, 스킨, 스킬, AI provider adapter, 설치 스크립트까지 모두 저장소에서 함께 개선할 수 있습니다. 귀여운 데스크탑 펫이면서 동시에 에이전트 상태를 표현하는 로컬 UI 실험입니다.</p>
-            <div class="actions">
-              <a class="button primary" href="https://github.com/kimtoma/OpenNeko" data-i18n="communityRepo">저장소 열기</a>
-              <a class="button secondary" href="https://github.com/kimtoma/OpenNeko/issues" data-i18n="communityIssue">이슈 제안</a>
-            </div>
-          </div>
-          <div class="skin-row" aria-label="OpenNeko bundled skins">
-            <img src="assets/sprites/black/idle_0.png" alt="black skin">
-            <img src="assets/sprites/orange/idle_0.png" alt="orange skin">
-            <img src="assets/sprites/calico/idle_0.png" alt="calico skin">
-            <img src="assets/sprites/pink/idle_0.png" alt="pink skin">
-          </div>
-        </div>
-      </section>
-    </main>
-
-    <footer class="footer">
-      <span>
-        <span data-i18n="footerLicense">OpenNeko is released under the MIT License.</span>
-        <span class="footer-made"><span data-i18n="footerMadePrefix">made by</span> <a href="https://kimtoma.com">kimtoma</a> <span data-i18n="footerMadeSuffix">with ❤️</span></span>
-      </span>
-      <div class="footer-links">
-        <a href="https://github.com/kimtoma/OpenNeko">GitHub</a>
-        <a href="https://github.com/kimtoma/OpenNeko/blob/main/README.md">README</a>
-        <a href="https://github.com/kimtoma/OpenNeko/blob/main/LICENSE">License</a>
+  <a class="skip-link" href="#main" data-i18n="skip">Skip to content</a>
+  <header class="site-header">
+    <nav class="nav wrap" aria-label="Main navigation" data-i18n-attr="aria-label:navAria">
+      <a class="brand" href="#top" aria-label="OpenNeko home" data-i18n-attr="aria-label:brandAria">
+        <img src="assets/sprites/black/idle_0.png" width="38" height="38" alt="">
+        <span>OpenNeko<span class="brand-period">.</span></span>
+      </a>
+      <div class="nav-links">
+        <a href="#features" data-i18n="navFeatures">Meet Neko</a>
+        <a href="#providers" data-i18n="navProviders">Connections</a>
+        <a href="#install" data-i18n="navInstall">Get the app</a>
       </div>
-    </footer>
-  </div>
+      <div class="nav-tools">
+        <a class="github-link" href="https://github.com/kimtoma/OpenNeko" aria-label="OpenNeko on GitHub">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-hidden="true"><path d="M12 .9a11.1 11.1 0 0 0-3.5 21.6c.6.1.8-.3.8-.5v-2.1c-3.4.7-4.1-1.4-4.1-1.4-.6-1.4-1.4-1.8-1.4-1.8-1.1-.7.1-.7.1-.7 1.2.1 1.8 1.2 1.8 1.2 1 1.8 2.6 1.3 3.3 1 .1-.8.4-1.3.8-1.6-2.7-.3-5.6-1.4-5.6-6.1 0-1.3.5-2.5 1.2-3.3-.1-.3-.5-1.6.1-3.3 0 0 1-.3 3.4 1.3a11.7 11.7 0 0 1 6.2 0c2.3-1.6 3.4-1.3 3.4-1.3.6 1.7.2 3 .1 3.3.8.8 1.2 2 1.2 3.3 0 4.7-2.9 5.8-5.6 6.1.5.4.8 1.1.8 2.2V22c0 .3.2.6.8.5A11.1 11.1 0 0 0 12 .9Z"/></svg>
+        </a>
+        <label class="language-control">
+          <svg viewBox="0 0 20 20" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.3" aria-hidden="true"><circle cx="10" cy="10" r="7.4"/><ellipse cx="10" cy="10" rx="3.1" ry="7.4"/><path d="M3 7h14M3 13h14"/></svg>
+          <span class="sr-only" data-i18n="language">Language</span>
+          <select id="language-select">
+            <option value="en" lang="en">English</option>
+            <option value="ko" lang="ko">한국어</option>
+            <option value="ja" lang="ja">日本語</option>
+            <option value="zh" lang="zh">简体中文</option>
+          </select>
+        </label>
+      </div>
+    </nav>
+  </header>
 
-  <script>
-    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    const SUPPORTED_LANGS = ['ko', 'en', 'ja', 'zh'];
-    const LANG_LABELS = {
-      ko: '🇰🇷 한국어',
-      en: '🇺🇸 English',
-      ja: '🇯🇵 日本語',
-      zh: '🇨🇳 简体中文',
-    };
-    const I18N = {
-      ko: {
-        title: 'OpenNeko - AI Agent와 대화하는 오픈소스 데스크탑 픽셀 고양이',
-        description: 'OpenNeko는 AI Agent와 대화하고 타이핑과 에이전트 상태에 반응하는 오픈소스 데스크탑 픽셀 고양이입니다.',
-        navAria: '주요 메뉴',
-        brandAria: 'OpenNeko 홈',
-        navFeatures: 'Features',
-        navInstall: 'Install',
-        navProviders: 'Providers',
-        navCommunity: 'Community',
-        heroLead: 'AI Agent와 대화하는 오픈소스 데스크탑 픽셀 고양이',
-        heroSupport: '화면 하단을 사뿐히 걸어다니며 타이핑, 코딩 에이전트 상태, 짧은 질문에 반응합니다. OpenAI/Codex, Claude, Gemini 로그인과 Ollama 같은 로컬 모델을 우선 지원합니다.',
-        heroGithub: 'GitHub에서 보기',
-        heroInstall: 'Mac용 다운로드',
-        heroPreviewAria: 'OpenNeko 데스크탑 프리뷰',
-        heroBubble: '반갑다냥~ 오늘도 같이 작업하자냥.',
-        featuresTitle: '작업 흐름을 방해하지 않는 작은 AI 동료',
-        featuresBody: 'OpenNeko는 데스크탑 위에 가볍게 머무는 반응형 펫입니다. 채팅, 상태 표시, 스킬 실행, 스킨 교체가 모두 로컬 앱 안에서 동작합니다.',
-        featureTypingTitle: '타이핑 반응',
-        featureTypingBody: '키보드를 타이핑할 때마다 고양이가 타이핑 애니메이션으로 반응합니다. 키 내용은 읽지 않습니다.',
-        featureChatTitle: '짧은 AI Agent 대화',
-        featureChatBody: '고양이를 클릭하면 작은 말풍선 입력창이 열리고, 선택한 Agent의 답변이 고양이 말투로 돌아옵니다.',
-        featureBridgeTitle: '에이전트 상태 브리지',
-        featureBridgeBody: 'Codex, Claude, Gemini, Cursor 등과 같은 에이전트 활동에 따라 다양한 모션으로 반응합니다.',
-        featureSkillTitle: '스킬 프롬프트',
-        featureSkillBody: '번들 또는 사용자 SKILL.md를 메뉴와 슬래시 명령으로 실행합니다.',
-        slashTranslate: 'translate 이거 얼마에요?',
-        slashFortune: 'daily-fortune 오늘의 운세',
-        slashBgm: 'daily-bgm 초집중 열공모드',
-        featureSkinTitle: '다양한 모습의 싸이버네꼬',
-        featureSkinBody: '기본 스킨 5종과 외부 스킨 폴더를 지원해 픽셀 고양이를 바꿀 수 있습니다.',
-        featureNeighborTitle: '이웃집 고양이 방문',
-        featureNeighborBody: '근처에 같은 Wi-Fi로 접속한 OpenNeko 친구를 발견해 화면에 찾아오게 합니다.',
-        catFriend: '모찌',
-        catMine: '네꼬',
-        installTitle: 'Mac용 앱 다운로드',
-        installBody: 'DMG를 내려받아 Applications 폴더에 넣으면 바로 시작할 수 있습니다. 개발자는 소스 설치 명령도 사용할 수 있습니다.',
-        copy: '복사',
-        copied: '복사됨',
-        selected: '선택됨',
-        downloadLabel: 'macOS 14+',
-        downloadTitle: 'OpenNeko for Mac',
-        downloadBody: '가장 쉬운 방법은 DMG를 내려받아 OpenNeko를 Applications로 옮기는 것입니다.',
-        downloadDmg: 'DMG 다운로드',
-        downloadZip: 'ZIP 다운로드',
-        downloadReq: 'macOS 14 이상이 필요합니다.',
-        downloadSecurity: '현재 빌드는 미공증 preview라 처음 실행할 때 macOS 보안 확인이 표시될 수 있습니다.',
-        sourceInstallLabel: '소스에서 실행',
-        sourceReq: '소스 실행에는 Xcode, XcodeGen, git이 필요합니다.',
-        sourceSteps: '소스 실행은 <strong>xcodegen generate</strong> 후 <strong>./script/build_and_run.sh</strong>를 사용합니다.',
-        providersTitle: '원하는 AI 연결 방식 선택',
-        providersBody: '기본은 OAuth 로그인 기반 Agent입니다. 필요하면 API 키 provider나 로컬 OpenAI 호환 엔드포인트를 설정에서 추가합니다.',
-        providerOpenAITitle: 'ChatGPT 로그인',
-        providerOpenAIBody: 'ChatGPT나 Codex 로그인 세션을 사용합니다. 앱에 OpenAI API 키를 입력하지 않아도 됩니다.',
-        providerClaudeTitle: 'Claude 로그인',
-        providerClaudeBody: 'Claude CLI의 로컬 OAuth 로그인 세션을 사용해 API 키 입력을 줄입니다.',
-        providerGeminiTitle: 'Gemini 로그인',
-        providerGeminiBody: 'Gemini CLI의 로컬 OAuth 로그인 세션을 사용해 대화할 수 있습니다.',
-        providerLocalTitle: 'Ollama 로컬 모델 / API 키 설정',
-        providerLocalBody: 'Ollama, 로컬 OpenAI 호환 서버, Gemini API 키, Anthropic API 키를 설정할 수 있습니다.',
-        communityTitle: 'MIT 라이선스로 열어두는 작은 데스크탑 실험',
-        communityBody: '스프라이트, 스킨, 스킬, AI provider adapter, 설치 스크립트까지 모두 저장소에서 함께 개선할 수 있습니다. 귀여운 데스크탑 펫이면서 동시에 에이전트 상태를 표현하는 로컬 UI 실험입니다.',
-        communityRepo: '저장소 열기',
-        communityIssue: '이슈 제안',
-        footerLicense: 'OpenNeko is released under the MIT License.',
-        footerMadePrefix: 'made by',
-        footerMadeSuffix: 'with ❤️',
-      },
-      en: {
-        title: 'OpenNeko - Open-source desktop pixel cat for AI Agents',
-        description: 'OpenNeko is an open-source desktop pixel cat that chats with AI Agents and reacts to typing and agent activity.',
-        navAria: 'Primary navigation',
-        brandAria: 'OpenNeko home',
-        navFeatures: 'Features',
-        navInstall: 'Install',
-        navProviders: 'Providers',
-        navCommunity: 'Community',
-        heroLead: 'An open-source desktop pixel cat for talking with AI Agents',
-        heroSupport: 'It quietly walks along the bottom of your screen and reacts to typing, coding-agent activity, and quick questions. It prioritizes OpenAI/Codex, Claude, Gemini sign-in flows and local models such as Ollama.',
-        heroGithub: 'View on GitHub',
-        heroInstall: 'Download for Mac',
-        heroPreviewAria: 'OpenNeko desktop preview',
-        heroBubble: 'Hi nya~ let us work together today.',
-        featuresTitle: 'A small AI companion that stays out of your flow',
-        featuresBody: 'OpenNeko is a lightweight reactive pet for your desktop. Chat, status signals, skill runs, and skin switching all work inside the local app.',
-        featureTypingTitle: 'Typing reaction',
-        featureTypingBody: 'The cat switches to a typing animation whenever you type. It does not read the contents of your keystrokes.',
-        featureChatTitle: 'Short AI Agent chats',
-        featureChatBody: 'Click the cat to open a small bubble input. Replies come back from your selected Agent in a cat-like tone.',
-        featureBridgeTitle: 'Agent status bridge',
-        featureBridgeBody: 'It reacts with different motions to activity from agents such as Codex, Claude, Gemini, and Cursor.',
-        featureSkillTitle: 'Skill prompts',
-        featureSkillBody: 'Run bundled or user SKILL.md files from the menu or slash commands.',
-        slashTranslate: 'translate how much is this?',
-        slashFortune: 'daily-fortune today',
-        slashBgm: 'daily-bgm deep focus mode',
-        featureSkinTitle: 'Many looks for cyber neko',
-        featureSkinBody: 'Switch between five bundled skins or add more through an external skins folder.',
-        featureNeighborTitle: 'Neighbor cats can visit',
-        featureNeighborBody: 'Discover OpenNeko friends on the same Wi-Fi and let them visit your screen.',
-        catFriend: 'Mochi',
-        catMine: 'Neko',
-        installTitle: 'Download the Mac app',
-        installBody: 'Download the DMG, move OpenNeko to Applications, and start it like a regular Mac app. Developers can still use the source install command.',
-        copy: 'Copy',
-        copied: 'Copied',
-        selected: 'Selected',
-        downloadLabel: 'macOS 14+',
-        downloadTitle: 'OpenNeko for Mac',
-        downloadBody: 'The easiest path is the DMG: open it, drag OpenNeko into Applications, then launch it.',
-        downloadDmg: 'Download DMG',
-        downloadZip: 'Download ZIP',
-        downloadReq: 'Requires macOS 14 or later.',
-        downloadSecurity: 'This preview build is not notarized yet, so macOS may show a security confirmation on first launch.',
-        sourceInstallLabel: 'Run from source',
-        sourceReq: 'Running from source requires Xcode, XcodeGen, and git.',
-        sourceSteps: 'Run <strong>xcodegen generate</strong>, then use <strong>./script/build_and_run.sh</strong>.',
-        providersTitle: 'Choose the AI connection you want',
-        providersBody: 'The default path is an OAuth-based Agent login. Add API-key providers or local OpenAI-compatible endpoints only when needed.',
-        providerOpenAITitle: 'ChatGPT sign-in',
-        providerOpenAIBody: 'Use your ChatGPT or Codex login session without entering an OpenAI API key in the app.',
-        providerClaudeTitle: 'Claude sign-in',
-        providerClaudeBody: 'Use the local OAuth session from Claude CLI to reduce API-key setup.',
-        providerGeminiTitle: 'Gemini sign-in',
-        providerGeminiBody: 'Talk through the local OAuth session provided by Gemini CLI.',
-        providerLocalTitle: 'Ollama local models / API keys',
-        providerLocalBody: 'Configure Ollama, local OpenAI-compatible servers, Gemini API keys, or Anthropic API keys.',
-        communityTitle: 'A small MIT-licensed desktop experiment',
-        communityBody: 'Sprites, skins, skills, AI provider adapters, and install scripts can all evolve in the repository. It is both a cute desktop pet and a local UI experiment for expressing agent state.',
-        communityRepo: 'Open repository',
-        communityIssue: 'Suggest an issue',
-        footerLicense: 'OpenNeko is released under the MIT License.',
-        footerMadePrefix: 'made by',
-        footerMadeSuffix: 'with ❤️',
-      },
-      ja: {
-        title: 'OpenNeko - AI Agentと話せるオープンソースのデスクトップピクセル猫',
-        description: 'OpenNekoは、AI Agentと会話し、タイピングやエージェント状態に反応するオープンソースのデスクトップピクセル猫です。',
-        navAria: 'メインナビゲーション',
-        brandAria: 'OpenNeko ホーム',
-        navFeatures: '機能',
-        navInstall: 'インストール',
-        navProviders: '連携',
-        navCommunity: 'コミュニティ',
-        heroLead: 'AI Agentと話せるオープンソースのデスクトップピクセル猫',
-        heroSupport: '画面下をそっと歩きながら、タイピング、コーディングエージェントの状態、短い質問に反応します。OpenAI/Codex、Claude、Geminiのログインと、Ollamaなどのローカルモデルを優先してサポートします。',
-        heroGithub: 'GitHubで見る',
-        heroInstall: 'Mac版をダウンロード',
-        heroPreviewAria: 'OpenNeko デスクトッププレビュー',
-        heroBubble: 'こんにちはにゃ~ 今日も一緒に作業するにゃ。',
-        featuresTitle: '作業の流れを邪魔しない小さなAI相棒',
-        featuresBody: 'OpenNekoはデスクトップに軽く常駐するリアクティブなペットです。チャット、状態表示、スキル実行、スキン変更がすべてローカルアプリ内で動きます。',
-        featureTypingTitle: 'タイピング反応',
-        featureTypingBody: 'キーボードを打つたびに猫がタイピングアニメーションで反応します。キーの内容は読みません。',
-        featureChatTitle: '短いAI Agent会話',
-        featureChatBody: '猫をクリックすると小さな吹き出し入力が開き、選んだAgentの返答が猫らしい口調で返ってきます。',
-        featureBridgeTitle: 'エージェント状態ブリッジ',
-        featureBridgeBody: 'Codex、Claude、Gemini、Cursorなどのエージェント活動に合わせて、さまざまな動きで反応します。',
-        featureSkillTitle: 'スキルプロンプト',
-        featureSkillBody: '同梱またはユーザーのSKILL.mdを、メニューやスラッシュコマンドから実行できます。',
-        slashTranslate: 'translate これはいくらですか?',
-        slashFortune: 'daily-fortune 今日の運勢',
-        slashBgm: 'daily-bgm 集中作業モード',
-        featureSkinTitle: 'いろいろな姿のサイバーネコ',
-        featureSkinBody: '5種類の同梱スキンと外部スキンフォルダに対応し、ピクセル猫の見た目を変えられます。',
-        featureNeighborTitle: 'ご近所猫の訪問',
-        featureNeighborBody: '同じWi-Fi上のOpenNeko友だちを見つけて、画面に遊びに来てもらえます。',
-        catFriend: 'もち',
-        catMine: 'ねこ',
-        installTitle: 'Macアプリをダウンロード',
-        installBody: 'DMGをダウンロードしてOpenNekoをApplicationsに移せば、通常のMacアプリのように起動できます。開発者向けにソース実行コマンドも残しています。',
-        copy: 'コピー',
-        copied: 'コピー済み',
-        selected: '選択済み',
-        downloadLabel: 'macOS 14+',
-        downloadTitle: 'OpenNeko for Mac',
-        downloadBody: 'いちばん簡単な方法はDMGです。開いて、OpenNekoをApplicationsにドラッグして起動します。',
-        downloadDmg: 'DMGをダウンロード',
-        downloadZip: 'ZIPをダウンロード',
-        downloadReq: 'macOS 14以降が必要です。',
-        downloadSecurity: '現在のビルドは未公証のpreviewのため、初回起動時にmacOSのセキュリティ確認が表示される場合があります。',
-        sourceInstallLabel: 'ソースから実行',
-        sourceReq: 'ソース実行にはXcode、XcodeGen、gitが必要です。',
-        sourceSteps: '<strong>xcodegen generate</strong> の後、<strong>./script/build_and_run.sh</strong> を使います。',
-        providersTitle: '好みのAI接続方法を選択',
-        providersBody: '基本はOAuthログインベースのAgentです。必要な場合だけ、APIキープロバイダーやローカルOpenAI互換エンドポイントを設定で追加します。',
-        providerOpenAITitle: 'ChatGPTログイン',
-        providerOpenAIBody: 'ChatGPTまたはCodexのログインセッションを使います。アプリにOpenAI APIキーを入力する必要はありません。',
-        providerClaudeTitle: 'Claudeログイン',
-        providerClaudeBody: 'Claude CLIのローカルOAuthログインセッションを使い、APIキー入力を減らします。',
-        providerGeminiTitle: 'Geminiログイン',
-        providerGeminiBody: 'Gemini CLIのローカルOAuthログインセッションを使って会話できます。',
-        providerLocalTitle: 'Ollamaローカルモデル / APIキー設定',
-        providerLocalBody: 'Ollama、ローカルOpenAI互換サーバー、Gemini APIキー、Anthropic APIキーを設定できます。',
-        communityTitle: 'MITライセンスで開く小さなデスクトップ実験',
-        communityBody: 'スプライト、スキン、スキル、AI provider adapter、インストールスクリプトまで、すべてリポジトリで一緒に改善できます。かわいいデスクトップペットであり、エージェント状態を表現するローカルUI実験でもあります。',
-        communityRepo: 'リポジトリを開く',
-        communityIssue: 'Issueを提案',
-        footerLicense: 'OpenNeko is released under the MIT License.',
-        footerMadePrefix: 'made by',
-        footerMadeSuffix: 'with ❤️',
-      },
-      zh: {
-        title: 'OpenNeko - 可与 AI Agent 对话的开源桌面像素猫',
-        description: 'OpenNeko 是一只开源桌面像素猫，可以与 AI Agent 对话，并响应打字和 Agent 状态。',
-        navAria: '主导航',
-        brandAria: 'OpenNeko 首页',
-        navFeatures: '功能',
-        navInstall: '安装',
-        navProviders: '连接',
-        navCommunity: '社区',
-        heroLead: '可与 AI Agent 对话的开源桌面像素猫',
-        heroSupport: '它会轻轻走在屏幕底部，响应打字、编程 Agent 状态和简短问题。优先支持 OpenAI/Codex、Claude、Gemini 登录，以及 Ollama 等本地模型。',
-        heroGithub: '在 GitHub 查看',
-        heroInstall: '下载 Mac 版',
-        heroPreviewAria: 'OpenNeko 桌面预览',
-        heroBubble: '你好喵~ 今天也一起工作喵。',
-        featuresTitle: '不打断工作流的小小 AI 伙伴',
-        featuresBody: 'OpenNeko 是一个轻量的桌面响应式宠物。聊天、状态显示、技能运行和皮肤切换都在本地应用内完成。',
-        featureTypingTitle: '打字响应',
-        featureTypingBody: '每当你打字时，小猫会切换到打字动画。它不会读取按键内容。',
-        featureChatTitle: '简短 AI Agent 对话',
-        featureChatBody: '点击小猫即可打开小气泡输入框，所选 Agent 会用猫咪语气回复。',
-        featureBridgeTitle: 'Agent 状态桥接',
-        featureBridgeBody: '它会根据 Codex、Claude、Gemini、Cursor 等 Agent 活动做出不同动作。',
-        featureSkillTitle: '技能提示词',
-        featureSkillBody: '可通过菜单或斜杠命令运行内置或用户的 SKILL.md。',
-        slashTranslate: 'translate 这个多少钱?',
-        slashFortune: 'daily-fortune 今日运势',
-        slashBgm: 'daily-bgm 深度专注模式',
-        featureSkinTitle: '多种 cyber neko 外观',
-        featureSkinBody: '支持 5 种内置皮肤，也可以通过外部皮肤文件夹添加更多像素猫外观。',
-        featureNeighborTitle: '邻居小猫来访',
-        featureNeighborBody: '发现同一 Wi-Fi 上的 OpenNeko 朋友，并让它们来到你的屏幕上。',
-        catFriend: '麻糬',
-        catMine: '猫猫',
-        installTitle: '下载 Mac 应用',
-        installBody: '下载 DMG 后把 OpenNeko 移到 Applications，就可以像普通 Mac 应用一样启动。开发者仍可使用源码安装命令。',
-        copy: '复制',
-        copied: '已复制',
-        selected: '已选中',
-        downloadLabel: 'macOS 14+',
-        downloadTitle: 'OpenNeko for Mac',
-        downloadBody: '最简单的方式是下载 DMG，打开后把 OpenNeko 拖到 Applications 再启动。',
-        downloadDmg: '下载 DMG',
-        downloadZip: '下载 ZIP',
-        downloadReq: '需要 macOS 14 或更高版本。',
-        downloadSecurity: '当前构建是未公证的 preview，首次启动时 macOS 可能会显示安全确认。',
-        sourceInstallLabel: '从源码运行',
-        sourceReq: '从源码运行需要 Xcode、XcodeGen 和 git。',
-        sourceSteps: '先运行 <strong>xcodegen generate</strong>，再使用 <strong>./script/build_and_run.sh</strong>。',
-        providersTitle: '选择你想要的 AI 连接方式',
-        providersBody: '默认使用基于 OAuth 登录的 Agent。只有需要时，才在设置中添加 API Key provider 或本地 OpenAI 兼容端点。',
-        providerOpenAITitle: 'ChatGPT 登录',
-        providerOpenAIBody: '使用 ChatGPT 或 Codex 登录会话，无需在应用中输入 OpenAI API Key。',
-        providerClaudeTitle: 'Claude 登录',
-        providerClaudeBody: '使用 Claude CLI 的本地 OAuth 登录会话，减少 API Key 配置。',
-        providerGeminiTitle: 'Gemini 登录',
-        providerGeminiBody: '可通过 Gemini CLI 的本地 OAuth 登录会话进行对话。',
-        providerLocalTitle: 'Ollama 本地模型 / API Key 设置',
-        providerLocalBody: '可配置 Ollama、本地 OpenAI 兼容服务器、Gemini API Key 和 Anthropic API Key。',
-        communityTitle: '以 MIT 许可证开放的小型桌面实验',
-        communityBody: '精灵图、皮肤、技能、AI provider adapter 和安装脚本都可以在仓库中共同改进。它既是可爱的桌面宠物，也是表达 Agent 状态的本地 UI 实验。',
-        communityRepo: '打开仓库',
-        communityIssue: '提出 Issue',
-        footerLicense: 'OpenNeko is released under the MIT License.',
-        footerMadePrefix: 'made by',
-        footerMadeSuffix: 'with ❤️',
-      },
-    };
+  <main id="main">
+    <section class="hero wrap" id="top" aria-labelledby="hero-title">
+      <div class="hero-copy">
+        <p class="eyebrow"><span class="status-dot" aria-hidden="true"></span><span data-i18n="heroEyebrow">A small friend for your Mac</span></p>
+        <h1 id="hero-title"><span data-i18n="heroTitleA">Your new</span><br><span class="accent-word" data-i18n="heroTitleB">deskmate.</span></h1>
+        <p class="hero-lead" data-i18n="heroLead">A pixel cat. A little AI.<br>A happier desktop.</p>
+        <p class="hero-description" data-i18n="heroDescription">Meet OpenNeko, the little companion that keeps you company while you make big things. Native to macOS, curious by nature.</p>
+        <div class="actions">
+          <a class="button primary" href="https://github.com/kimtoma/OpenNeko/releases/latest/download/OpenNeko-macOS-Release.dmg">
+            <svg viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M10 2v10m-4-4 4 4 4-4M3 13v4h14v-4"/></svg>
+            <span data-i18n="downloadMac">Download for Mac</span>
+          </a>
+          <a class="text-link" href="#features"><span data-i18n="heroExplore">Get to know Neko</span><span aria-hidden="true">↘</span></a>
+        </div>
+        <p class="download-meta"><span>macOS 14+</span><span aria-hidden="true">·</span><span data-i18n="freeOpenSource">Free &amp; open source</span></p>
+      </div>
 
-    function normalizeLang(lang) {
-      const lower = String(lang || '').toLowerCase();
-      if (lower.startsWith('ko')) return 'ko';
-      if (lower.startsWith('ja')) return 'ja';
-      if (lower.startsWith('zh')) return 'zh';
-      return 'en';
-    }
+      <div class="demo" id="desktop-demo" role="group" aria-label="Interactive OpenNeko desktop preview" data-i18n-attr="aria-label:demoAria">
+        <div class="demo-window">
+          <div class="window-bar">
+            <span class="window-dots" aria-hidden="true"><i></i><i></i><i></i></span>
+            <span data-i18n="demoTitle">Neko's desktop</span>
+            <span class="preview-label" data-i18n="preview">Preview</span>
+          </div>
+          <div class="desktop-scene">
+            <div class="wallpaper-sun" aria-hidden="true"></div>
+            <div class="desktop-note">
+              <span class="note-pin" aria-hidden="true">✳</span>
+              <p class="note-label" data-i18n="today">A NOTE TO SELF</p>
+              <p class="note-message" data-i18n="noteMessage">Make room<br>for a little<br>wonder.</p>
+              <span class="note-scribble" aria-hidden="true">~~~~</span>
+            </div>
+            <div class="desktop-file" aria-hidden="true">
+              <svg viewBox="0 0 60 48" width="54" height="44" fill="none"><path d="M3 11V5h20l6 6h28v33H3Z" fill="#fbf4df" stroke="#555948" stroke-width="1.5"/><path d="M3 17h54v27H3Z" fill="#f0d48e" stroke="#555948" stroke-width="1.5"/></svg>
+              <span data-i18n="goodIdeas">good ideas</span>
+            </div>
+            <div class="speech-bubble" id="demo-speech" role="status" aria-live="polite" data-i18n="speechIdle">You do your thing.<br>I'll be right here.</div>
+            <button type="button" class="cat-button" id="pet-neko" aria-label="Pet Neko" data-i18n-attr="aria-label:petNeko">
+              <span class="cat-frames" id="cat-frames" aria-hidden="true"><img id="initial-cat" src="assets/sprites/black/idle_0.png" width="184" height="184" alt="" fetchpriority="high"></span>
+              <span class="cat-shadow" aria-hidden="true"></span>
+            </button>
+            <div class="desktop-dock" aria-hidden="true">
+              <span class="dock-icon folder-icon"><svg viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 8V5h8l3 3h9v15H4Z"/><path d="M4 11h20"/></svg></span>
+              <span class="dock-icon terminal-icon">›_</span>
+              <span class="dock-icon notes-icon"><svg viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M7 4h14v20H7ZM10 10h8M10 14h8M10 18h5"/></svg></span>
+              <span class="dock-icon music-icon">♫</span>
+              <span class="dock-divider"></span>
+              <span class="dock-icon neko-icon"><img src="assets/sprites/black/idle_0.png" width="40" height="40" alt=""></span>
+            </div>
+          </div>
+          <div class="demo-input-row">
+            <svg viewBox="0 0 22 18" width="21" height="18" fill="none" stroke="currentColor" stroke-width="1.2" aria-hidden="true"><rect x="1" y="1" width="20" height="15" rx="3"/><path d="M5 5h1m3 0h1m3 0h1m3 0h1M5 8h1m3 0h1m3 0h1m3 0h1M6 12h10"/></svg>
+            <label for="typing-demo" class="sr-only" data-i18n="typingLabel">Type here to see Neko react</label>
+            <input id="typing-demo" type="text" maxlength="120" autocomplete="off" spellcheck="false" placeholder="Type a little. See what happens." data-i18n-attr="placeholder:typingPlaceholder">
+            <span class="input-hint" aria-hidden="true">↵</span>
+          </div>
+        </div>
+        <div class="demo-controls">
+          <div class="activity-controls" role="group" aria-label="Choose an activity" data-i18n-attr="aria-label:activityAria">
+            <button type="button" data-state="idle" aria-pressed="true" data-i18n="stateIdle">Chilling</button>
+            <button type="button" data-state="typing" aria-pressed="false" data-i18n="stateTyping">Typing</button>
+            <button type="button" data-state="coding" aria-pressed="false" data-i18n="stateCoding">Coding</button>
+            <button type="button" data-state="success" aria-pressed="false" data-i18n="stateSuccess">Happy</button>
+          </div>
+          <button class="motion-toggle" id="motion-toggle" type="button" aria-pressed="false" aria-label="Pause animation" data-i18n-attr="aria-label:pauseMotion">
+            <svg viewBox="0 0 16 16" width="16" height="16" fill="currentColor" aria-hidden="true"><path class="pause-icon" d="M4 3h3v10H4Zm5 0h3v10H9Z"/><path class="play-icon" d="m5 3 8 5-8 5Z"/></svg>
+          </button>
+        </div>
+        <p class="demo-caption"><span class="little-arrow" aria-hidden="true">↖</span><span data-i18n="demoCaption">Try typing, or give Neko a little pat.</span></p>
+      </div>
+    </section>
 
-    function initialLang() {
-      const params = new URLSearchParams(window.location.search);
-      const queryLang = params.get('lang');
-      const candidates = queryLang
-        ? [queryLang]
-        : (navigator.languages && navigator.languages.length ? navigator.languages : [navigator.language]);
-      for (const candidate of candidates) {
-        const normalized = normalizeLang(candidate);
-        if (SUPPORTED_LANGS.includes(normalized)) return normalized;
-      }
-      return 'en';
-    }
+    <div class="spec-strip wrap" aria-label="At a glance" data-i18n-attr="aria-label:atAGlance">
+      <span><i aria-hidden="true">⌘</i><span data-i18n="specNative">Made for macOS</span></span>
+      <span><i aria-hidden="true">↗</i><span data-i18n="specAI">Your choice of AI</span></span>
+      <span><i aria-hidden="true">◉</i><span data-i18n="specPrivacy">Key activity, never key contents</span></span>
+      <span><i aria-hidden="true">{ }</i><span data-i18n="specOpen">Open source, always curious</span></span>
+    </div>
 
-    function setCopyButtonLabel(button, key) {
-      const label = button.querySelector('[data-i18n]');
-      if (label) label.textContent = I18N[currentLang][key];
-    }
+    <section class="features-section wrap section" id="features" aria-labelledby="features-title">
+      <div class="section-intro">
+        <p class="eyebrow"><span class="section-number">01 /</span><span data-i18n="featuresEyebrow">Little cat, real connection</span></p>
+        <h2 id="features-title"><span data-i18n="featuresTitleA">In your corner.</span><br><span data-i18n="featuresTitleB">In your flow.</span></h2>
+        <p data-i18n="featuresIntro">A quiet presence on your desktop, with a few clever tricks up its tiny sleeves.</p>
+        <a class="text-link" href="https://github.com/kimtoma/OpenNeko#features"><span data-i18n="allFeatures">Explore all features</span><span aria-hidden="true">↗</span></a>
+      </div>
+      <div class="feature-list">
+        <article class="feature-row">
+          <div class="feature-illustration"><img src="assets/sprites/black/typing_0.png" width="94" height="94" alt="" loading="lazy" decoding="async"></div>
+          <div><span class="feature-number">01</span><h3 data-i18n="typingTitle">A rhythm all your own</h3><p data-i18n="typingBody">When you type, Neko types along. It reacts to keydown activity without reading the words you write.</p></div>
+        </article>
+        <article class="feature-row">
+          <div class="feature-illustration"><img src="assets/sprites/black/success_0.png" width="94" height="94" alt="" loading="lazy" decoding="async"></div>
+          <div><span class="feature-number">02</span><h3 data-i18n="chatTitle">Good company. Quick answers.</h3><p data-i18n="chatBody">Click your cat for a small AI chat bubble. Ask a question, run a skill, or bring up a handy slash command.</p></div>
+        </article>
+        <article class="feature-row">
+          <div class="feature-illustration"><img src="assets/sprites/black/coding_0.png" width="94" height="94" alt="" loading="lazy" decoding="async"></div>
+          <div><span class="feature-number">03</span><h3 data-i18n="agentTitle">A little window into your work</h3><p data-i18n="agentBody">Neko reacts to local coding agents, including Codex, Claude, Gemini, and Cursor. Connect your own tools with the local state bridge.</p></div>
+        </article>
+      </div>
+    </section>
 
-    let currentLang = initialLang();
+    <section class="skins-section wrap" aria-labelledby="skins-title">
+      <div class="skins-copy">
+        <p class="eyebrow" data-i18n="skinsEyebrow">A cat that feels like yours</p>
+        <h2 id="skins-title"><span data-i18n="skinsTitleA">Same little soul.</span><br><span data-i18n="skinsTitleB">A different coat.</span></h2>
+        <p data-i18n="skinsBody">Pick a bundled look or import a custom skin. Cats on the same local network can even drop by for a visit.</p>
+        <a class="text-link" href="https://github.com/kimtoma/OpenNeko#custom-skins"><span data-i18n="customSkins">Make it your own</span><span aria-hidden="true">↗</span></a>
+      </div>
+      <div class="skin-picker">
+        <div class="skin-choices" role="group" aria-label="Preview cat skins" data-i18n-attr="aria-label:skinAria">
+          <button type="button" class="skin-choice" data-skin="classic" aria-pressed="false"><img src="assets/sprites/idle_0.png" width="92" height="92" alt="" loading="lazy" decoding="async"><span data-i18n="skinClassic">Classic</span></button>
+          <button type="button" class="skin-choice" data-skin="black" aria-pressed="true"><img src="assets/sprites/black/idle_0.png" width="92" height="92" alt="" loading="lazy" decoding="async"><span data-i18n="skinBlack">Midnight</span></button>
+          <button type="button" class="skin-choice" data-skin="orange" aria-pressed="false"><img src="assets/sprites/orange/idle_0.png" width="92" height="92" alt="" loading="lazy" decoding="async"><span data-i18n="skinOrange">Marmalade</span></button>
+          <button type="button" class="skin-choice" data-skin="calico" aria-pressed="false"><img src="assets/sprites/calico/idle_0.png" width="92" height="92" alt="" loading="lazy" decoding="async"><span data-i18n="skinCalico">Calico</span></button>
+          <button type="button" class="skin-choice" data-skin="pink" aria-pressed="false"><img src="assets/sprites/pink/idle_0.png" width="92" height="92" alt="" loading="lazy" decoding="async"><span data-i18n="skinPink">Cream</span></button>
+        </div>
+        <p class="skin-note" id="skin-note" role="status" aria-live="polite">Midnight. Excellent taste, human.</p>
+      </div>
+    </section>
 
-    function setLanguageMenuOpen(open) {
-      const menu = document.getElementById('language-menu');
-      const toggle = document.getElementById('language-toggle');
-      if (!menu || !toggle) return;
-      menu.classList.toggle('open', open);
-      toggle.setAttribute('aria-expanded', String(open));
-    }
+    <section class="providers-section wrap section" id="providers" aria-labelledby="providers-title">
+      <div class="section-intro">
+        <p class="eyebrow"><span class="section-number">02 /</span><span data-i18n="providersEyebrow">Bring your favorite brain</span></p>
+        <h2 id="providers-title"><span data-i18n="providersTitleA">Your AI.</span><br><span data-i18n="providersTitleB">Your choice.</span></h2>
+        <p data-i18n="providersIntro">A familiar companion, with the connection that works for you. Choose it in Neko's settings.</p>
+      </div>
+      <div class="provider-list">
+        <article class="provider-row">
+          <div class="provider-symbols" aria-hidden="true"><img src="assets/icons/openai.svg" width="27" height="27" alt="" loading="lazy"><img src="assets/icons/claude.svg" width="27" height="27" alt="" loading="lazy"><img src="assets/icons/gemini.svg" width="27" height="27" alt="" loading="lazy"></div>
+          <div><h3 data-i18n="loginTitle">Bring your login</h3><p data-i18n="loginBody">Use the local login session from Codex, Claude CLI, or Gemini CLI. No extra API key to enter.</p><span class="provider-detail">OpenAI / Codex · Claude · Gemini</span></div>
+        </article>
+        <article class="provider-row">
+          <div class="provider-symbols" aria-hidden="true"><img src="assets/icons/ollama.svg" width="32" height="32" alt="" loading="lazy"><span class="local-symbol">⌘</span></div>
+          <div><h3 data-i18n="localTitle">Make yourself at home</h3><p data-i18n="localBody">Connect to Ollama or a local OpenAI-compatible server, including LM Studio, llama.cpp, and vLLM.</p><span class="provider-detail" data-i18n="localDetail">Local models, on your terms</span></div>
+        </article>
+        <article class="provider-row">
+          <div class="provider-symbols code-symbol" aria-hidden="true">{ }</div>
+          <div><h3 data-i18n="apiTitle">Take your own route</h3><p data-i18n="apiBody">Add a Gemini or Claude API key, or configure a custom OpenAI-compatible endpoint and model.</p><span class="provider-detail" data-i18n="apiDetail">Saved API keys stay in macOS Keychain</span></div>
+        </article>
+      </div>
+      <div class="privacy-note">
+        <svg viewBox="0 0 24 24" width="23" height="23" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="m12 2 8 3v7c0 5-8 10-8 10S4 17 4 12V5Z"/><path d="m8 11 3 3 5-5"/></svg>
+        <p><strong data-i18n="privacyTitle">Curious about you. Respectful of your space.</strong> <span data-i18n="privacyBody">Typing reactions never read typed text. Chats go to the AI provider you choose. The state bridge listens locally on your Mac.</span></p>
+      </div>
+    </section>
 
-    function applyLang(lang) {
-      currentLang = SUPPORTED_LANGS.includes(lang) ? lang : 'en';
-      const strings = I18N[currentLang];
-      document.documentElement.lang = currentLang;
-      document.title = strings.title;
-      document.querySelector('meta[name="description"]')?.setAttribute('content', strings.description);
+    <section class="install-section wrap" id="install" aria-labelledby="install-title">
+      <div class="install-main">
+        <div>
+          <p class="eyebrow" data-i18n="installEyebrow">A very small addition to your day</p>
+          <h2 id="install-title"><span data-i18n="installTitleA">Make room</span><br><span data-i18n="installTitleB">for one more.</span></h2>
+          <p class="install-description" data-i18n="installBody">Download the app, move it to Applications, and meet your new little companion.</p>
+          <div class="actions">
+            <a class="button primary" href="https://github.com/kimtoma/OpenNeko/releases/latest/download/OpenNeko-macOS-Release.dmg"><span data-i18n="downloadMac">Download for Mac</span><span aria-hidden="true">↓</span></a>
+            <a class="text-link" href="https://github.com/kimtoma/OpenNeko/releases/latest"><span data-i18n="releaseNotes">Release notes</span><span aria-hidden="true">↗</span></a>
+          </div>
+          <p class="install-meta"><span>macOS 14+</span><span aria-hidden="true">·</span><a href="https://github.com/kimtoma/OpenNeko/releases/latest/download/OpenNeko-macOS-Release.zip" data-i18n="downloadZip">Or download the ZIP</a></p>
+        </div>
+        <div class="adoption-illustration" aria-hidden="true">
+          <span class="adoption-orbit"></span>
+          <span class="adoption-spark spark-one">✳</span>
+          <span class="adoption-spark spark-two">+</span>
+          <img src="assets/sprites/orange/jump_1.png" width="250" height="250" alt="" loading="lazy" decoding="async">
+          <span class="adoption-label" data-i18n="comingHome">coming home with you.</span>
+        </div>
+      </div>
+      <details class="source-install">
+        <summary><span data-i18n="sourceTitle">Prefer to build it yourself?</span><span class="summary-mark" aria-hidden="true">+</span></summary>
+        <div class="source-content">
+          <p data-i18n="sourceBody">You'll need Xcode, XcodeGen, and Git. Clone the repository, generate the project, and run the native app.</p>
+          <div class="command-block"><pre><code id="install-command">git clone https://github.com/kimtoma/OpenNeko.git
+cd OpenNeko
+xcodegen generate
+./script/build_and_run.sh</code></pre><button type="button" class="copy-button" id="copy-command" data-i18n="copy">Copy</button></div>
+          <p class="copy-status" id="copy-status" role="status" aria-live="polite"></p>
+        </div>
+      </details>
+    </section>
 
-      document.querySelectorAll('[data-i18n]').forEach((node) => {
-        const value = strings[node.dataset.i18n];
-        if (value) node.textContent = value;
-      });
-      document.querySelectorAll('[data-i18n-html]').forEach((node) => {
-        const value = strings[node.dataset.i18nHtml];
-        if (value) node.innerHTML = value;
-      });
-      document.querySelectorAll('[data-i18n-attr]').forEach((node) => {
-        node.dataset.i18nAttr.split(',').forEach((pair) => {
-          const [attr, key] = pair.split(':').map((part) => part.trim());
-          if (attr && key && strings[key]) node.setAttribute(attr, strings[key]);
-        });
-      });
+    <section class="community-section wrap" aria-labelledby="community-title">
+      <span class="community-star" aria-hidden="true">✳</span>
+      <div><h2 id="community-title" data-i18n="communityTitle">Small cat. Open world.</h2><p data-i18n="communityBody">Built with Swift, shared under MIT. Bring a skin, an idea, or a little curiosity. There's room for you here, too.</p></div>
+      <a class="text-link" href="https://github.com/kimtoma/OpenNeko"><span data-i18n="communityLink">Find us on GitHub</span><span aria-hidden="true">↗</span></a>
+    </section>
+  </main>
 
-      const current = document.getElementById('language-current');
-      if (current) current.textContent = LANG_LABELS[currentLang];
-      document.querySelectorAll('.language-option').forEach((option) => {
-        const selected = option.dataset.lang === currentLang;
-        option.setAttribute('aria-selected', String(selected));
-      });
-    }
-
-    document.getElementById('language-toggle')?.addEventListener('click', () => {
-      const menu = document.getElementById('language-menu');
-      setLanguageMenuOpen(!menu?.classList.contains('open'));
-    });
-
-    document.querySelectorAll('.language-option').forEach((option) => {
-      option.addEventListener('click', () => {
-        applyLang(option.dataset.lang);
-        setLanguageMenuOpen(false);
-        document.getElementById('language-toggle')?.focus();
-      });
-    });
-
-    document.addEventListener('click', (event) => {
-      const menu = document.getElementById('language-menu');
-      if (menu && !menu.contains(event.target)) setLanguageMenuOpen(false);
-    });
-
-    document.addEventListener('keydown', (event) => {
-      const menu = document.getElementById('language-menu');
-      if (!menu) return;
-      if (event.key === 'Escape') {
-        setLanguageMenuOpen(false);
-        document.getElementById('language-toggle')?.focus();
-      }
-      if ((event.key === 'ArrowDown' || event.key === 'Enter' || event.key === ' ') && document.activeElement?.id === 'language-toggle') {
-        event.preventDefault();
-        setLanguageMenuOpen(true);
-        menu.querySelector('.language-option[aria-selected="true"]')?.focus();
-      }
-    });
-
-    applyLang(currentLang);
-
-    function animateSprite(img, frames, interval = 180, offset = 0) {
-      if (!img || frames.length < 2) return;
-      let frameIndex = offset % frames.length;
-      const preloads = frames.map((src) => new Promise((resolve) => {
-        const preload = new Image();
-        preload.onload = resolve;
-        preload.onerror = resolve;
-        preload.src = src;
-      }));
-      Promise.all(preloads).then(() => {
-        window.setInterval(() => {
-          frameIndex = (frameIndex + 1) % frames.length;
-          img.src = frames[frameIndex];
-        }, interval);
-      });
-    }
-
-    if (!reduceMotion) {
-      animateSprite(document.getElementById('hero-cat'), [
-        'assets/sprites/black/walk_0.png',
-        'assets/sprites/black/walk_1.png',
-        'assets/sprites/black/walk_2.png',
-        'assets/sprites/black/walk_3.png',
-      ], 180);
-
-      document.querySelectorAll('[data-frames]').forEach((img, index) => {
-        const frames = img.dataset.frames.split('|').filter(Boolean);
-        const interval = Number(img.dataset.interval || 200);
-        const offset = img.closest('.skin-stack') ? 0 : index;
-        if (frames.length > 1) animateSprite(img, frames, interval, offset);
-      });
-    }
-
-    document.querySelectorAll('[data-copy]').forEach((button) => {
-      button.addEventListener('click', async () => {
-        const target = document.querySelector(button.dataset.copy);
-        if (!target) return;
-        const text = target.textContent.trim();
-        let labelKey = 'copied';
-        try {
-          if (navigator.clipboard && window.isSecureContext) {
-            await navigator.clipboard.writeText(text);
-          } else {
-            const area = document.createElement('textarea');
-            area.value = text;
-            area.setAttribute('readonly', '');
-            area.style.position = 'fixed';
-            area.style.left = '-9999px';
-            document.body.appendChild(area);
-            area.select();
-            if (!document.execCommand('copy')) labelKey = 'selected';
-            area.remove();
-          }
-        } catch {
-          labelKey = 'selected';
-        }
-        setCopyButtonLabel(button, labelKey);
-        window.setTimeout(() => {
-          setCopyButtonLabel(button, 'copy');
-        }, 1200);
-      });
-    });
-
-  </script>
+  <footer class="footer wrap">
+    <a class="brand footer-brand" href="#top"><span>OpenNeko<span class="brand-period">.</span></span></a>
+    <span class="footer-credit"><span data-i18n="madeBy">A little project by</span> <a href="https://kimtoma.com">kimtoma</a></span>
+    <div class="footer-links"><a href="https://github.com/kimtoma/OpenNeko/blob/main/README.md" data-i18n="documentation">Documentation</a><a href="https://github.com/kimtoma/OpenNeko/issues" data-i18n="feedback">Say hello</a><a href="https://github.com/kimtoma/OpenNeko/blob/main/LICENSE">MIT License</a></div>
+  </footer>
+  <noscript><p class="noscript-note wrap">The desktop demo and language selector need JavaScript. Downloads and documentation are available without it.</p></noscript>
 </body>
 </html>

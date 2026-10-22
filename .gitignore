@@ -9,3 +9,8 @@ DerivedData/
 xcuserdata/
 *.xcuserstate
 .swiftpm/
+
+# local artifacts
+output/
+__pycache__/
+assets/gen/

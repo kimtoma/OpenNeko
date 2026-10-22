@@ -107,6 +107,75 @@ final class CatDragGeometryTests: XCTestCase {
         XCTAssertEqual(CatDragGeometry.dangleFrameIndex(horizontalVelocity: 0, time: 0.2), 2)
     }
 
+    func testFourFrameDragKeepsItsDirectionalAndIdlePoses() {
+        for time in [0.01, 0.1, 0.2, 0.3, 0.4] {
+            XCTAssertEqual(CatDragGeometry.dangleFrameIndex(
+                horizontalVelocity: 3, time: time, frameCount: 4
+            ), 1)
+            XCTAssertEqual(CatDragGeometry.dangleFrameIndex(
+                horizontalVelocity: -3, time: time, frameCount: 4
+            ), 3)
+            XCTAssertEqual(CatDragGeometry.dangleFrameIndex(
+                horizontalVelocity: -3, horizontalAcceleration: 4, time: time, frameCount: 4
+            ), 1)
+        }
+        let idleTimes = [0.01, 0.19, 0.37, 0.55]
+        XCTAssertEqual(idleTimes.map {
+            CatDragGeometry.dangleFrameIndex(horizontalVelocity: 0, time: $0, frameCount: 4)
+        }, [0, 2, 0, 2])
+    }
+
+    func testEightFrameDragVisitsEveryInterleavedPoseAndWraps() {
+        let cycle = CatDragGeometry.idleWrigglePeriod * 2
+        let times = (0..<8).map { (Double($0) + 0.25) * cycle / 8 }
+        let poses = times.map {
+            CatDragGeometry.dangleFrameIndex(horizontalVelocity: 0, time: $0, frameCount: 8)
+        }
+        XCTAssertEqual(poses, Array(0..<8))
+        XCTAssertEqual(times.map {
+            CatDragGeometry.dangleFrameIndex(horizontalVelocity: 0, time: $0 + cycle, frameCount: 8)
+        }, poses)
+        XCTAssertEqual(CatDragGeometry.dangleFrameIndex(
+            horizontalVelocity: 0, time: 0.01, frameCount: 8
+        ), 0)
+        XCTAssertEqual(CatDragGeometry.dangleFrameIndex(
+            horizontalVelocity: 0, time: 0.19, frameCount: 8
+        ), 4)
+    }
+
+    func testEightFrameMovingDragUsesTheInterleavedDirectionalAnchors() {
+        let cycle = CatDragGeometry.idleWrigglePeriod * 2
+        let times = (0..<8).map { (Double($0) + 0.25) * cycle / 8 }
+        XCTAssertEqual(times.map {
+            CatDragGeometry.dangleFrameIndex(horizontalVelocity: 3, time: $0, frameCount: 8)
+        }, [2, 3, 4, 5, 6, 7, 0, 1])
+        XCTAssertEqual(times.map {
+            CatDragGeometry.dangleFrameIndex(horizontalVelocity: -3, time: $0, frameCount: 8)
+        }, [6, 7, 0, 1, 2, 3, 4, 5])
+        XCTAssertEqual(CatDragGeometry.dangleFrameIndex(
+            horizontalVelocity: -3, horizontalAcceleration: 4, time: 0, frameCount: 8
+        ), 2)
+        XCTAssertEqual(CatDragGeometry.dangleFrameIndex(
+            horizontalVelocity: 3, horizontalAcceleration: -4, time: 0, frameCount: 8
+        ), 6)
+    }
+
+    func testShortOrMissingDragAnimationsDoNotProduceOutOfBoundsIndices() {
+        XCTAssertEqual(CatDragGeometry.dangleFrameIndex(
+            horizontalVelocity: -3, time: 0.2, frameCount: 0
+        ), 0)
+        for count in 1...8 {
+            for velocity: CGFloat in [-10, 0, 10] {
+                for time in [0.01, 0.2, 0.4, 100_000.3] {
+                    let index = CatDragGeometry.dangleFrameIndex(
+                        horizontalVelocity: velocity, time: time, frameCount: count
+                    )
+                    XCTAssertTrue((0..<count).contains(index))
+                }
+            }
+        }
+    }
+
     func testTopPinnedDragOriginHangsCatBelowPointer() {
         let size = CGSize(width: 160, height: 160)
         let pointer = CGPoint(x: 200, y: 300)

@@ -42,7 +42,6 @@ private final class GuestCatSKView: SKView {
 }
 
 final class GuestCatWindow: NSWindow {
-    private static let catSize = CatLayoutMetrics.guestCatSize
     private static let floorMargin = CatLayoutMetrics.floorPadding
 
     private let skView = GuestCatSKView()
@@ -61,9 +60,10 @@ final class GuestCatWindow: NSWindow {
     init(peer: NeighborPeer, skin: Skin, languageCode: String?, near parentWindow: NSWindow) {
         self.peer = peer
         self.languageCode = languageCode
-        scene = CatScene(size: Self.catSize)
+        let catSize = CatScene.frameSize(for: skin)
+        scene = CatScene(size: catSize)
         super.init(
-            contentRect: NSRect(origin: .zero, size: Self.catSize),
+            contentRect: NSRect(origin: .zero, size: catSize),
             styleMask: [.borderless],
             backing: .buffered,
             defer: false
@@ -81,6 +81,8 @@ final class GuestCatWindow: NSWindow {
         skView.wantsLayer = true
         skView.layer?.magnificationFilter = .nearest
         skView.layer?.minificationFilter = .nearest
+        skView.frame = NSRect(origin: .zero, size: catSize)
+        skView.autoresizingMask = [.width, .height]
         skView.presentScene(scene)
         skView.onClick = { [weak self] in
             guard let self else { return }
@@ -130,6 +132,11 @@ final class GuestCatWindow: NSWindow {
     func update(peer: NeighborPeer, skin: Skin, languageCode: String?, near parentWindow: NSWindow) {
         self.peer = peer
         self.languageCode = languageCode
+        let catSize = CatScene.frameSize(for: skin)
+        if frame.size != catSize {
+            scene.setCatFrameSize(catSize)
+            setFrame(NSRect(origin: frame.origin, size: catSize), display: true)
+        }
         scene.apply(skin: skin)
         scene.play(state: NeighborEventPresentation.presenceState(for: peer.presence))
         reposition(near: parentWindow, animated: true)
