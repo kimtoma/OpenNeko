@@ -8,6 +8,18 @@ final class AIProviderPresetTests: XCTestCase {
         XCTAssertEqual(AIProviderPreset.defaultConfig.type, .codexCLI)
     }
 
+    func testCLIProviderTypesMapToExecutableNames() {
+        XCTAssertEqual(AIProviderType.codexCLI.cliExecutableName, "codex")
+        XCTAssertEqual(AIProviderType.claudeCLI.cliExecutableName, "claude")
+        XCTAssertEqual(AIProviderType.geminiCLI.cliExecutableName, "gemini")
+    }
+
+    func testHTTPProviderTypesHaveNoCLIExecutable() {
+        XCTAssertNil(AIProviderType.openAICompatible.cliExecutableName)
+        XCTAssertNil(AIProviderType.gemini.cliExecutableName)
+        XCTAssertNil(AIProviderType.anthropic.cliExecutableName)
+    }
+
     func testPresetListKeepsUserFriendlyOrder() {
         XCTAssertEqual(AIProviderPreset.all.map(\.id), [
             "chatgpt-oauth",

@@ -1,37 +1,43 @@
-# Contributing to openNeko
+# Contributing to OpenNeko
 
-Thanks for helping with openNeko. Bug reports, feature ideas, code changes,
+Thanks for helping with OpenNeko. Bug reports, feature ideas, code changes,
 translations, skins, and docs improvements are welcome.
 
+OpenNeko is a native macOS app written in Swift (SwiftUI + AppKit +
+SpriteKit). The earlier Electron prototype has been fully ported; there is no
+`npm` workflow anymore.
+
 ## Local Setup
+
+Requirements: macOS 14+, Xcode, [XcodeGen](https://github.com/yonaskolb/XcodeGen).
 
 ```bash
 git clone https://github.com/kimtoma/openNeko.git
 cd openNeko
-npm install
-npm test
-npm run build
+xcodegen generate          # creates OpenNeko.xcodeproj (not committed)
+swift test                 # OpenNekoKit unit tests
+./script/build_and_run.sh  # debug build + launch
 ```
-
-Use Node.js `22.12+`.
 
 ## Pull Requests
 
-- Keep changes focused.
-- Run `npm test` and `npm run build` before opening a PR.
-- Do not commit generated local settings, API keys, or `node_modules`.
-- If you change renderer or settings source files, include the regenerated
-  bundle output or make it clear that maintainers should rebuild before release.
+- Keep changes focused; one topic per PR.
+- Run `swift test` and make sure the app still builds
+  (`xcodebuild -project OpenNeko.xcodeproj -scheme OpenNeko -configuration
+  Debug build`) before opening a PR. CI runs the same steps.
+- Put new logic in `Sources/OpenNekoKit/` with a matching test in
+  `Tests/OpenNekoKitTests/`; keep `App/` files thin (see
+  `docs/ARCHITECTURE.md`).
+- User-visible copy is localized (en/ko/ja/zh) — update all languages, and
+  keep the four `README*.md` files in sync for doc changes.
+- Do not commit generated files (`OpenNeko.xcodeproj`, `dist/`), local
+  settings, or API keys.
 
-## GPT Providers
+## AI Providers
 
-The public provider surface is intentionally small:
-
-- OpenAI GPT
-- local Ollama through its OpenAI-compatible endpoint
-- custom OpenAI-compatible endpoint
-
-Please discuss broader provider additions before opening a large PR.
+The provider preset surface is intentionally curated (CLI logins, Ollama,
+local OpenAI-compatible, Gemini/Claude API keys, custom endpoint). Please
+discuss broader provider additions in an issue before opening a large PR.
 
 ## Skills
 
@@ -41,8 +47,8 @@ User skills live in:
 ~/.openneko/skills/<skill-id>/SKILL.md
 ```
 
-Skill bodies are prompt instructions. openNeko does not execute scripts from
-skill folders.
+Skill bodies are prompt instructions. OpenNeko does not execute scripts from
+skill folders. Bundled skills live in `App/Resources/skills/builtin/`.
 
 ## Skins
 
@@ -52,10 +58,12 @@ External skins can be tested locally under:
 ~/Library/Application Support/openNeko/skins/<id>/
 ```
 
-Each skin should include state frame PNGs matching the bundled sprite naming
-scheme. Reuse `tools/extract_gen.py` when generating frames from source grids.
+Each skin needs `manifest.json`, `openneko-skin.json`, and transparent PNG
+frames matching the bundled sprite naming scheme
+(`App/Resources/sprites/<skin>/<state>_<frame>.png`).
 
 ## Security
 
-Never include secrets in issues, logs, screenshots, or test fixtures. API keys
-are stored through Electron `safeStorage` when available.
+Never include secrets in issues, logs, screenshots, or test fixtures. API
+keys are stored in the macOS Keychain (`App/APIKeyStore.swift`) — never in
+`settings.json`. Typing reactions must never read key contents.

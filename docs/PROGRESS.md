@@ -1,43 +1,55 @@
-# openNeko Progress
+# OpenNeko Progress
 
 ## Current Scope
 
-openNeko is a clean open-source desktop pet built around GPT and
-OpenAI-compatible chat completions.
+OpenNeko is a native macOS desktop pixel cat for AI agents, written in Swift
+(SwiftUI + AppKit + SpriteKit). The earlier Electron prototype has been fully
+ported; this document tracks the native app.
 
 Included:
 
-- Electron transparent bottom-strip pet window
-- Pixel sprite renderer and five bundled skins
-- OpenAI-compatible GPT chat provider
-- OpenAI, Ollama, and custom endpoint presets
-- Settings window, encrypted API key storage, profile fields, language support
-- Prompt-only skill system and slash commands
-- HTTP state bridge, keyboard reaction, and LAN neighbor cats
-- macOS and Windows install scripts
-
-Removed from the clean public baseline:
-
-- vendor-specific hook installers
-- old development session exports
-- old private-project planning logs
-- removed provider modules and their tests
+- Transparent always-on-top desktop cat with click-through outside the sprite
+- Pixel sprite renderer, bundled skins, external skin folders, and
+  `.openneko-skin` import plus `.openneko-skin-request` export
+- Typing reactions from keydown timing only (key contents never read)
+- Local AI agent process detection (Cursor, Codex, Gemini, Claude,
+  Antigravity, Kiro, ...)
+- Chat bubble, chat window, slash commands, and prompt-only skills
+- Provider presets: Codex/Claude/Gemini CLI logins, Ollama, local
+  OpenAI-compatible, Gemini/Claude API keys, custom endpoint
+- API keys in macOS Keychain; settings migrated from the Electron
+  `settings.json`
+- HTTP state bridge on `127.0.0.1:48800` with debug endpoints
+- LAN neighbor cat visits
+- Onboarding, launch-at-login, language (en/ko/ja/zh), sounds, profiles
+- ZIP/DMG release packaging with preflight and verification scripts
 
 ## Validation
 
-Run before release or PR handoff:
+Run before release or PR handoff (macOS only):
 
 ```bash
-npm test
-npm run build
-rg -n "removed-vendor-string|old-project-name" .
+swift test
+xcodegen generate
+xcodebuild -project OpenNeko.xcodeproj -scheme OpenNeko \
+  -configuration Debug -destination 'platform=macOS' \
+  CODE_SIGNING_ALLOWED=NO build
 ```
 
-The text scan should be adapted to the exact migration or cleanup task.
+Release packaging checks:
+
+```bash
+scripts/release-preflight.sh local
+scripts/package-macos.sh
+scripts/verify-macos-package.sh
+```
 
 ## Notes
 
 - User skills live under `~/.openneko/skills/`.
-- External skins live under the app user-data `skins/<id>/` directory.
+- Installed skins live under `~/Library/Application Support/openNeko/skins/`.
 - `OPENNEKO_PORT` can run multiple local instances for LAN testing.
-- `OPENAI_API_KEY` is the default key fallback for GPT chat.
+- Version numbers (`MARKETING_VERSION`, `CURRENT_PROJECT_VERSION`) live in
+  `project.yml`.
+- Agent-facing guides: `AGENTS.md` (canonical), `CLAUDE.md` (Claude Code
+  notes), `docs/ARCHITECTURE.md` (module map).

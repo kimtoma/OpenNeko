@@ -87,6 +87,10 @@ public enum DailyBGMSelector {
         )
     }
 
+    public static func isStopCommand(_ text: String) -> Bool {
+        ["stop", "off", "pause", "정지", "중지", "끄기"].contains(text.lowercased())
+    }
+
     public static func normalizePreference(_ value: String?) -> String {
         String((value ?? "").prefix(80))
             .replacingOccurrences(of: #"\s+"#, with: " ", options: .regularExpression)

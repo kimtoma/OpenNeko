@@ -5,6 +5,17 @@ public enum AIProviderType: String, Codable, Equatable, Sendable {
     case openAICompatible = "openai-compat"
     case gemini
     case anthropic
+
+    /// The executable name of the login CLI backing this provider type,
+    /// or nil for HTTP providers that need no local CLI.
+    public var cliExecutableName: String? {
+        switch self {
+        case .codexCLI: "codex"
+        case .claudeCLI: "claude"
+        case .geminiCLI: "gemini"
+        case .openAICompatible, .gemini, .anthropic: nil
+        }
+    }
 }
 
 public enum AIProviderField: String, Codable, Equatable, Sendable {
