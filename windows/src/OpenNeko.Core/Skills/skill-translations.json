@@ -1,0 +1,150 @@
+{
+  "en": {
+    "clipboard-summary": {
+      "body": "Summarize the user-provided text in no more than 3 concise sentences. Return only the summary with no introduction.",
+      "description": "Summarize copied text in 3 sentences",
+      "name": "Clipboard Summary"
+    },
+    "daily-bgm": {
+      "body": "Open a YouTube Music BGM playlist based on today's date and any taste hint the user provides. This built-in action opens YouTube Music search instead of generating music directly.",
+      "description": "Open today's BGM playlist on YouTube Music",
+      "name": "Today's Random BGM"
+    },
+    "daily-fortune": {
+      "body": "Use the user's birthday and today's date from the system context to give a short, fun, warm fortune for today.\n\nFortune sections: Overall / Love / Work and Study / Money / Lucky Color / Lucky Number\n\nKeep each section to one or two short lines. End cheerfully in the cat persona.\n\nIf the birthday is missing, tell the user: \"Please enter your birth date in Settings, nya~ 🐾\"",
+      "description": "Today's fortune from birthday and date",
+      "name": "Today's Fortune"
+    },
+    "explain": {
+      "body": "Explain the concept or term the user asks about in beginner-friendly language. Use analogies or examples when useful, and do not omit the key points.",
+      "description": "Explain difficult concepts in beginner-friendly language",
+      "name": "Explain Simply"
+    },
+    "saju": {
+      "body": "Give a saju-style reading based on the user's birth date, birth time, and solar/lunar calendar when available.\n\nDescribe innate temperament, strengths, and this year's flow in a warm and positive way. Let the model reason about detailed calendar conversion, and use basic Five Elements and Ten Gods interpretations.\n\nIf required information is missing, ask for it first: birth date, birth time, and whether it is solar or lunar.\n\nEnd in a friendly cat persona.",
+      "description": "Read saju from birthday information",
+      "name": "Saju Reading"
+    },
+    "translate": {
+      "body": "Translate the user-provided text. If it is mostly Korean, translate it into English; otherwise translate it into Korean. Return only the translation with no explanation or introduction.",
+      "description": "Translate copied text between Korean and English",
+      "name": "Translate"
+    },
+    "youtube-summary": {
+      "body": "Find the YouTube link in the user-provided text and summarize the key content of the video.\n\nWhen possible, summarize the title, topic, main claims, and practical takeaways.\nIf only the link is available and the video content cannot be accessed, use web search or accessible public information. If that is still insufficient, say so clearly.\n\nFormat:\n- One-line summary\n- 3 to 5 key points\n- Who should watch it\n\nSkip unnecessary introductions and answer with the summary directly.",
+      "description": "Summarize the copied YouTube link",
+      "name": "YouTube Link Summary"
+    }
+  },
+  "ja": {
+    "clipboard-summary": {
+      "body": "ユーザーが渡したテキストの要点を3文以内で簡潔に要約してにゃ。前置きなしで要約だけ答えてにゃ。",
+      "description": "コピーしたテキストを3文で要約",
+      "name": "クリップボード要約"
+    },
+    "daily-bgm": {
+      "body": "今日の日付とユーザーが入力した好みヒントをもとに、YouTube Musicで聴くBGMプレイリストを開いてにゃ。このスキルはアプリが直接音楽を作らず、YouTube Music検索を開く内蔵アクションにゃ。",
+      "description": "YouTube Musicで今日のBGMプレイリストを開く",
+      "name": "今日のランダムBGM"
+    },
+    "daily-fortune": {
+      "body": "システムにあるユーザーの生年月日と今日の日付をもとに、今日の運勢を楽しく温かく短く伝えてにゃ。\n\n項目: 総合運 / 恋愛運 / 仕事・勉強運 / 金運 / ラッキーカラー / ラッキーナンバー\n\n各項目は1〜2行で簡潔に。最後はねこの口調で明るく締めてにゃ。\n\n生年月日がなければ「生年月日を設定で入力してほしいにゃ！ 🐾」と案内してにゃ。",
+      "description": "生年月日と今日の日付で今日の運勢",
+      "name": "今日の運勢"
+    },
+    "explain": {
+      "body": "ユーザーが聞いた概念や用語を、初心者にもわかるやさしい言葉で説明してにゃ。必要ならたとえ話や例を使い、重要なポイントは省かないでにゃ。",
+      "description": "難しい概念を初心者にもわかりやすく説明",
+      "name": "やさしく説明"
+    },
+    "saju": {
+      "body": "ユーザーの生年月日、出生時刻、太陽暦/太陰暦の情報をもとに四柱推命風に読んでにゃ。\n\n生まれ持った気質と強み、今年の流れを温かく前向きに話してにゃ。万年暦の精密計算はLLMの推論に任せ、五行と十神の基本解釈を活用してにゃ。\n\n必要な情報(生年月日、出生時刻、太陽暦/太陰暦)が足りなければ先に質問してにゃ。\n\nねこの口調で親しみやすく締めてにゃ。",
+      "description": "生年月日で四柱推命風に読む",
+      "name": "四柱推命"
+    },
+    "translate": {
+      "body": "ユーザーが渡したテキストを翻訳してにゃ。主に韓国語なら英語へ、それ以外なら韓国語へ翻訳してにゃ。説明や前置きなしで翻訳結果だけ答えてにゃ。",
+      "description": "コピーしたテキストを韓国語↔英語で翻訳",
+      "name": "翻訳"
+    },
+    "youtube-summary": {
+      "body": "ユーザーが渡したテキストからYouTubeリンクを見つけ、動画の要点を要約してにゃ。\n\n可能なら動画タイトル、テーマ、主張、実用的なポイントを短く整理してにゃ。\nリンクだけで動画内容を直接確認できない場合は、Web検索や公開情報を使ってにゃ。それでも足りなければ、確認できないと正直に伝えてにゃ。\n\n形式:\n- 一言要約\n- 重要ポイント3〜5個\n- 見るとよい人\n\n不要な前置きなしで、すぐ要約してにゃ。",
+      "description": "コピーしたYouTubeリンクの要点を要約",
+      "name": "YouTubeリンク要約"
+    }
+  },
+  "ko": {
+    "clipboard-summary": {
+      "body": "사용자가 붙여준 텍스트를 핵심만 3문장 이내로 간결하게 요약해줘. 불필요한 서론 없이 바로 요약 내용만 답해줘.",
+      "description": "복사한 텍스트를 3문장으로 요약",
+      "name": "클립보드 요약"
+    },
+    "daily-bgm": {
+      "body": "오늘 날짜와 사용자가 입력한 취향 힌트를 기준으로 YouTube Music에서 들을 BGM 플레이리스트를 열어줘. 이 스킬은 앱이 직접 음악을 만들지 않고 YouTube Music 검색을 여는 내장 액션이다.",
+      "description": "YouTube Music에서 오늘의 BGM 플레이리스트 열기",
+      "name": "오늘의 랜덤 BGM"
+    },
+    "daily-fortune": {
+      "body": "시스템에 주어진 사용자 생년월일과 오늘 날짜를 바탕으로 오늘의 운세를 재미있고 따뜻하게 짧게 알려줘.\n\n운세 항목: 총운 / 애정운 / 일·공부운 / 금전운 / 행운의 색 / 행운의 숫자\n\n각 항목을 한 두 줄로 간결하게. 고양이 말투로 즐겁게 마무리해줘.\n\n생년월일 정보가 없으면 \"생년월일을 설정에서 입력해달라냥! 🐾\" 라고 안내해줘.",
+      "description": "생년월일·오늘 날짜로 오늘의 운세",
+      "name": "오늘의 운세"
+    },
+    "explain": {
+      "body": "사용자가 물어보는 개념이나 용어를 초보자도 이해할 수 있게 쉬운 말로 풀어 설명해줘. 비유나 예시를 들어서 친근하게 설명하되, 핵심 포인트를 빠뜨리지 마.",
+      "description": "어려운 개념을 초보자도 알기 쉽게 풀어 설명",
+      "name": "쉽게 설명"
+    },
+    "saju": {
+      "body": "사용자의 생년월일(+시각/양력음력)을 바탕으로 사주를 풀이해줘.\n\n타고난 기질과 강점, 올해의 흐름을 따뜻하고 긍정적으로 이야기해줘. 만세력 정밀 계산은 LLM의 추론에 맡기고, 오행과 십성의 기본 해석을 활용해줘.\n\n필요한 정보(생년월일, 태어난 시각, 양력/음력 여부)가 부족하면 먼저 물어봐줘.\n\n고양이 말투로 친근하게 마무리해줘.",
+      "description": "생년월일로 사주 풀이",
+      "name": "사주"
+    },
+    "translate": {
+      "body": "사용자가 붙여준 텍스트를 번역해줘. 텍스트가 주로 한국어라면 영어로, 아니라면 한국어로 번역해줘. 번역 결과만 바로 답해줘. 설명이나 서론은 붙이지 마.",
+      "description": "복사한 텍스트를 한국어↔영어로 번역",
+      "name": "번역"
+    },
+    "youtube-summary": {
+      "body": "사용자가 붙여준 텍스트에서 YouTube 링크를 찾아 영상의 핵심 내용을 요약해줘.\n\n가능하면 영상 제목, 주제, 핵심 주장, 실용적인 포인트를 짧게 정리해줘.\n링크만 있고 영상 내용을 직접 확인할 수 없으면 웹 검색 또는 접근 가능한 공개 정보를 활용하고, 그래도 부족하면 링크를 열어 확인할 수 없다고 솔직히 말해줘.\n\n답변 형식:\n- 한 줄 요약\n- 핵심 포인트 3~5개\n- 볼 만한 사람\n\n불필요한 서론은 붙이지 말고 바로 요약해줘.",
+      "description": "복사한 YouTube 링크의 핵심 내용 요약",
+      "name": "유튜브 링크 요약"
+    }
+  },
+  "zh": {
+    "clipboard-summary": {
+      "body": "请将用户提供的文本提炼为不超过3句话的简洁摘要。不要加开场白，只输出摘要内容喵。",
+      "description": "将复制的文本总结成3句话",
+      "name": "剪贴板摘要"
+    },
+    "daily-bgm": {
+      "body": "请根据今天日期和用户输入的喜好提示，在YouTube Music打开适合收听的BGM播放列表喵。这个技能不会直接生成音乐，而是打开YouTube Music搜索喵。",
+      "description": "在 YouTube Music 打开今日BGM播放列表",
+      "name": "今日随机BGM"
+    },
+    "daily-fortune": {
+      "body": "根据系统上下文中的用户生日和今天日期，简短、温暖、有趣地告诉用户今日运势喵。\n\n运势项目：整体运 / 爱情运 / 工作与学习运 / 财运 / 幸运色 / 幸运数字\n\n每个项目保持一到两行。最后用猫咪语气愉快收尾喵。\n\n如果没有生日信息，请提示：“请在设置里输入生日喵！ 🐾”",
+      "description": "根据生日和今天日期生成今日运势",
+      "name": "今日运势"
+    },
+    "explain": {
+      "body": "请用初学者也能理解的简单语言解释用户询问的概念或术语。必要时使用比喻或例子，但不要遗漏核心要点喵。",
+      "description": "用新手也能理解的方式解释困难概念",
+      "name": "简单解释"
+    },
+    "saju": {
+      "body": "根据用户的出生日期、出生时间和阳历/阴历信息，做四柱命理风格的解读喵。\n\n温暖、积极地讲述天生气质、优势和今年的走势。万年历精确换算交给LLM推理，并参考五行和十神的基础解读喵。\n\n如果缺少必要信息，请先询问：出生日期、出生时间、阳历还是阴历。\n\n用亲切的猫咪语气收尾喵。",
+      "description": "根据生日信息做四柱命理解读",
+      "name": "四柱命理"
+    },
+    "translate": {
+      "body": "请翻译用户提供的文本。如果主要是韩语，就翻译成英语；否则翻译成韩语。不要解释或添加开场白，只输出翻译结果喵。",
+      "description": "在韩语和英语之间翻译复制的文本",
+      "name": "翻译"
+    },
+    "youtube-summary": {
+      "body": "请从用户提供的文本中找出YouTube链接，并总结视频的核心内容喵。\n\n尽可能总结视频标题、主题、主要观点和实用要点。\n如果只有链接而无法直接确认视频内容，请使用网络搜索或可访问的公开信息；如果仍然不足，请坦诚说明无法确认。\n\n格式:\n- 一句话摘要\n- 3到5个核心要点\n- 适合观看的人\n\n不要加不必要的开场白，直接给出摘要喵。",
+      "description": "总结复制的 YouTube 链接内容",
+      "name": "YouTube链接摘要"
+    }
+  }
+}

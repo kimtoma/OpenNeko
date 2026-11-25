@@ -9,3 +9,8 @@ DerivedData/
 xcuserdata/
 *.xcuserstate
 .swiftpm/
+
+# Windows (.NET) build outputs
+windows/**/bin/
+windows/**/obj/
+windows/artifacts/

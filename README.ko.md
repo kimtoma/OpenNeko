@@ -145,6 +145,22 @@ scripts/verify-macos-package.sh
 
 `distribution`과 `notarized` 체크에는 서명 머신의 Developer ID Application 인증서와 Apple 공증 자격 증명이 필요합니다.
 
+## Windows (프리뷰)
+
+Windows 네이티브 버전은 [`windows/`](windows/README.md)에 있어요. C# .NET 8 + WPF로
+만들었고, 스프라이트·내장 스킬·`settings.json` 형식을 macOS 앱과 그대로 공유합니다.
+데스크톱 고양이, 타이핑 반응, 에이전트 감지, 같은 AI Provider로 대화, 슬래시 명령과
+스킬, 상태 브리지, 트레이 메뉴를 지원합니다. 이웃 고양이와 스킨 가져오기는 아직
+macOS 전용이에요.
+
+```powershell
+dotnet test windows/tests/OpenNeko.Core.Tests
+dotnet run --project windows/src/OpenNeko.Windows
+```
+
+Windows 10 (2004) 이상과 .NET 8 SDK가 필요합니다. CI가 self-contained
+`OpenNeko-Windows-x64` 빌드를 워크플로 아티팩트로 올려요.
+
 ## Electron에서 마이그레이션
 
 네이티브 앱은 이전 Electron `settings.json`을 아래 위치에서 읽습니다.

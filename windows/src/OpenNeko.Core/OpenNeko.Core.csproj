@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Pure, UI-free logic shared by the Windows app. Mirrors Sources/OpenNekoKit
+       on macOS. Builds and tests on any OS (dotnet test). -->
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <RootNamespace>OpenNeko.Core</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Skills\skill-translations.json" LogicalName="OpenNeko.Core.skill-translations.json" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Per-user MSI for OpenNeko (no admin rights needed). Built by
+  windows/scripts/package-windows.sh with wixl (msitools) on Linux/macOS;
+  the file list for Assets/ and Resources/ is generated into content.wxs.
+  Installs to %LOCALAPPDATA%\Programs\OpenNeko and adds a Start menu shortcut.
+  UpgradeCode must never change: it lets a newer MSI replace an older one.
+-->
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+  <Product Id="*"
+           Name="OpenNeko"
+           Language="1033"
+           Version="$(var.Version)"
+           Manufacturer="OpenNeko"
+           UpgradeCode="6F1D2C3B-8E4A-4B7F-9A51-3C2E7D0B9F64">
+    <Package InstallerVersion="500" Compressed="yes" InstallScope="perUser"
+             Description="OpenNeko desktop pixel cat" Comments="OpenNeko for Windows" />
+    <Media Id="1" Cabinet="openneko.cab" EmbedCab="yes" />
+    <MajorUpgrade DowngradeErrorMessage="A newer version of OpenNeko is already installed." />
+
+    <Icon Id="OpenNekoIcon" SourceFile="$(var.SourceDir)/Assets/openneko.ico" />
+    <Property Id="ARPPRODUCTICON" Value="OpenNekoIcon" />
+    <Property Id="ALLUSERS" Value="2" />
+    <Property Id="MSIINSTALLPERUSER" Value="1" />
+
+    <Directory Id="TARGETDIR" Name="SourceDir">
+      <Directory Id="LocalAppDataFolder">
+        <Directory Id="ProgramsDir" Name="Programs">
+          <Directory Id="INSTALLDIR" Name="OpenNeko">
+            <Component Id="MainExecutable" Guid="0B7C4E2A-5D3F-4A91-8C6E-2F1A9B3D7E58">
+              <File Id="OpenNekoExe" Source="$(var.SourceDir)/OpenNeko.exe" />
+              <RegistryValue Root="HKCU" Key="Software\OpenNeko" Name="Installed" Type="integer" Value="1" KeyPath="yes" />
+              <RemoveFolder Id="RemoveInstallDir" On="uninstall" />
+            </Component>
+          </Directory>
+        </Directory>
+      </Directory>
+      <Directory Id="ProgramMenuFolder">
+        <Component Id="StartMenuShortcut" Guid="9E2D6A41-7C3B-4F58-B1A2-4D8E6C0F3A97">
+          <Shortcut Id="OpenNekoShortcut" Name="OpenNeko" Description="OpenNeko desktop pixel cat"
+                    Target="[INSTALLDIR]OpenNeko.exe" WorkingDirectory="INSTALLDIR" Icon="OpenNekoIcon" />
+          <RegistryValue Root="HKCU" Key="Software\OpenNeko" Name="Shortcut" Type="integer" Value="1" KeyPath="yes" />
+        </Component>
+      </Directory>
+    </Directory>
+
+    <Feature Id="Main" Title="OpenNeko" Level="1">
+      <ComponentRef Id="MainExecutable" />
+      <ComponentRef Id="StartMenuShortcut" />
+      <ComponentGroupRef Id="AppContent" />
+    </Feature>
+  </Product>
+</Wix>

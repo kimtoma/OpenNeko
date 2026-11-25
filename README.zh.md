@@ -145,6 +145,21 @@ scripts/verify-macos-package.sh
 
 `distribution` 和 `notarized` 检查需要签名机器上可用的 Developer ID Application 证书和 Apple 公证凭据。
 
+## Windows(预览)
+
+Windows 原生版本位于 [`windows/`](windows/README.md)。它使用 C# .NET 8 + WPF 构建,
+与 macOS 版共享精灵图、内置技能和 `settings.json` 格式。支持桌面猫、打字反应、
+智能体检测、使用相同 AI Provider 聊天、斜杠命令与技能、状态桥接以及托盘菜单。
+邻居猫和皮肤导入目前仅限 macOS。
+
+```powershell
+dotnet test windows/tests/OpenNeko.Core.Tests
+dotnet run --project windows/src/OpenNeko.Windows
+```
+
+需要 Windows 10 (2004) 或更高版本以及 .NET 8 SDK。CI 会把 self-contained 的
+`OpenNeko-Windows-x64` 构建作为工作流产物发布。
+
 ## 从 Electron 迁移
 
 原生应用会从以下位置读取旧 Electron `settings.json`:
