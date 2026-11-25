@@ -131,6 +131,16 @@ chat input ──▶ SlashCommand/NekoSkillCatalog ──▶ ChatPromptBuilder
           ──▶ provider (CLI process | HTTPChatProvider) ──▶ bubble + ChatTranscriptStore
 ```
 
+## Windows port
+
+`windows/` holds a C# .NET 8 + WPF port. `OpenNeko.Core` mirrors OpenNekoKit
+type by type (same state machine, priorities, physics, copy tables, provider
+presets, parsers), and `OpenNeko.Windows/AppController.cs` is its composition
+root, mirroring `AppDelegate`. Platform adapters: `KeyboardHook` (WH_KEYBOARD_LL,
+message type only), `AgentProcessMonitor` (WMI), `StateBridgeServer`
+(TcpListener on loopback), `ChatProviders` (HTTP + CLI over stdin),
+`CredentialStore` (Credential Manager). Details in `windows/README.md`.
+
 ## Change checklist
 
 1. New logic → OpenNekoKit + test; `App/` stays a thin adapter.

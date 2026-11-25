@@ -45,6 +45,16 @@ tested there.
 `OpenNekoKit`. The generated `OpenNeko.xcodeproj` is not committed. Bump
 `MARKETING_VERSION` / `CURRENT_PROJECT_VERSION` in `project.yml` for releases.
 
+### Windows port (`windows/`)
+
+A C# .NET 8 + WPF port with the same two-layer rule: `windows/src/OpenNeko.Core`
+(pure logic, mirrors OpenNekoKit, tested by `windows/tests/OpenNeko.Core.Tests`)
+and `windows/src/OpenNeko.Windows` (thin WPF shell). It shares sprites, skills
+and the `settings.json` format with the macOS app. When you change shared
+behavior or copy in OpenNekoKit, mirror it in OpenNeko.Core. `dotnet test` for
+Core runs on any OS; `.github/workflows/windows.yml` builds the app on
+Windows. See `windows/README.md`.
+
 See `docs/ARCHITECTURE.md` for the module-by-module map and data flow, and
 `docs/KIT-EXTRACTION-BACKLOG.md` for the ranked list of App/ logic still
 waiting to be extracted into OpenNekoKit.

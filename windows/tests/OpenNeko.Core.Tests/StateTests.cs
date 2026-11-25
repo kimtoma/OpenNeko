@@ -229,3 +229,41 @@ public class ScreenSpaceTests
         Assert.Equal(new Point(100, 42), ScreenSpace.LocalPoint(bottomLeft, screen));
     }
 }
+
+public class FloatingLayoutTests
+{
+    private static readonly Rect Visible = new(0, 40, 1920, 1040);
+
+    [Fact]
+    public void BubbleDurationGrowsWithTextUpToCap()
+    {
+        Assert.Equal(4.2, FloatingLayout.BubbleDuration(""), 6);
+        Assert.Equal(5.2, FloatingLayout.BubbleDuration(new string('a', 90)), 6);
+        Assert.Equal(7.7, FloatingLayout.BubbleDuration(new string('a', 5000)), 6);
+    }
+
+    [Fact]
+    public void BubbleSitsAboveCatAndClampsToScreen()
+    {
+        var cat = new Rect(1788, 42, 128, 128);
+        var origin = FloatingLayout.BubbleOrigin(cat, new Size(200, 60), Visible, null);
+        Assert.Equal(168, origin.Y);
+        Assert.Equal(1920 - 200 - 10, origin.X);
+    }
+
+    [Fact]
+    public void BubbleMovesAboveChatWhenOverlapping()
+    {
+        var cat = new Rect(800, 42, 128, 128);
+        var chat = new Rect(704, 178, 320, 80);
+        var origin = FloatingLayout.BubbleOrigin(cat, new Size(200, 60), Visible, chat);
+        Assert.Equal(chat.MaxY + 16, origin.Y);
+    }
+
+    [Fact]
+    public void ChatSitsEightPointsAboveCat()
+    {
+        var origin = FloatingLayout.ChatOrigin(new Rect(800, 42, 128, 128), new Size(320, 80), Visible);
+        Assert.Equal(new Point(704, 178), origin);
+    }
+}

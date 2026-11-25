@@ -16,6 +16,7 @@ public static class NekoBubbleCopy
     public static string SkillActivated(string name, string? lang) => L(lang, $"{name} 모드다냥", $"{name} mode is on, nya~", $"{name} モードにしたにゃ", $"{name} 模式已开启喵");
     public static string SkillPlaceholder(string name, string? lang) => L(lang, $"{name}로 물어보라냥...", $"Ask with {name}, nya...", $"{name} で聞くにゃ...", $"用 {name} 问我喵...");
     public static string ChatPlaceholder(string? lang) => L(lang, "무엇을 물어볼까냥?", "What shall I ask, nya?", "何を聞くにゃ?", "想问什么喵?");
+    public static string BgmStopped(string? lang) => L(lang, "내장 BGM은 멈췄다냥\nYouTube Music은 열린 탭에서 멈춰달라냥", "Built-in BGM stopped, nya.\nStop YouTube Music in its open tab.", "内蔵BGMは止めたにゃ\nYouTube Musicは開いているタブで止めるにゃ", "内置BGM已停止喵\nYouTube Music 请在打开的标签页里停止喵");
     public static string BgmSearching(string? lang) => L(lang, "오늘의 BGM 찾는 중이다냥", "Finding today's BGM, nya~", "今日のBGMを探してるにゃ", "正在找今天的BGM喵");
     public static string BgmOpened(string title, string query, string? lang) => L(lang, $"오늘의 BGM을 열었다냥:\n{title}\n{query}", $"Opened today's BGM, nya:\n{title}\n{query}", $"今日のBGMを開いたにゃ:\n{title}\n{query}", $"已打开今天的BGM喵:\n{title}\n{query}");
     public static string BgmOpenFailed(string? lang) => L(lang, "YouTube Music을 열지 못했다냥", "I could not open YouTube Music, nya.", "YouTube Musicを開けなかったにゃ", "没能打开 YouTube Music 喵");

@@ -157,6 +157,22 @@ scripts/verify-macos-package.sh
 `distribution` and `notarized` checks require a valid Developer ID Application
 certificate and Apple notarization credentials on the signing machine.
 
+## Windows (preview)
+
+A native Windows port lives in [`windows/`](windows/README.md): C# .NET 8 + WPF,
+sharing the same sprites, bundled skills, and `settings.json` format. It has the
+desktop cat, typing reactions, agent detection, chat with the same AI providers,
+slash commands and skills, the state bridge, and a tray menu. Neighbor cats and
+skin import are macOS-only for now.
+
+```powershell
+dotnet test windows/tests/OpenNeko.Core.Tests
+dotnet run --project windows/src/OpenNeko.Windows
+```
+
+Requires Windows 10 (2004) or later and the .NET 8 SDK. CI publishes a
+self-contained `OpenNeko-Windows-x64` build as a workflow artifact.
+
 ## Migration From Electron
 
 The native app reads the previous Electron `settings.json` from:

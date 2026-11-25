@@ -1,0 +1,32 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- The Windows app shell (WPF). Thin adapters over OpenNeko.Core, mirroring
+       App/ on macOS. Builds on Windows; on Linux/macOS it compiles thanks to
+       EnableWindowsTargeting but cannot run. -->
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <UseWindowsForms>true</UseWindowsForms>
+    <EnableWindowsTargeting>true</EnableWindowsTargeting>
+    <AssemblyName>OpenNeko</AssemblyName>
+    <RootNamespace>OpenNeko.Windows</RootNamespace>
+    <ApplicationIcon>Assets\openneko.ico</ApplicationIcon>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <SupportedOSPlatformVersion>10.0.19041.0</SupportedOSPlatformVersion>
+    <!-- System.Windows.Forms is used only for the tray icon and monitor info. -->
+    <ImplicitUsings>disable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\OpenNeko.Core\OpenNeko.Core.csproj" />
+    <PackageReference Include="System.Management" Version="8.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Assets\openneko.ico" />
+    <!-- Sprites and bundled skills are shared with the macOS app; never duplicated. -->
+    <Content Include="..\..\..\App\Resources\sprites\**\*" Link="Resources\sprites\%(RecursiveDir)%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+    <Content Include="..\..\..\App\Resources\skills\builtin\**\*" Link="Resources\skills\builtin\%(RecursiveDir)%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+    <Content Include="..\..\..\App\Resources\fonts\*" Link="Resources\fonts\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+  </ItemGroup>
+</Project>

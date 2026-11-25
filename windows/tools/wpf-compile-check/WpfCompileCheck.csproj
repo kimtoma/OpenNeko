@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Compile-only check of the WPF shell for Linux/macOS (e.g. cloud sessions).
+       Source-built .NET SDKs ship without Microsoft.NET.Sdk.WindowsDesktop, so this
+       references the WPF/WinForms reference assemblies from NuGet directly.
+       It produces nothing runnable; CI on windows-latest builds the real app.
+       Usage: dotnet build windows/tools/wpf-compile-check -->
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <OutputType>Library</OutputType>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <NoWarn>$(NoWarn);CA1416;MSB3243;MSB3277</NoWarn>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageDownload Include="Microsoft.WindowsDesktop.App.Ref" Version="[8.0.11]" />
+    <PackageReference Include="System.Management" Version="8.0.0" />
+    <ProjectReference Include="..\..\src\OpenNeko.Core\OpenNeko.Core.csproj" />
+    <Compile Include="..\..\src\OpenNeko.Windows\**\*.cs" Exclude="..\..\src\OpenNeko.Windows\obj\**;..\..\src\OpenNeko.Windows\bin\**" />
+  </ItemGroup>
+  <Target Name="AddWindowsDesktopRefs" BeforeTargets="ResolveAssemblyReferences">
+    <ItemGroup>
+      <Reference Remove="@(Reference)" Condition="'%(Filename)' == 'WindowsBase'" />
+      <Reference Include="$(NuGetPackageRoot)microsoft.windowsdesktop.app.ref/8.0.11/ref/net8.0/*.dll" />
+    </ItemGroup>
+  </Target>
+</Project>
