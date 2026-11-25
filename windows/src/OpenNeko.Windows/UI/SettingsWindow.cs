@@ -38,7 +38,7 @@ internal sealed class SettingsWindow : Window
         Height = 560;
         ResizeMode = ResizeMode.CanMinimize;
         WindowStartupLocation = WindowStartupLocation.CenterScreen;
-        Icon = new System.Windows.Media.Imaging.BitmapImage(new Uri("pack://application:,,,/Assets/openneko.ico"));
+        Icon = AppIcon.Image();
         Rebuild();
     }
 

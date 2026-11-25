@@ -28,10 +28,27 @@ dotnet publish windows/src/OpenNeko.Windows -c Release -r win-x64 --self-contain
 CI (`.github/workflows/windows.yml`) runs the Core tests, builds the app on
 `windows-latest`, and uploads a self-contained `OpenNeko-Windows-x64` artifact.
 
-On Linux or macOS you can run the Core tests, and compile-check the WPF shell
-with `dotnet build windows/tools/wpf-compile-check`. Source-built .NET SDKs
-lack the Windows Desktop SDK, so that project compiles the shell against the
-WPF reference assemblies from NuGet. It builds nothing runnable.
+The app project references the Windows Desktop framework directly (the UI is
+code-only, no XAML), so the whole solution also builds on Linux and macOS, and
+can cross-publish the `win-x64` app there. It only runs on Windows.
+
+## Packaging
+
+```bash
+windows/scripts/package-windows.sh
+```
+
+This publishes a self-contained single-file build and writes, to
+`windows/artifacts/`:
+
+- `OpenNeko-Windows-x64-<version>.zip`: portable; unzip anywhere and run `OpenNeko.exe`.
+- `OpenNeko-Windows-x64-<version>.msi`: per-user installer (no admin rights)
+  into `%LOCALAPPDATA%\Programs\OpenNeko`, with a Start menu shortcut. Built
+  with `wixl` from msitools (`apt install wixl` / `brew install msitools`)
+  from `windows/installer/OpenNeko.wxs`.
+
+Neither is code-signed yet, so Windows SmartScreen warns on first run
+("More info" → "Run anyway").
 
 ## Where things live
 

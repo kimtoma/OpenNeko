@@ -43,7 +43,7 @@ internal sealed class TrayIcon : IDisposable
         _icon = new Forms.NotifyIcon
         {
             Text = "OpenNeko",
-            Icon = LoadIcon(),
+            Icon = AppIcon.TrayIcon(),
             Visible = true,
             ContextMenuStrip = new Forms.ContextMenuStrip(),
         };
@@ -145,11 +145,5 @@ internal sealed class TrayIcon : IDisposable
         var item = new Forms.ToolStripMenuItem(title) { Checked = value };
         item.Click += (_, _) => set(!value);
         return item;
-    }
-
-    private static System.Drawing.Icon LoadIcon()
-    {
-        var info = System.Windows.Application.GetResourceStream(new Uri("pack://application:,,,/Assets/openneko.ico"));
-        return info is null ? System.Drawing.SystemIcons.Application : new System.Drawing.Icon(info.Stream);
     }
 }

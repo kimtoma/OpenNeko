@@ -18,7 +18,7 @@ internal sealed class ChatHistoryWindow : Window
         Width = 420;
         Height = 560;
         WindowStartupLocation = WindowStartupLocation.CenterScreen;
-        Icon = new System.Windows.Media.Imaging.BitmapImage(new Uri("pack://application:,,,/Assets/openneko.ico"));
+        Icon = AppIcon.Image();
         _clear.Click += (_, _) => onClear();
         var dock = new DockPanel();
         DockPanel.SetDock(_clear, Dock.Bottom);
