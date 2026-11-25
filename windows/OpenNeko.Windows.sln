@@ -1,0 +1,36 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{EE4E9BAD-E079-4760-9963-4E02898C150B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenNeko.Core", "src\OpenNeko.Core\OpenNeko.Core.csproj", "{5C2DEC7F-66A6-4CBF-AE03-08BFCD24206B}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{E3B1B20C-A8F0-468A-A322-FD002BBF5EF8}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenNeko.Core.Tests", "tests\OpenNeko.Core.Tests\OpenNeko.Core.Tests.csproj", "{F1D93079-12A2-4A9D-87F0-449C35447557}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{5C2DEC7F-66A6-4CBF-AE03-08BFCD24206B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5C2DEC7F-66A6-4CBF-AE03-08BFCD24206B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5C2DEC7F-66A6-4CBF-AE03-08BFCD24206B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5C2DEC7F-66A6-4CBF-AE03-08BFCD24206B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F1D93079-12A2-4A9D-87F0-449C35447557}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F1D93079-12A2-4A9D-87F0-449C35447557}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F1D93079-12A2-4A9D-87F0-449C35447557}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F1D93079-12A2-4A9D-87F0-449C35447557}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{5C2DEC7F-66A6-4CBF-AE03-08BFCD24206B} = {EE4E9BAD-E079-4760-9963-4E02898C150B}
+		{F1D93079-12A2-4A9D-87F0-449C35447557} = {E3B1B20C-A8F0-468A-A322-FD002BBF5EF8}
+	EndGlobalSection
+EndGlobal
