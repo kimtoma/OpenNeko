@@ -3,7 +3,30 @@ import XCTest
 
 final class SettingsPaneTests: XCTestCase {
     func testSettingsPanesAppearInUserFacingOrder() {
-        XCTAssertEqual(SettingsPane.allCases, [.start, .skins, .profile, .general, .ai, .skills, .about, .neighbors, .permissions, .bridge])
+        XCTAssertEqual(SettingsPane.sidebar, [.cat, .memory, .abilities, .day, .ai, .advanced])
+        XCTAssertEqual(SettingsPane.sidebar.map(\.title), ["고양이", "기억", "능력", "하루", "AI", "고급"])
+    }
+
+    func testEveryOldSectionLandsInASidebarPane() {
+        for pane in SettingsPane.allCases {
+            XCTAssertTrue(SettingsPane.sidebar.contains(pane.sidebarPane), "\(pane)")
+        }
+        XCTAssertEqual(SettingsPane.skins.sidebarPane, .cat)
+        XCTAssertEqual(SettingsPane.profile.sidebarPane, .memory)
+        XCTAssertEqual(SettingsPane.skills.sidebarPane, .abilities)
+        XCTAssertEqual(SettingsPane.permissions.sidebarPane, .abilities)
+        XCTAssertEqual(SettingsPane.general.sidebarPane, .advanced)
+        XCTAssertEqual(SettingsPane.about.sidebarPane, .advanced)
+    }
+
+    func testSidebarSubtitlesAreLocalized() {
+        for pane in SettingsPane.sidebar {
+            let values = ["ko", "en", "ja", "zh"].map { pane.subtitle(languageCode: $0) }
+            XCTAssertEqual(Set(values).count, 4, "\(pane)")
+            if pane != .ai {
+                XCTAssertGreaterThanOrEqual(Set(["ko", "en", "ja", "zh"].map { pane.title(languageCode: $0) }).count, 3, "\(pane)")
+            }
+        }
     }
 
     func testSettingsPaneTitles() {

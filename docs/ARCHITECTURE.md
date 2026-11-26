@@ -96,6 +96,14 @@ state; `SettingsPane`/`SettingsCopy` define panes and localized labels;
 `App/LaunchAtLoginController.swift` handle login items. API keys are NOT in
 AppSettings — Keychain only.
 
+The window has six sidebar tabs, grouped by what the person wants to do
+rather than by subsystem: Cat (skin, language, sound, chattiness), Memory
+(profile and memory notes), Abilities (native tools, web search, skills,
+permissions), Day (routines, break reminders), AI (providers) and Advanced
+(launch at login, agent detection and hooks, neighbors, about).
+`SettingsPane.sidebar` lists them; the older fine-grained cases remain as
+section identifiers and map to their tab through `sidebarPane`.
+
 ### State bridge server (App/StateBridgeServer.swift)
 
 Plain socket HTTP server on `127.0.0.1:48800` (`OPENNEKO_PORT` overrides).
