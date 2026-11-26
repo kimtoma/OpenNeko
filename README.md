@@ -102,6 +102,16 @@ allow or deny it for this task. Home, root, and system folders are refused.
 Every step is written to `~/Library/Application Support/openNeko/agent-activity.jsonl`
 (`/tasklog` opens it). `/task stop` cancels.
 
+## Routines
+
+Settings → AI → Routines lets the cat run jobs at set times while OpenNeko is
+running, such as a weekday morning briefing or an end-of-day wrap-up. A
+routine without a folder sends its prompt to your AI provider and answers in
+the bubble. A routine with a folder runs Claude Code read-only inside that
+folder (for example, summarizing yesterday's commits); anything else asks you
+first. Each routine runs at most once a day, and one missed while the Mac was
+asleep still runs if the Mac wakes within two hours.
+
 ## Skills
 
 Bundled and user skills are prompt instructions stored as `SKILL.md` files.

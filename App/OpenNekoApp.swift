@@ -58,6 +58,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var neighborNetwork: NeighborNetwork?
     private var settingsWindow: SettingsWindowController?
     private var localModelSetupController: LocalModelSetupController?
+    private var routinesWindowController: RoutinesWindowController?
+    private var routineTimer: Timer?
     private var chatHistoryWindowController: ChatHistoryWindowController?
     private var skinManager: SkinManager?
     private var skillCatalog = NekoSkillCatalog(skills: [])
@@ -268,6 +270,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             openLocalModelSetup: { [weak self] in
                 self?.openLocalModelSetup()
             },
+            openRoutines: { [weak self] in
+                self?.openRoutines()
+            },
             showOnboarding: { [weak self] in
                 self?.showOnboarding()
             },
@@ -361,6 +366,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         DispatchQueue.main.asyncAfter(deadline: .now() + 6) { [weak self] in
             self?.startWhatsNewTour(replay: false)
         }
+        let routineTimer = Timer(timeInterval: 30, repeats: true) { [weak self] _ in
+            self?.checkRoutines()
+        }
+        RunLoop.main.add(routineTimer, forMode: .common)
+        self.routineTimer = routineTimer
         configureAgentProcessDetection()
         stateBridgeServer = StateBridgeServer(
             currentState: { [weak cat] in cat?.currentState ?? .idle },
@@ -2164,6 +2174,87 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         guard let prompt = action.prompt(for: text, languageCode: language) else { return }
         sendChat(prompt, cat: catWindow)
         catWindow?.showBubble(action.workingBubble(languageCode: language))
+    }
+
+    // MARK: - Routines
+
+    private func openRoutines() {
+        if routinesWindowController == nil {
+            routinesWindowController = RoutinesWindowController(
+                languageCode: { [weak self] in
+                    self?.currentLanguageCode() ?? AppLanguage.resolved(nil)
+                },
+                routines: { [weak self] in
+                    self?.appSettings.routines ?? []
+                },
+                save: { [weak self] edited in
+                    self?.saveRoutines(edited)
+                },
+                runNow: { [weak self] routine in
+                    self?.runRoutine(routine)
+                }
+            )
+        }
+        routinesWindowController?.show()
+    }
+
+    private func saveRoutines(_ edited: [Routine]) {
+        appSettings.routines = RoutineScheduler.reconcile(
+            edited: edited,
+            previous: appSettings.routines,
+            now: Date(),
+            calendar: .current
+        )
+        saveSettings()
+        settingsWindow?.refresh()
+    }
+
+    /// Runs at most one due routine per tick so runs never pile up. A chat
+    /// routine waits while a chat reply is streaming.
+    private func checkRoutines() {
+        let now = Date()
+        guard let routine = RoutineScheduler.due(appSettings.routines, now: now, calendar: .current).first else { return }
+        if routine.folder == nil, activeChatTask != nil { return }
+        appSettings.routines = RoutineScheduler.markingRan(routine.id, in: appSettings.routines, now: now, calendar: .current)
+        saveSettings()
+        runRoutine(routine)
+    }
+
+    private func runRoutine(_ routine: Routine) {
+        let language = currentLanguageCode()
+        guard !routine.prompt.isEmpty else { return }
+        guard let folderPath = routine.folder else {
+            pendingPromptSkill = nil
+            sendChat(
+                RoutineScheduler.chatPrompt(for: routine, now: Date(), languageCode: language, calendar: .current),
+                cat: catWindow
+            )
+            catWindow?.showBubble(RoutineCopy.starting(routine, languageCode: language))
+            return
+        }
+
+        guard !agentTaskController.isBusy else {
+            catWindow?.showBubble(RoutineCopy.text(.taskBusy, languageCode: language))
+            return
+        }
+        guard Self.commandExists("claude", environment: ProcessPathEnvironment.spawnEnvironment(terminalDefaults: true)) else {
+            catWindow?.applyBridgeState(.error)
+            catWindow?.showBubble(AgentTaskCopy.text(.claudeMissing, languageCode: language))
+            return
+        }
+        switch AgentTaskFolderPolicy.validate(folderPath, homeDirectory: NSHomeDirectory()) {
+        case let .failure(rejection):
+            catWindow?.applyBridgeState(.error)
+            catWindow?.showBubble(AgentTaskCopy.folderRejected(rejection.reason, languageCode: language))
+        case let .success(folder):
+            agentTaskController.onUpdate = { [weak self] session in
+                self?.handleAgentTaskUpdate(session)
+            }
+            let model = appSettings.aiProvider.presetID == "claude-oauth" ? appSettings.aiProvider.model : ""
+            agentTaskController.start(prompt: routine.prompt, folder: folder, model: model, readOnly: true)
+            catWindow?.applyBridgeState(.coding)
+            catWindow?.showBubble(RoutineCopy.starting(routine, languageCode: language))
+        }
     }
 
     // MARK: - What's new tour

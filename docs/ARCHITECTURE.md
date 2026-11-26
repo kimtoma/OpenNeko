@@ -126,6 +126,16 @@ bounded delays and sizes). `OpenNekoApp` shows `NekoToolCopy.approval` in the
 bubble and runs the call only when it is clicked, logging it to the agent
 activity log.
 
+### Routines (Sources/OpenNekoKit/Routines/, App/RoutinesWindowController.swift)
+
+Scheduled jobs stored in `AppSettings.routines`. `RoutineScheduler.due`
+picks routines whose time has come today (once per day, two-hour catch-up
+after sleep), `reconcile` applies window edits without firing a routine the
+moment it is saved, and `chatPrompt` adds a dated header. `OpenNekoApp`
+checks every 30 seconds: chat routines go through `sendChat`, folder routines
+start a read-only `AgentTaskSession` (no edit tools, no auto-accepted
+edits). `RoutineTemplate` and `RoutineCopy` hold starters and en/ko/ja/zh copy.
+
 ### What's new tour (Sources/OpenNekoKit/Onboarding/)
 
 After an update the cat introduces new features one bubble at a time.

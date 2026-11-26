@@ -8,6 +8,7 @@ public enum WhatsNewFeature: String, CaseIterable, Equatable, Sendable {
     case selectedText
     case taskDelegation
     case catTools
+    case routines
     case agentHooks
     case healthCompanion
     case localModels
@@ -15,7 +16,7 @@ public enum WhatsNewFeature: String, CaseIterable, Equatable, Sendable {
 
     public var revision: Int {
         switch self {
-        case .selectedText, .taskDelegation, .catTools, .agentHooks,
+        case .selectedText, .taskDelegation, .catTools, .routines, .agentHooks,
              .healthCompanion, .localModels, .appleIntelligence:
             1
         }
@@ -146,6 +147,12 @@ public enum WhatsNewCopy {
                 en: "Ask for a timer, reminder, copy or link (\"3 minute timer\"). Nothing runs until you click",
                 ja: "「3分タイマー」のように頼むとタイマー・通知・コピー・リンクを開くにゃ。クリックするまで動かないにゃ",
                 zh: "说“3分钟计时器”之类，我能计时、提醒、复制、开链接。你点了才执行喵")
+        case .routines:
+            return localized(l,
+                ko: "설정 > AI > 루틴에서 아침 브리핑처럼 정한 시간에 할 일을 맡길 수 있다냥",
+                en: "Settings > AI > Routines: give me jobs for set times, like a morning briefing",
+                ja: "設定 > AI > ルーティンで、朝のブリーフィングなど決まった時間の仕事を任せられるにゃ",
+                zh: "在设置 > AI > 例程里，可以让我在固定时间做事，比如早间简报喵")
         case .agentHooks:
             return localized(l,
                 ko: "설정 > 일반 > 에이전트 알림을 붙이면 Claude Code·Codex가 끝날 때 알려준다냥",

@@ -20,6 +20,19 @@ final class AgentTaskSessionTests: XCTestCase {
         XCTAssertEqual(args[(allowedIndex ?? 0) + 1], "Read")
     }
 
+    func testReadOnlyRunsGetNoEditToolsAndNoAutoAcceptedEdits() {
+        let session = AgentTaskSession(prompt: "summarize", folder: "/p", readOnly: true)
+        let args = session.claudeArguments()
+        XCTAssertFalse(args.contains("acceptEdits"))
+        XCTAssertTrue(args.contains("default"))
+        for tool in ["Edit", "MultiEdit", "Write", "Bash"] {
+            XCTAssertFalse(args.contains(tool), tool)
+        }
+        XCTAssertTrue(args.contains("Read"))
+        XCTAssertTrue(args.contains { $0.contains("do not modify files") })
+        XCTAssertEqual(Array(args.suffix(2)), ["-p", "summarize"])
+    }
+
     func testDenialAsksApprovalThenResumesWithExactRule() {
         var session = AgentTaskSession(prompt: "run tests", folder: "/p")
         session.apply(.started(sessionID: "s1"))

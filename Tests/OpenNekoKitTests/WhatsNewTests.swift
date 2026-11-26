@@ -12,7 +12,7 @@ final class WhatsNewTests: XCTestCase {
     }
 
     func testPendingFeaturesFollowTheLastSeenRevision() {
-        XCTAssertEqual(WhatsNew.pendingFeatures(lastSeenRevision: 0, context: withoutAI).count, 6)
+        XCTAssertEqual(WhatsNew.pendingFeatures(lastSeenRevision: 0, context: withoutAI).count, WhatsNewFeature.allCases.count - 1)
         XCTAssertTrue(WhatsNew.pendingFeatures(lastSeenRevision: WhatsNew.currentRevision, context: withAI).isEmpty)
         for feature in WhatsNewFeature.allCases {
             XCTAssertLessThanOrEqual(feature.revision, WhatsNew.currentRevision)

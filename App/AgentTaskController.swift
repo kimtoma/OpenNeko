@@ -24,10 +24,10 @@ final class AgentTaskController {
         return base.appendingPathComponent("openNeko/agent-activity.jsonl")
     }
 
-    func start(prompt: String, folder: String, model: String = "") {
+    func start(prompt: String, folder: String, model: String = "", readOnly: Bool = false) {
         guard !isBusy else { return }
         self.model = model
-        session = AgentTaskSession(prompt: prompt, folder: folder)
+        session = AgentTaskSession(prompt: prompt, folder: folder, readOnly: readOnly)
         log(.started, prompt)
         launch(followUp: nil)
         notify()

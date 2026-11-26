@@ -126,6 +126,7 @@ struct SettingsView: View {
     let applyAIProviderDetection: (AIProviderDetection) -> Void
     let refreshAIProviderDetections: () -> Void
     let openLocalModelSetup: () -> Void
+    let openRoutines: () -> Void
     let showOnboarding: () -> Void
     let completeOnboarding: () -> Void
     let runSkill: (String) -> Void
@@ -1057,6 +1058,16 @@ struct SettingsView: View {
                 buttonTitle: LocalModelSetupCopy.text(.entryButton, languageCode: resolvedLanguageCode),
                 buttonImage: "arrow.down.circle",
                 action: openLocalModelSetup
+            )
+
+            SettingsGlassPermissionRow(
+                title: RoutineCopy.text(.entryTitle, languageCode: resolvedLanguageCode),
+                subtitle: RoutineCopy.text(.entryDetail, languageCode: resolvedLanguageCode),
+                systemImage: "alarm",
+                tint: .accentColor,
+                buttonTitle: RoutineCopy.text(.entryButton, languageCode: resolvedLanguageCode),
+                buttonImage: "slider.horizontal.3",
+                action: openRoutines
             )
 
             SettingsGlassToggleRow(
