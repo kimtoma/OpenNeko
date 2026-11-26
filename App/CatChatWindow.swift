@@ -156,7 +156,6 @@ private struct CatChatView: View {
     @State private var suppressSuggestions = false
     @FocusState private var isFocused: Bool
     @ObservedObject private var voice = VoiceInputController.shared
-    @State private var isHoldingMic = false
     @State private var voiceBase = ""
     let placeholder: String
     let slashCommands: [SlashCommandDescriptor]
@@ -224,7 +223,7 @@ private struct CatChatView: View {
         }
         .frame(width: 320, alignment: .bottom)
         .padding(.bottom, 8)
-        .onExitCommand(perform: cancelOrCloseSuggestions)
+        .onExitCommand(perform: cancelVoiceOrCloseSuggestions)
         .onMoveCommand(perform: moveSuggestionSelection)
         .onChange(of: text) { _, _ in
             suppressSuggestions = false
@@ -232,7 +231,7 @@ private struct CatChatView: View {
             notifySuggestionCount()
         }
         .onChange(of: voice.transcript) { _, transcript in
-            guard isHoldingMic || voice.isListening else { return }
+            guard voice.isActive || voice.isListening else { return }
             text = VoiceInputPolicy.merged(base: voiceBase, transcript: transcript)
         }
         .onChange(of: visibleSuggestions.count) { _, _ in
@@ -258,38 +257,47 @@ private struct CatChatView: View {
         return placeholder
     }
 
-    /// Hold to talk: press starts on-device recognition, release stops it.
-    /// The transcript lands in the field; nothing is sent until Send.
+    /// Tap to dictate, like the ChatGPT / Claude / Gemini apps: tap starts
+    /// on-device recognition, a pause or a second tap finishes it, Esc
+    /// cancels. The transcript lands in the field; nothing is sent until Send.
     private var micButton: some View {
-        Image(systemName: voice.isListening ? "waveform" : "mic.fill")
-            .font(.system(size: 13, weight: .semibold))
-            .foregroundStyle(voice.isListening ? Color.red : Color.primary)
-            .frame(width: 28, height: 28)
-            .background {
-                Circle()
-                    .fill(voice.isListening ? Color.red.opacity(0.18) : sendButtonFill)
+        let language = voice.languageCode()
+        let help = voice.isActive ? VoiceInputCopy.stopHelp(languageCode: language) : VoiceInputCopy.micHelp(languageCode: language)
+        return Button {
+            if !voice.isActive {
+                voiceBase = text
             }
-            .overlay {
-                Circle()
-                    .stroke(sendButtonStroke, lineWidth: 1)
-            }
-            .contentShape(Circle())
-            .gesture(
-                DragGesture(minimumDistance: 0)
-                    .onChanged { _ in
-                        guard !isHoldingMic else { return }
-                        isHoldingMic = true
-                        voiceBase = text
-                        voice.press()
-                    }
-                    .onEnded { _ in
-                        isHoldingMic = false
-                        voice.release()
-                        isFocused = true
-                    }
-            )
-            .help(VoiceInputCopy.micHelp(languageCode: voice.languageCode()))
-            .accessibilityLabel(VoiceInputCopy.micHelp(languageCode: voice.languageCode()))
+            voice.toggle()
+            isFocused = true
+        } label: {
+            Image(systemName: voice.isActive ? "stop.fill" : "mic.fill")
+                .font(.system(size: voice.isActive ? 11 : 13, weight: .semibold))
+                .foregroundStyle(voice.isActive ? Color.white : Color.primary)
+                .symbolEffect(.pulse, isActive: voice.isListening)
+                .frame(width: 28, height: 28)
+                .background {
+                    Circle()
+                        .fill(voice.isActive ? Color.red : sendButtonFill)
+                }
+                .overlay {
+                    Circle()
+                        .stroke(sendButtonStroke, lineWidth: 1)
+                }
+                .contentShape(Circle())
+        }
+        .buttonStyle(.plain)
+        .help(help)
+        .accessibilityLabel(help)
+    }
+
+    /// Esc while dictating cancels it and restores what was typed before.
+    private func cancelVoiceOrCloseSuggestions() {
+        if voice.isActive {
+            voice.cancel()
+            text = voiceBase
+            return
+        }
+        cancelOrCloseSuggestions()
     }
 
     private var panelFill: Color {

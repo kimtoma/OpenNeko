@@ -25,12 +25,29 @@ public enum VoiceInputStep: Equatable, Sendable {
     case fail(VoiceInputFailure)
 }
 
-/// Push-to-talk voice input: hold the mic button, speak, release. Speech is
-/// recognized on device only and lands in the chat field for review; it is
-/// never sent anywhere until the person presses Send.
+/// Tap-to-talk dictation, like the ChatGPT, Claude and Gemini apps: tap the
+/// mic to start, tap again (or just stop talking) to finish, Esc to cancel.
+/// Speech is recognized on device only and lands in the chat field for
+/// review; it is never sent anywhere until the person presses Send.
 public enum VoiceInputPolicy {
-    /// A single hold never records longer than this.
+    /// One dictation never records longer than this.
     public static let maxDuration: TimeInterval = 60
+    /// After speech was heard, this much silence ends the dictation.
+    public static let silenceTimeout: TimeInterval = 2.0
+    /// With nothing heard at all, give up after this long.
+    public static let noSpeechTimeout: TimeInterval = 8.0
+
+    /// Whether listening should end on its own now. `lastChangeAt` is when
+    /// the transcript last changed (nil while nothing has been heard).
+    public static func shouldAutoStop(
+        startedAt: TimeInterval,
+        lastChangeAt: TimeInterval?,
+        now: TimeInterval
+    ) -> Bool {
+        if now - startedAt >= maxDuration { return true }
+        guard let lastChangeAt else { return now - startedAt >= noSpeechTimeout }
+        return now - lastChangeAt >= silenceTimeout
+    }
     public static let maxCharacters = 1_000
 
     public static func localeIdentifier(languageCode: String?) -> String {
@@ -62,7 +79,7 @@ public enum VoiceInputPolicy {
     }
 
     /// The chat field text while and after speaking: whatever was typed
-    /// before the hold, then the transcript.
+    /// before the mic was tapped, then the transcript.
     public static func merged(base: String, transcript: String) -> String {
         let spoken = transcript.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !spoken.isEmpty else { return base }
@@ -75,11 +92,15 @@ public enum VoiceInputPolicy {
 /// en/ko/ja/zh copy for voice input.
 public enum VoiceInputCopy {
     public static func listening(languageCode: String?) -> String {
-        pick(languageCode, ko: "듣고 있다냥… 손을 떼면 멈춰요", en: "Listening… release to stop", ja: "聞いてるにゃ… 離すと止まります", zh: "正在听喵… 松开即停止")
+        pick(languageCode, ko: "듣고 있다냥… 말을 멈추거나 다시 누르면 끝, Esc는 취소", en: "Listening… pause or tap again to finish, Esc to cancel", ja: "聞いてるにゃ… 話し終えるかもう一度押すと終了、Escで取消", zh: "正在听喵… 停顿或再点一次结束，Esc 取消")
     }
 
     public static func micHelp(languageCode: String?) -> String {
-        pick(languageCode, ko: "누르고 있는 동안 말하기 (기기 안에서만 인식)", en: "Hold to talk (recognized on this Mac only)", ja: "押している間に話す（このMac内でのみ認識）", zh: "按住说话（仅在本机识别）")
+        pick(languageCode, ko: "눌러서 말하기 (이 맥 안에서만 인식)", en: "Tap to dictate (recognized on this Mac only)", ja: "押して話す（このMac内でのみ認識）", zh: "点击说话（仅在本机识别）")
+    }
+
+    public static func stopHelp(languageCode: String?) -> String {
+        pick(languageCode, ko: "받아쓰기 끝내기", en: "Finish dictation", ja: "書き取りを終える", zh: "结束听写")
     }
 
     public static func failure(_ failure: VoiceInputFailure, languageCode: String?) -> String {

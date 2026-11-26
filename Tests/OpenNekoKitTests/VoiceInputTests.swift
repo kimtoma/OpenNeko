@@ -33,11 +33,24 @@ final class VoiceInputTests: XCTestCase {
         XCTAssertEqual(long.count, VoiceInputPolicy.maxCharacters)
     }
 
+    func testDictationEndsOnSilenceNoSpeechOrMaxDuration() {
+        // Still talking: no stop.
+        XCTAssertFalse(VoiceInputPolicy.shouldAutoStop(startedAt: 0, lastChangeAt: 5, now: 6))
+        // Paused after speaking.
+        XCTAssertTrue(VoiceInputPolicy.shouldAutoStop(startedAt: 0, lastChangeAt: 5, now: 7.1))
+        // Nothing heard yet, but give it time.
+        XCTAssertFalse(VoiceInputPolicy.shouldAutoStop(startedAt: 0, lastChangeAt: nil, now: 5))
+        XCTAssertTrue(VoiceInputPolicy.shouldAutoStop(startedAt: 0, lastChangeAt: nil, now: 8))
+        // Hard cap even while the transcript keeps changing.
+        XCTAssertTrue(VoiceInputPolicy.shouldAutoStop(startedAt: 0, lastChangeAt: 59.9, now: 60))
+    }
+
     func testCopyForEveryLanguage() {
         let failures: [VoiceInputFailure] = [.microphoneDenied, .speechDenied, .onDeviceUnavailable, .audioUnavailable, .nothingHeard]
         for language in AppLanguage.supportedCodes {
             XCTAssertFalse(VoiceInputCopy.listening(languageCode: language).isEmpty)
             XCTAssertFalse(VoiceInputCopy.micHelp(languageCode: language).isEmpty)
+            XCTAssertFalse(VoiceInputCopy.stopHelp(languageCode: language).isEmpty)
             for failure in failures {
                 XCTAssertFalse(VoiceInputCopy.failure(failure, languageCode: language).isEmpty)
             }
