@@ -85,6 +85,13 @@ Ask the cat for a timer, a reminder, copying text, or opening a web page
 first: click the bubble to allow it. Timers and reminders work while
 OpenNeko is running. Toggle **Cat tools** in AI settings.
 
+## Selected Text
+
+Select text in any app, then choose **Services → openNeko: Explain /
+Translate / Summarize** (or right-click → Services). The cat answers in its
+bubble with your current AI provider. Only the text you send is used.
+If the items don't appear right after installing, log out and back in once.
+
 ## Delegated Tasks
 
 Type `/task <what to do>` in the chat bubble, pick a project folder, and the

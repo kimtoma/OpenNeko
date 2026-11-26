@@ -13,6 +13,51 @@
         <string>_openneko._tcp</string>
     </array>
     <key>NSHighResolutionCapable</key><true/>
+    <key>NSServices</key>
+    <array>
+        <dict>
+            <key>NSMenuItem</key>
+            <dict>
+                <key>default</key><string>openNeko: Explain</string>
+            </dict>
+            <key>NSMessage</key><string>handleSelectedText</string>
+            <key>NSPortName</key><string>openNeko</string>
+            <key>NSUserData</key><string>explain</string>
+            <key>NSSendTypes</key>
+            <array>
+                <string>public.utf8-plain-text</string>
+                <string>NSStringPboardType</string>
+            </array>
+        </dict>
+        <dict>
+            <key>NSMenuItem</key>
+            <dict>
+                <key>default</key><string>openNeko: Translate</string>
+            </dict>
+            <key>NSMessage</key><string>handleSelectedText</string>
+            <key>NSPortName</key><string>openNeko</string>
+            <key>NSUserData</key><string>translate</string>
+            <key>NSSendTypes</key>
+            <array>
+                <string>public.utf8-plain-text</string>
+                <string>NSStringPboardType</string>
+            </array>
+        </dict>
+        <dict>
+            <key>NSMenuItem</key>
+            <dict>
+                <key>default</key><string>openNeko: Summarize</string>
+            </dict>
+            <key>NSMessage</key><string>handleSelectedText</string>
+            <key>NSPortName</key><string>openNeko</string>
+            <key>NSUserData</key><string>summarize</string>
+            <key>NSSendTypes</key>
+            <array>
+                <string>public.utf8-plain-text</string>
+                <string>NSStringPboardType</string>
+            </array>
+        </dict>
+    </array>
     <key>NSInputMonitoringUsageDescription</key>
     <string>다른 앱에서 입력 중인지 감지해 고양이 타이핑 애니메이션을 보여주기 위해 사용합니다. 입력한 글자 내용은 읽지 않습니다.</string>
     <key>NSLocalNetworkUsageDescription</key>
