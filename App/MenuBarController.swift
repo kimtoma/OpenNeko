@@ -407,6 +407,16 @@ final class MenuBarController: NSObject, NSMenuDelegate {
 
     @objc private func toggleTapped() { onToggleCat() }
     @objc private func chatHistoryTapped() { onOpenChatHistory() }
+
+    /// Title for the app menu's Settings item, same copy as the status menu.
+    static func settingsTitle(language: String) -> String {
+        switch AppLanguage.normalized(language) ?? "ko" {
+        case "en": "Settings..."
+        case "ja": "設定..."
+        case "zh": "设置..."
+        default: "설정..."
+        }
+    }
     @objc private func settingsTapped() { onOpenSettings() }
     @objc private func neighborWaveTapped() { onSendNeighborWave() }
     @objc private func alwaysOnTopTapped() { onToggleAlwaysOnTop() }
