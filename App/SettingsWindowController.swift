@@ -20,6 +20,7 @@ final class SettingsWindowController {
         let soundEffectsEnabled: Bool
         let webSearchEnabled: Bool
         let healthCompanionEnabled: Bool
+        let nativeToolsEnabled: Bool
         let catName: String
         let userProfile: UserProfile
         let neighborSettings: NeighborSettings
@@ -44,6 +45,7 @@ final class SettingsWindowController {
     private let setSoundEffects: (Bool) -> Void
     private let setWebSearch: (Bool) -> Void
     private let setHealthCompanion: (Bool) -> Void
+    private let setNativeTools: (Bool) -> Void
     private let setCatName: (String) -> Void
     private let setUserProfile: (UserProfile) -> Void
     private let setNeighborEnabled: (Bool) -> Void
@@ -80,6 +82,7 @@ final class SettingsWindowController {
         setSoundEffects: @escaping (Bool) -> Void,
         setWebSearch: @escaping (Bool) -> Void,
         setHealthCompanion: @escaping (Bool) -> Void,
+        setNativeTools: @escaping (Bool) -> Void,
         setCatName: @escaping (String) -> Void,
         setUserProfile: @escaping (UserProfile) -> Void,
         setNeighborEnabled: @escaping (Bool) -> Void,
@@ -115,6 +118,7 @@ final class SettingsWindowController {
         self.setSoundEffects = setSoundEffects
         self.setWebSearch = setWebSearch
         self.setHealthCompanion = setHealthCompanion
+        self.setNativeTools = setNativeTools
         self.setCatName = setCatName
         self.setUserProfile = setUserProfile
         self.setNeighborEnabled = setNeighborEnabled
@@ -221,6 +225,7 @@ final class SettingsWindowController {
             soundEffectsEnabled: state.soundEffectsEnabled,
             webSearchEnabled: state.webSearchEnabled,
             healthCompanionEnabled: state.healthCompanionEnabled,
+            nativeToolsEnabled: state.nativeToolsEnabled,
             catName: state.catName,
             userProfile: state.userProfile,
             neighborSettings: state.neighborSettings,
@@ -242,6 +247,7 @@ final class SettingsWindowController {
             setSoundEffects: setSoundEffects,
             setWebSearch: setWebSearch,
             setHealthCompanion: setHealthCompanion,
+            setNativeTools: setNativeTools,
             setCatName: setCatName,
             setUserProfile: setUserProfile,
             setNeighborEnabled: setNeighborEnabled,

@@ -67,6 +67,10 @@ OpenNeko 支持以下 provider preset:
 
 保存的 API Key 会存入 macOS Keychain，而不是 `settings.json`。
 
+## 猫咪工具
+
+可以像“设一个 3 分钟计时器”这样请求计时器、提醒、复制文字或打开网页。模型提出操作后，猫咪会先询问，点击气泡才会执行。计时器和提醒在 OpenNeko 运行期间有效。可在 AI 设置的 **猫咪工具** 中关闭。
+
 ## 委派任务
 
 在聊天气泡中输入 `/task 要做的事` 并选择项目文件夹，猫咪会把任务交给本地 Claude Code CLI，只在该文件夹内执行。允许读取和编辑文件夹内的文件，其他操作（shell 命令、网络）会作为批准请求返回：点击气泡即可仅针对本次任务允许或拒绝。主目录、根目录和系统文件夹会被拒绝。所有步骤都会记录到 `~/Library/Application Support/openNeko/agent-activity.jsonl`，可用 `/tasklog` 打开。`/task stop` 取消。

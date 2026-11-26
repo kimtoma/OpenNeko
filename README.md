@@ -75,6 +75,13 @@ OpenNeko supports these provider presets:
 
 Saved API keys are stored in macOS Keychain, not in `settings.json`.
 
+## Cat Tools
+
+Ask the cat for a timer, a reminder, copying text, or opening a web page
+("set a 3 minute timer"). The model proposes the action and the cat asks
+first: click the bubble to allow it. Timers and reminders work while
+OpenNeko is running. Toggle **Cat tools** in AI settings.
+
 ## Delegated Tasks
 
 Type `/task <what to do>` in the chat bubble, pick a project folder, and the

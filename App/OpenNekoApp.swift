@@ -99,6 +99,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var healthTracker = HealthNudgeTracker()
     private let agentTaskController = AgentTaskController()
     private var agentTaskRevertTimer: Timer?
+    private var toolTimers: [Timer] = []
     private var nextAutoEffect = ProcessInfo.processInfo.systemUptime + 25
     private var lunchedToday = false
     private var cheeredLeaveWorkToday = false
@@ -175,6 +176,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                     soundEffectsEnabled: true,
                     webSearchEnabled: true,
                     healthCompanionEnabled: true,
+                    nativeToolsEnabled: true,
                     catName: "",
                     userProfile: .empty,
                     neighborSettings: .defaults,
@@ -214,6 +216,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             },
             setHealthCompanion: { [weak self] enabled in
                 self?.setHealthCompanion(enabled)
+            },
+            setNativeTools: { [weak self] enabled in
+                self?.setNativeTools(enabled)
             },
             setCatName: { [weak self] name in
                 self?.setCatName(name)
@@ -733,6 +738,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         settingsWindow?.refresh()
     }
 
+    private func setNativeTools(_ enabled: Bool) {
+        appSettings.nativeToolsEnabled = enabled
+        saveSettings()
+        settingsWindow?.refresh()
+    }
+
     private func setHealthCompanion(_ enabled: Bool) {
         appSettings.healthCompanionEnabled = enabled
         saveSettings()
@@ -916,6 +927,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             soundEffectsEnabled: appSettings.soundEffectsEnabled,
             webSearchEnabled: appSettings.webSearchEnabled,
             healthCompanionEnabled: appSettings.healthCompanionEnabled,
+            nativeToolsEnabled: appSettings.nativeToolsEnabled,
             catName: appSettings.catName,
             userProfile: appSettings.userProfile,
             neighborSettings: appSettings.neighborSettings,
@@ -983,6 +995,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
         if appSettings.webSearchEnabled {
             system += "\n\(ChatPromptBuilder.webSearchContext(languageCode: languageCode))"
+        }
+        if appSettings.nativeToolsEnabled {
+            system += "\n\(NekoToolProtocol.instructions(languageCode: languageCode))"
         }
         return system
     }
@@ -2529,10 +2544,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private func finishSkillChat(generation: Int, reply: String) {
         guard chatGeneration == generation else { return }
         activeChatTask = nil
-        let displayReply = NekoBubbleCopy.styledChatReply(reply, languageCode: currentLanguageCode())
+        let extraction = NekoToolProtocol.extract(from: reply)
+        let displayReply = NekoBubbleCopy.styledChatReply(extraction.text, languageCode: currentLanguageCode())
         appendChatTranscript(ChatMessage(role: .assistant, text: displayReply))
         catWindow?.applyBridgeState(.success)
         showCopyableReplyBubble(displayReply)
+        offerToolCall(extraction.calls.first)
     }
 
     @MainActor
@@ -2548,14 +2565,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private func updateStreamingChat(generation: Int, text: String) {
         guard chatGeneration == generation, activeChatTask != nil else { return }
         catWindow?.applyBridgeState(NekoStatePriority.chatAnsweringState)
-        catWindow?.showBubble(text)
+        catWindow?.showBubble(NekoToolProtocol.stripPartial(text))
     }
 
     @MainActor
     private func finishChat(generation: Int, reply: String) {
         guard chatGeneration == generation else { return }
         activeChatTask = nil
-        let displayReply = NekoBubbleCopy.styledChatReply(reply, languageCode: currentLanguageCode())
+        let extraction = NekoToolProtocol.extract(from: reply)
+        let displayReply = NekoBubbleCopy.styledChatReply(extraction.text, languageCode: currentLanguageCode())
         chatHistory.append(ChatMessage(role: .assistant, text: displayReply))
         appendChatTranscript(ChatMessage(role: .assistant, text: displayReply))
         if chatHistory.count > 12 {
@@ -2563,6 +2581,65 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
         catWindow?.applyBridgeState(.success)
         showCopyableReplyBubble(displayReply)
+        offerToolCall(extraction.calls.first)
+    }
+
+    // MARK: - Native tools
+
+    /// Shows the approval bubble a few seconds after the reply, so the reply
+    /// stays readable. Nothing runs unless the user clicks it.
+    private func offerToolCall(_ call: NekoToolCall?) {
+        guard let call, appSettings.nativeToolsEnabled else { return }
+        let generation = chatGeneration
+        DispatchQueue.main.asyncAfter(deadline: .now() + 3) { [weak self] in
+            guard let self, self.chatGeneration == generation, self.activeChatTask == nil else { return }
+            let language = self.currentLanguageCode()
+            self.catWindow?.applyBridgeState(.hover)
+            self.catWindow?.showBubble(
+                NekoToolCopy.approval(call, languageCode: language),
+                onClick: { [weak self] in self?.runToolCall(call) },
+                helpText: AgentTaskCopy.text(.approve, languageCode: language)
+            )
+        }
+    }
+
+    private func runToolCall(_ call: NekoToolCall) {
+        let language = currentLanguageCode()
+        switch call {
+        case let .timer(seconds, _), let .reminder(seconds, _):
+            let timer = Timer(timeInterval: TimeInterval(seconds), repeats: false) { [weak self] _ in
+                self?.fireToolTimer(call)
+            }
+            RunLoop.main.add(timer, forMode: .common)
+            toolTimers.append(timer)
+        case let .copyToClipboard(text):
+            NSPasteboard.general.clearContents()
+            NSPasteboard.general.setString(text, forType: .string)
+        case let .openURL(url):
+            NSWorkspace.shared.open(url)
+        }
+        logToolCall(call)
+        catWindow?.applyBridgeState(.success)
+        catWindow?.showBubble(NekoToolCopy.done(call, languageCode: language))
+    }
+
+    private func fireToolTimer(_ call: NekoToolCall) {
+        toolTimers.removeAll { !$0.isValid }
+        guard let text = NekoToolCopy.fired(call, languageCode: currentLanguageCode()) else { return }
+        bridgeIdleTimer?.invalidate()
+        autonomousStateTimer?.invalidate()
+        catWindow?.applyBridgeState(.jump)
+        catWindow?.showBubble(text)
+    }
+
+    private func logToolCall(_ call: NekoToolCall) {
+        AgentTaskController.append(AgentActivityEntry(
+            timestamp: Date(),
+            agent: "openneko",
+            folder: "",
+            kind: .tool,
+            detail: "\(call.name): \(call.logDetail)"
+        ))
     }
 
     @MainActor

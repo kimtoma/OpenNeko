@@ -175,10 +175,14 @@ final class AgentTaskController {
 
     private func log(_ kind: AgentActivityEntry.Kind, _ detail: String) {
         guard let session else { return }
-        let entry = AgentActivityEntry(timestamp: Date(), agent: "claude", folder: session.folder, kind: kind, detail: detail)
+        Self.append(AgentActivityEntry(timestamp: Date(), agent: "claude", folder: session.folder, kind: kind, detail: detail))
+    }
+
+    /// Appends one line to the shared activity log (also used by native tools).
+    static func append(_ entry: AgentActivityEntry) {
         let line = entry.jsonLine()
         guard !line.isEmpty else { return }
-        let url = Self.logURL
+        let url = logURL
         do {
             try FileManager.default.createDirectory(at: url.deletingLastPathComponent(), withIntermediateDirectories: true)
             if !FileManager.default.fileExists(atPath: url.path) {
