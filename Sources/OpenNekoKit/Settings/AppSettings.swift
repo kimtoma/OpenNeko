@@ -14,6 +14,7 @@ public struct AppSettings: Codable, Equatable, Sendable {
         nativeToolsEnabled: true,
         healthCompanionEnabled: true,
         lastSeenWhatsNewRevision: 0,
+        routines: [],
         catName: "",
         userProfile: .empty,
         neighborSettings: .defaults,
@@ -32,6 +33,7 @@ public struct AppSettings: Codable, Equatable, Sendable {
     public var nativeToolsEnabled: Bool
     public var healthCompanionEnabled: Bool
     public var lastSeenWhatsNewRevision: Int
+    public var routines: [Routine]
     public var catName: String
     public var userProfile: UserProfile
     public var neighborSettings: NeighborSettings
@@ -50,6 +52,7 @@ public struct AppSettings: Codable, Equatable, Sendable {
         nativeToolsEnabled: Bool = true,
         healthCompanionEnabled: Bool = true,
         lastSeenWhatsNewRevision: Int = 0,
+        routines: [Routine] = [],
         catName: String = "",
         userProfile: UserProfile = .empty,
         neighborSettings: NeighborSettings = .defaults,
@@ -67,6 +70,7 @@ public struct AppSettings: Codable, Equatable, Sendable {
         self.nativeToolsEnabled = nativeToolsEnabled
         self.healthCompanionEnabled = healthCompanionEnabled
         self.lastSeenWhatsNewRevision = max(0, lastSeenWhatsNewRevision)
+        self.routines = routines.map { $0.normalized() }
         self.catName = UserProfile.sanitized(catName, limit: 64)
         self.userProfile = userProfile.normalized()
         self.neighborSettings = neighborSettings.normalized()
@@ -86,6 +90,7 @@ public struct AppSettings: Codable, Equatable, Sendable {
         case nativeToolsEnabled
         case healthCompanionEnabled
         case lastSeenWhatsNewRevision
+        case routines
         case catName
         case userProfile
         case neighborSettings
@@ -163,6 +168,8 @@ public struct AppSettings: Codable, Equatable, Sendable {
             ?? Self.defaults.healthCompanionEnabled
         lastSeenWhatsNewRevision = max(0, (try? container.decodeIfPresent(Int.self, forKey: .lastSeenWhatsNewRevision))
             ?? Self.defaults.lastSeenWhatsNewRevision)
+        routines = ((try? container.decodeIfPresent([Routine].self, forKey: .routines)) ?? [])
+            .map { $0.normalized() }
         let legacyNeighbor = try? legacy?.decodeIfPresent(LegacyNeighbor.self, forKey: .neighbor)
         catName = UserProfile.sanitized(
             (try? container.decodeIfPresent(String.self, forKey: .catName))
@@ -206,6 +213,7 @@ public struct AppSettings: Codable, Equatable, Sendable {
         try container.encode(nativeToolsEnabled, forKey: .nativeToolsEnabled)
         try container.encode(healthCompanionEnabled, forKey: .healthCompanionEnabled)
         try container.encode(lastSeenWhatsNewRevision, forKey: .lastSeenWhatsNewRevision)
+        try container.encode(routines, forKey: .routines)
         try container.encode(catName, forKey: .catName)
         try container.encode(userProfile, forKey: .userProfile)
         try container.encode(neighborSettings, forKey: .neighborSettings)
