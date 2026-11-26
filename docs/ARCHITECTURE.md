@@ -146,6 +146,17 @@ language to a recognizer locale, and merges the transcript into typed text.
 `requiresOnDeviceRecognition`. The hardened-runtime audio-input entitlement
 lives in `Config/OpenNeko.entitlements`.
 
+### Speaking up (Sources/OpenNekoKit/Proactive/)
+
+Every unprompted bubble asks `ProactiveGate.decide` first (via
+`claimProactiveTurn` in `OpenNekoApp`). `ProactiveKind.priority` sorts kinds
+into requested (agent notices: always speak), scheduled (routines, what's new:
+wait while it is quiet) and suggestions (health, lunch/end-of-day, memory,
+neighbors: muted, quiet and the daily `Chattiness` budget apply).
+`ProactiveLedger` counts today's suggestions; `QuietContext` maps the frontmost
+bundle id plus "window fills the screen" to meeting / presenting / watching;
+`ProactiveMute` recognizes a short "stop" reply right after a suggestion.
+
 ### Memory (Sources/OpenNekoKit/Memory/, App/MemoryNoteWindowController.swift)
 
 Three Markdown files in `~/.openneko/memory/` (`OPENNEKO_MEMORY_DIR`

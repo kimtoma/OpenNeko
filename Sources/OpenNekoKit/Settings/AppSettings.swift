@@ -17,6 +17,8 @@ public struct AppSettings: Codable, Equatable, Sendable {
         routines: [],
         memoryEnabled: true,
         memoryCloudScope: .ask,
+        chattiness: .normal,
+        mutedProactiveKinds: [],
         catName: "",
         userProfile: .empty,
         neighborSettings: .defaults,
@@ -38,6 +40,8 @@ public struct AppSettings: Codable, Equatable, Sendable {
     public var routines: [Routine]
     public var memoryEnabled: Bool
     public var memoryCloudScope: MemoryCloudScope
+    public var chattiness: Chattiness
+    public var mutedProactiveKinds: Set<ProactiveKind>
     public var catName: String
     public var userProfile: UserProfile
     public var neighborSettings: NeighborSettings
@@ -59,6 +63,8 @@ public struct AppSettings: Codable, Equatable, Sendable {
         routines: [Routine] = [],
         memoryEnabled: Bool = true,
         memoryCloudScope: MemoryCloudScope = .ask,
+        chattiness: Chattiness = .normal,
+        mutedProactiveKinds: Set<ProactiveKind> = [],
         catName: String = "",
         userProfile: UserProfile = .empty,
         neighborSettings: NeighborSettings = .defaults,
@@ -79,6 +85,8 @@ public struct AppSettings: Codable, Equatable, Sendable {
         self.routines = routines.map { $0.normalized() }
         self.memoryEnabled = memoryEnabled
         self.memoryCloudScope = memoryCloudScope
+        self.chattiness = chattiness
+        self.mutedProactiveKinds = mutedProactiveKinds.filter(\.isMutable)
         self.catName = UserProfile.sanitized(catName, limit: 64)
         self.userProfile = userProfile.normalized()
         self.neighborSettings = neighborSettings.normalized()
@@ -101,6 +109,8 @@ public struct AppSettings: Codable, Equatable, Sendable {
         case routines
         case memoryEnabled
         case memoryCloudScope
+        case chattiness
+        case mutedProactiveKinds
         case catName
         case userProfile
         case neighborSettings
@@ -184,6 +194,13 @@ public struct AppSettings: Codable, Equatable, Sendable {
             ?? Self.defaults.memoryEnabled
         memoryCloudScope = (try? container.decodeIfPresent(MemoryCloudScope.self, forKey: .memoryCloudScope))
             ?? Self.defaults.memoryCloudScope
+        chattiness = (try? container.decodeIfPresent(Chattiness.self, forKey: .chattiness))
+            ?? Self.defaults.chattiness
+        mutedProactiveKinds = Set(
+            ((try? container.decodeIfPresent([String].self, forKey: .mutedProactiveKinds)) ?? [])
+                .compactMap(ProactiveKind.init(rawValue:))
+                .filter(\.isMutable)
+        )
         let legacyNeighbor = try? legacy?.decodeIfPresent(LegacyNeighbor.self, forKey: .neighbor)
         catName = UserProfile.sanitized(
             (try? container.decodeIfPresent(String.self, forKey: .catName))
@@ -230,6 +247,8 @@ public struct AppSettings: Codable, Equatable, Sendable {
         try container.encode(routines, forKey: .routines)
         try container.encode(memoryEnabled, forKey: .memoryEnabled)
         try container.encode(memoryCloudScope, forKey: .memoryCloudScope)
+        try container.encode(chattiness, forKey: .chattiness)
+        try container.encode(mutedProactiveKinds.map(\.rawValue).sorted(), forKey: .mutedProactiveKinds)
         try container.encode(catName, forKey: .catName)
         try container.encode(userProfile, forKey: .userProfile)
         try container.encode(neighborSettings, forKey: .neighborSettings)

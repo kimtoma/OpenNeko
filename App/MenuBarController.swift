@@ -27,6 +27,10 @@ final class MenuBarController: NSObject, NSMenuDelegate {
     private let onRetryKeyboardMonitor: () -> Void
     private let onShowWhatsNew: () -> Void
     private let onOpenMemoryNotes: () -> Void
+    private let chattiness: () -> Chattiness
+    private let mutedTopicCount: () -> Int
+    private let onSetChattiness: (Chattiness) -> Void
+    private let onResetMutedTopics: () -> Void
     private let menu = NSMenu()
 
     init(
@@ -53,7 +57,11 @@ final class MenuBarController: NSObject, NSMenuDelegate {
         onOpenInputMonitoring: @escaping () -> Void,
         onRetryKeyboardMonitor: @escaping () -> Void,
         onShowWhatsNew: @escaping () -> Void,
-        onOpenMemoryNotes: @escaping () -> Void
+        onOpenMemoryNotes: @escaping () -> Void,
+        chattiness: @escaping () -> Chattiness,
+        mutedTopicCount: @escaping () -> Int,
+        onSetChattiness: @escaping (Chattiness) -> Void,
+        onResetMutedTopics: @escaping () -> Void
     ) {
         self.onToggleCat = onToggleCat
         self.onOpenChatHistory = onOpenChatHistory
@@ -79,6 +87,10 @@ final class MenuBarController: NSObject, NSMenuDelegate {
         self.onRetryKeyboardMonitor = onRetryKeyboardMonitor
         self.onShowWhatsNew = onShowWhatsNew
         self.onOpenMemoryNotes = onOpenMemoryNotes
+        self.chattiness = chattiness
+        self.mutedTopicCount = mutedTopicCount
+        self.onSetChattiness = onSetChattiness
+        self.onResetMutedTopics = onResetMutedTopics
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
         super.init()
 
@@ -138,6 +150,7 @@ final class MenuBarController: NSObject, NSMenuDelegate {
         sound.target = self
         sound.state = soundEffectsEnabled() ? .on : .off
         menu.addItem(sound)
+        menu.addItem(chattinessMenuItem())
 
         let permission = permissionMenu()
         menu.addItem(.separator())
@@ -213,6 +226,7 @@ final class MenuBarController: NSObject, NSMenuDelegate {
         )
         sound.state = soundEffectsEnabled() ? .on : .off
         menu.addItem(sound)
+        menu.addItem(chattinessMenuItem())
 
         menu.addItem(.separator())
         if !enabledSkills().isEmpty {
@@ -299,6 +313,41 @@ final class MenuBarController: NSObject, NSMenuDelegate {
         return item
     }
 
+    private func chattinessMenuItem() -> NSMenuItem {
+        let language = languageCode()
+        let root = iconMenuItem(
+            title: ProactiveCopy.chattinessMenuTitle(languageCode: language),
+            action: nil,
+            systemImage: "bubble.left"
+        )
+        let submenu = NSMenu()
+        let current = chattiness()
+        for level in Chattiness.allCases {
+            let item = NSMenuItem(
+                title: ProactiveCopy.chattinessTitle(level, languageCode: language),
+                action: #selector(chattinessTapped(_:)),
+                keyEquivalent: ""
+            )
+            item.representedObject = level.rawValue
+            item.target = self
+            item.state = level == current ? .on : .off
+            submenu.addItem(item)
+        }
+        let muted = mutedTopicCount()
+        if muted > 0 {
+            submenu.addItem(.separator())
+            let reset = NSMenuItem(
+                title: ProactiveCopy.resetMutesTitle(count: muted, languageCode: language),
+                action: #selector(resetMutedTopicsTapped),
+                keyEquivalent: ""
+            )
+            reset.target = self
+            submenu.addItem(reset)
+        }
+        root.submenu = submenu
+        return root
+    }
+
     private func previewMenuItem() -> NSMenuItem {
         let language = languageCode()
         let root = iconMenuItem(title: localized(.previewState, language: language), action: nil, systemImage: "play.rectangle")
@@ -382,6 +431,11 @@ final class MenuBarController: NSObject, NSMenuDelegate {
     @objc private func retryKeyboardMonitorTapped() { onRetryKeyboardMonitor() }
     @objc private func whatsNewTapped() { onShowWhatsNew() }
     @objc private func memoryNotesTapped() { onOpenMemoryNotes() }
+    @objc private func resetMutedTopicsTapped() { onResetMutedTopics() }
+    @objc private func chattinessTapped(_ sender: NSMenuItem) {
+        guard let raw = sender.representedObject as? String, let level = Chattiness(rawValue: raw) else { return }
+        onSetChattiness(level)
+    }
     @objc private func quitTapped() { onQuit() }
 
     private enum MenuCopy {
