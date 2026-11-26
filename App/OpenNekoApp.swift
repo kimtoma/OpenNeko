@@ -104,6 +104,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var proactiveLedger = ProactiveLedger()
     private let dayContext = DayContextProvider()
     private let connectors = ConnectorManager()
+    /// The last message typed in plain chat (no skill), for skill suggestions.
+    private var lastPlainChatMessage: String?
+    private var suggestedSkills: (day: String, ids: Set<String>) = ("", [])
     private var announcedEventKeys: Set<String> = []
     private var lastSuggestion: (kind: ProactiveKind, shownAt: TimeInterval)?
     private let agentTaskController = AgentTaskController()
@@ -1115,7 +1118,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             system += "\n\(MemoryProtocol.instructions(languageCode: languageCode))"
         }
         if appSettings.nativeToolsEnabled,
-           let connectorTools = MCPToolPrompt.instructions(tools: connectors.tools, languageCode: languageCode) {
+           let connectorTools = MCPToolPrompt.instructions(
+               tools: SkillSuggestion.prioritized(connectors.tools, for: skill),
+               languageCode: languageCode
+           ) {
             system += "\n\(connectorTools)"
         }
         if appSettings.calendarContextEnabled,
@@ -2093,6 +2099,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
         pendingPromptSkill = nil
         catWindow?.showBubble(NekoBubbleCopy.skillActivated(skill.name, languageCode: currentLanguageCode()))
+        hintMissingConnectors(for: skill)
         catWindow?.showChat(placeholder: NekoBubbleCopy.skillPlaceholder(skill.name, languageCode: currentLanguageCode()))
     }
 
@@ -2858,6 +2865,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let apiKey = resolvedAPIKey(for: providerConfig)
         let history = chatHistory
         let activeSkill = activeSkillForCurrentLanguage()
+        lastPlainChatMessage = activeSkill == nil ? storedMessage : nil
         let system = currentSystemPrompt(skill: activeSkill, query: storedMessage)
         cat?.applyBridgeState(.thinking)
         cat?.showBubble(NekoBubbleCopy.thinking(skillName: activeSkill?.name, languageCode: currentLanguageCode()))
@@ -2935,6 +2943,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         guard !storedInput.isEmpty else { return }
 
         cancelActiveChatRequest()
+        lastPlainChatMessage = nil
+        hintMissingConnectors(for: skill)
         let generation = chatGeneration
         let providerConfig = appSettings.aiProvider
         let apiKey = resolvedAPIKey(for: providerConfig)
@@ -3076,8 +3086,58 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             offerToolCall(tool)
         } else if !memory.isEmpty {
             offerMemoryProposals(memory)
+        } else if offerSkillSuggestionIfFitting() {
+            return
         } else {
             askCloudMemoryScopeIfNeeded()
+        }
+    }
+
+    // MARK: - Skill suggestions
+
+    /// After a plain chat reply, offers a skill whose name the message
+    /// clearly asked for, at most once per skill per day.
+    private func offerSkillSuggestionIfFitting() -> Bool {
+        guard let message = lastPlainChatMessage else { return false }
+        lastPlainChatMessage = nil
+        let today = MemoryDocument.dayStamp(Date())
+        if suggestedSkills.day != today {
+            suggestedSkills = (today, [])
+        }
+        guard let skill = SkillSuggestion.suggest(
+            message: message,
+            skills: localizedSkills(skillCatalog.skills),
+            disabledIDs: appSettings.disabledSkillIDs,
+            alreadySuggested: suggestedSkills.ids
+        ) else { return false }
+        let generation = chatGeneration
+        DispatchQueue.main.asyncAfter(deadline: .now() + 3) { [weak self] in
+            guard let self, self.chatGeneration == generation, self.activeChatTask == nil else { return }
+            guard self.claimProactiveTurn(.skillSuggestion) else { return }
+            self.suggestedSkills.ids.insert(skill.id)
+            let language = self.currentLanguageCode()
+            self.catWindow?.showBubble(
+                SkillSuggestionCopy.offer(skill, languageCode: language),
+                onClick: { [weak self] in
+                    self?.noteUserInteraction()
+                    self?.runSkill(skill: skill, inputOverride: skill.input == .prompt ? message : nil)
+                },
+                helpText: AgentTaskCopy.text(.approve, languageCode: language)
+            )
+        }
+        return true
+    }
+
+    /// A skill that declares `uses:` connectors which are not on gets a
+    /// short hint; it still runs.
+    private func hintMissingConnectors(for skill: NekoSkill) {
+        let ready = Set(connectors.tools.map(\.server))
+        let missing = SkillSuggestion.missingConnectors(for: skill, ready: ready)
+        guard !missing.isEmpty else { return }
+        let language = currentLanguageCode()
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) { [weak self] in
+            guard let self, self.activeChatTask == nil else { return }
+            self.catWindow?.showBubble(SkillSuggestionCopy.needsConnectors(missing, languageCode: language))
         }
     }
 
@@ -3151,6 +3211,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     /// chat history for context but not the saved transcript.
     private func sendHiddenChatTurn(_ text: String) {
         cancelActiveChatRequest()
+        lastPlainChatMessage = nil
         let generation = chatGeneration
         chatHistory.append(ChatMessage(role: .user, text: text))
         if chatHistory.count > 12 {

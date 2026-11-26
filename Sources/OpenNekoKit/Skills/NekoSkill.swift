@@ -48,6 +48,9 @@ public struct NekoSkill: Identifiable, Codable, Equatable, Sendable {
     public let input: NekoSkillInput
     public let body: String
     public let source: NekoSkillSource
+    /// Connector (MCP server) names the skill works with, from `uses:` in
+    /// the front matter. Their tools are listed first while it runs.
+    public let uses: [String]
 
     public init(
         id: String,
@@ -55,7 +58,8 @@ public struct NekoSkill: Identifiable, Codable, Equatable, Sendable {
         description: String,
         input: NekoSkillInput,
         body: String,
-        source: NekoSkillSource
+        source: NekoSkillSource,
+        uses: [String] = []
     ) {
         self.id = id
         self.name = name
@@ -63,5 +67,6 @@ public struct NekoSkill: Identifiable, Codable, Equatable, Sendable {
         self.input = input
         self.body = body
         self.source = source
+        self.uses = uses
     }
 }

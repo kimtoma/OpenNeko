@@ -181,7 +181,13 @@ Scripts inside skills are not executed.
 - User skills: `~/.openneko/skills/<id>/SKILL.md`
 
 Use the settings window, menu bar skill menu, or slash command list in the chat
-input to run a skill.
+input to run a skill. When a plain chat message clearly asks for a skill by
+name ("translate this"), the cat offers it once a day with a click-to-run
+bubble; say "stop" right after to switch these offers off.
+
+A skill can name the connectors it works with in its front matter, such as
+`uses: github, notion`. While it runs, those connectors' tools are listed
+first, and if one is not on, the cat says so and runs the skill anyway.
 
 ## Custom Skins
 

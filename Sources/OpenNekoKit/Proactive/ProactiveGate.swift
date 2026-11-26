@@ -20,12 +20,14 @@ public enum ProactiveKind: String, CaseIterable, Codable, Sendable {
     case memorySuggestion
     /// Neighbor cats coming and going.
     case neighbor
+    /// "Try the translate skill for this?" after a plain chat message.
+    case skillSuggestion
 
     public var priority: ProactivePriority {
         switch self {
         case .agentNotice: .requested
         case .routine, .schedule, .whatsNew: .scheduled
-        case .healthBreak, .dailyRitual, .memorySuggestion, .neighbor: .suggestion
+        case .healthBreak, .dailyRitual, .memorySuggestion, .neighbor, .skillSuggestion: .suggestion
         }
     }
 

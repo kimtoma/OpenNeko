@@ -36,8 +36,21 @@ public enum NekoSkillManifestParser {
             description: fields["description"] ?? "",
             input: NekoSkillInput(rawValue: fields["input"] ?? "") ?? .prompt,
             body: body,
-            source: source
+            source: source,
+            uses: parseUses(fields["uses"])
         )
+    }
+
+    /// `uses: github, notion` or `uses: [github, notion]`.
+    static func parseUses(_ value: String?) -> [String] {
+        guard let value else { return [] }
+        let names = value
+            .trimmingCharacters(in: CharacterSet(charactersIn: "[] "))
+            .split(separator: ",")
+            .map { $0.trimmingCharacters(in: CharacterSet(charactersIn: " \"'")) }
+            .filter(MCPServerConfig.isValidName)
+        var seen = Set<String>()
+        return Array(names.filter { seen.insert($0).inserted }.prefix(8))
     }
 
     private static func parseFrontMatter(_ text: String) -> [String: String] {
