@@ -5,6 +5,7 @@ import Foundation
 /// find them. Each feature records the tour revision it first appeared in;
 /// bump `WhatsNew.currentRevision` when adding features to a new tour.
 public enum WhatsNewFeature: String, CaseIterable, Equatable, Sendable {
+    case calendar
     case memory
     case selectedText
     case voiceInput
@@ -23,12 +24,14 @@ public enum WhatsNewFeature: String, CaseIterable, Equatable, Sendable {
             1
         case .memory:
             2
+        case .calendar:
+            3
         }
     }
 }
 
 public enum WhatsNew {
-    public static let currentRevision = 2
+    public static let currentRevision = 3
 
     public struct Context: Equatable, Sendable {
         public var onDeviceModelAvailable: Bool
@@ -133,6 +136,12 @@ public enum WhatsNewCopy {
 
     private static func featureText(_ feature: WhatsNewFeature, _ l: String) -> String {
         switch feature {
+        case .calendar:
+            return localized(l,
+                ko: "설정 > 하루에서 캘린더를 켜면 오늘 일정을 알고, 10분 전에 알려준다냥",
+                en: "Turn on Calendar in Settings > Day: I'll know today's plans and warn you 10 min ahead",
+                ja: "設定 > 一日でカレンダーをオンにすると今日の予定を知って10分前に知らせるにゃ",
+                zh: "在设置 > 日常里打开日历，我会知道今天的安排并提前10分钟提醒喵")
         case .memory:
             return localized(l,
                 ko: "이제 대화를 기억한다냥. 메뉴 > 기억 노트에서 내가 기억하는 걸 보고 고칠 수 있다냥",

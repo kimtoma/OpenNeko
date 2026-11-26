@@ -134,6 +134,16 @@ bounded delays and sizes). `OpenNekoApp` shows `NekoToolCopy.approval` in the
 bubble and runs the call only when it is clicked, logging it to the agent
 activity log.
 
+### Calendar context (Sources/OpenNekoKit/Context/, App/DayContextProvider.swift)
+
+Opt-in (`AppSettings.calendarContextEnabled`, Settings → Day). The provider
+copies only titles and times of today's EventKit events and reminders due
+today, refreshing every five minutes and on `EKEventStoreChanged`.
+`DayContext.prompt` turns them into a capped, sanitized block appended to the
+system prompt (titles marked as data), and `DayContext.upcoming` picks the
+event to mention ten minutes ahead through `ProactiveKind.schedule`
+(scheduled priority: it waits for meetings, ignores the daily budget).
+
 ### Routines (Sources/OpenNekoKit/Routines/, App/RoutinesWindowController.swift)
 
 Scheduled jobs stored in `AppSettings.routines`. `RoutineScheduler.due`

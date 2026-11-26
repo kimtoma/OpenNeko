@@ -13,6 +13,7 @@ public struct AppSettings: Codable, Equatable, Sendable {
         webSearchEnabled: true,
         nativeToolsEnabled: true,
         healthCompanionEnabled: true,
+        calendarContextEnabled: false,
         lastSeenWhatsNewRevision: 0,
         routines: [],
         memoryEnabled: true,
@@ -36,6 +37,9 @@ public struct AppSettings: Codable, Equatable, Sendable {
     public var webSearchEnabled: Bool
     public var nativeToolsEnabled: Bool
     public var healthCompanionEnabled: Bool
+    /// Today's calendar events and reminders in chat, plus heads-ups. Off
+    /// until the person turns it on and grants access.
+    public var calendarContextEnabled: Bool
     public var lastSeenWhatsNewRevision: Int
     public var routines: [Routine]
     public var memoryEnabled: Bool
@@ -59,6 +63,7 @@ public struct AppSettings: Codable, Equatable, Sendable {
         webSearchEnabled: Bool = true,
         nativeToolsEnabled: Bool = true,
         healthCompanionEnabled: Bool = true,
+        calendarContextEnabled: Bool = false,
         lastSeenWhatsNewRevision: Int = 0,
         routines: [Routine] = [],
         memoryEnabled: Bool = true,
@@ -81,6 +86,7 @@ public struct AppSettings: Codable, Equatable, Sendable {
         self.webSearchEnabled = webSearchEnabled
         self.nativeToolsEnabled = nativeToolsEnabled
         self.healthCompanionEnabled = healthCompanionEnabled
+        self.calendarContextEnabled = calendarContextEnabled
         self.lastSeenWhatsNewRevision = max(0, lastSeenWhatsNewRevision)
         self.routines = routines.map { $0.normalized() }
         self.memoryEnabled = memoryEnabled
@@ -105,6 +111,7 @@ public struct AppSettings: Codable, Equatable, Sendable {
         case webSearchEnabled
         case nativeToolsEnabled
         case healthCompanionEnabled
+        case calendarContextEnabled
         case lastSeenWhatsNewRevision
         case routines
         case memoryEnabled
@@ -186,6 +193,8 @@ public struct AppSettings: Codable, Equatable, Sendable {
             ?? Self.defaults.nativeToolsEnabled
         healthCompanionEnabled = (try? container.decodeIfPresent(Bool.self, forKey: .healthCompanionEnabled))
             ?? Self.defaults.healthCompanionEnabled
+        calendarContextEnabled = (try? container.decodeIfPresent(Bool.self, forKey: .calendarContextEnabled))
+            ?? Self.defaults.calendarContextEnabled
         lastSeenWhatsNewRevision = max(0, (try? container.decodeIfPresent(Int.self, forKey: .lastSeenWhatsNewRevision))
             ?? Self.defaults.lastSeenWhatsNewRevision)
         routines = ((try? container.decodeIfPresent([Routine].self, forKey: .routines)) ?? [])
@@ -243,6 +252,7 @@ public struct AppSettings: Codable, Equatable, Sendable {
         try container.encode(webSearchEnabled, forKey: .webSearchEnabled)
         try container.encode(nativeToolsEnabled, forKey: .nativeToolsEnabled)
         try container.encode(healthCompanionEnabled, forKey: .healthCompanionEnabled)
+        try container.encode(calendarContextEnabled, forKey: .calendarContextEnabled)
         try container.encode(lastSeenWhatsNewRevision, forKey: .lastSeenWhatsNewRevision)
         try container.encode(routines, forKey: .routines)
         try container.encode(memoryEnabled, forKey: .memoryEnabled)
