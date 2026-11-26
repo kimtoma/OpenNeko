@@ -90,6 +90,7 @@ struct SettingsView: View {
     let webSearchEnabled: Bool
     let healthCompanionEnabled: Bool
     let nativeToolsEnabled: Bool
+    let chattiness: Chattiness
     let catName: String
     let userProfile: UserProfile
     let neighborSettings: NeighborSettings
@@ -111,6 +112,7 @@ struct SettingsView: View {
     let setSoundEffects: (Bool) -> Void
     let setWebSearch: (Bool) -> Void
     let setHealthCompanion: (Bool) -> Void
+    let setChattiness: (Chattiness) -> Void
     let setNativeTools: (Bool) -> Void
     let setCatName: (String) -> Void
     let setUserProfile: (UserProfile) -> Void
@@ -137,7 +139,7 @@ struct SettingsView: View {
     let importCustomSkinPackage: () -> Void
     let openSkinsFolder: () -> Void
     let selectSkin: (String) -> Void
-    @State private var selectedPaneRaw = SettingsPane.start.rawValue
+    @State private var selectedPaneRaw = SettingsPane.cat.rawValue
     @State private var onboardingStepRaw = OnboardingStep.welcome.rawValue
     @State private var didCopyBridgeCommand = false
     @State private var copiedHookTarget: AgentHookTarget?
@@ -198,7 +200,7 @@ struct SettingsView: View {
     }
 
     private var visibleSettingsPanes: [SettingsPane] {
-        [.start, .skins, .profile, .general, .ai, .skills, .about]
+        SettingsPane.sidebar
     }
 
     private var profileControlWidth: CGFloat { 260 }
@@ -591,25 +593,19 @@ struct SettingsView: View {
 
     @ViewBuilder
     private var selectedPaneContent: some View {
-        switch selectedPane {
-        case .start:
-            startPane
+        switch selectedPane.sidebarPane {
+        case .memory:
+            memoryPane
+        case .abilities:
+            abilitiesPane
+        case .day:
+            dayPane
         case .ai:
             aiPane
-        case .skins:
-            skinsPane
-        case .skills:
-            skillsPane
-        case .profile:
-            profilePane
-        case .general:
-            generalPane
-        case .neighbors:
-            neighborsPane
-        case .permissions, .bridge:
-            generalPane
-        case .about:
-            aboutPane
+        case .advanced:
+            advancedPane
+        default:
+            catPane
         }
     }
 
@@ -831,71 +827,8 @@ struct SettingsView: View {
         .controlSize(.regular)
     }
 
-    private var startPane: some View {
-        SettingsGlassPane(
-            title: SettingsPane.start.title(languageCode: resolvedLanguageCode),
-            subtitle: copy(.startSubtitle)
-        ) {
-            LazyVGrid(columns: [GridItem(.adaptive(minimum: 158), spacing: 12)], spacing: 12) {
-                SettingsGlassSetupTile(
-                    title: copy(.skin),
-                    subtitle: skinLabel(selectedSkinID),
-                    systemImage: "paintpalette.fill",
-                    tint: .accentColor
-                ) {
-                    selectPane(.skins)
-                }
-
-                SettingsGlassSetupTile(
-                    title: copy(.profile),
-                    subtitle: profileSummary,
-                    systemImage: profileNeedsSetup ? "exclamationmark.triangle.fill" : "person.crop.circle.fill",
-                    tint: profileNeedsSetup ? .orange : .teal
-                ) {
-                    selectPane(.profile)
-                }
-
-                SettingsGlassSetupTile(
-                    title: copy(.typing),
-                    subtitle: permissionMenu.statusTitle(languageCode: resolvedLanguageCode),
-                    systemImage: permissionMenu.needsUserAction ? "hand.raised.fill" : "checkmark.circle.fill",
-                    tint: permissionMenu.needsUserAction ? .orange : .green
-                ) {
-                    selectPane(.general)
-                }
-
-                SettingsGlassSetupTile(
-                    title: "AI",
-                    subtitle: aiProviderConnectionSummary,
-                    systemImage: aiProviderReadiness.systemImage,
-                    tint: readinessTint(aiProviderReadiness.severity)
-                ) {
-                    selectPane(.ai)
-                }
-
-                SettingsGlassSetupTile(
-                    title: copy(.skills),
-                    subtitle: enabledSkillsCountText,
-                    systemImage: "wand.and.stars",
-                    tint: .purple
-                ) {
-                    selectPane(.skills)
-                }
-            }
-
-            Button(action: showOnboarding) {
-                Label(SettingsCopy.text(.onboardingRestart, languageCode: resolvedLanguageCode), systemImage: "list.bullet.clipboard")
-            }
-            .buttonStyle(.bordered)
-            .controlSize(.regular)
-        }
-    }
-
-    private var generalPane: some View {
-        SettingsGlassPane(
-            title: SettingsPane.general.title(languageCode: resolvedLanguageCode),
-            subtitle: copy(.generalSubtitle)
-        ) {
+    @ViewBuilder
+    private var languageRow: some View {
             SettingsGlassRow(systemImage: "globe") {
                 Text(copy(.language))
                     .font(.body.weight(.medium))
@@ -916,7 +849,10 @@ struct SettingsView: View {
                 .labelsHidden()
                 .frame(width: 220, alignment: .trailing)
             }
+    }
 
+    @ViewBuilder
+    private var launchAtLoginRow: some View {
             SettingsGlassCheckboxRow(
                 title: launchAtLogin.title(languageCode: resolvedLanguageCode),
                 subtitle: launchAtLogin.detail(languageCode: resolvedLanguageCode),
@@ -926,7 +862,10 @@ struct SettingsView: View {
                     set: { setLaunchAtLogin($0) }
                 )
             )
+    }
 
+    @ViewBuilder
+    private var soundRow: some View {
             SettingsGlassCheckboxRow(
                 title: copy(.soundEffects),
                 subtitle: soundEffectsEnabled ? copy(.soundEffectsOn) : copy(.soundEffectsOff),
@@ -936,7 +875,10 @@ struct SettingsView: View {
                     set: { setSoundEffects($0) }
                 )
             )
+    }
 
+    @ViewBuilder
+    private var healthRow: some View {
             SettingsGlassCheckboxRow(
                 title: copy(.healthCompanion),
                 subtitle: copy(.healthCompanionDetail),
@@ -946,12 +888,8 @@ struct SettingsView: View {
                     set: { setHealthCompanion($0) }
                 )
             )
-
-            compactPermissionsSection
-
-            agentHooksSection
-        }
     }
+
 
     private var agentHooksSection: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -974,11 +912,8 @@ struct SettingsView: View {
         }
     }
 
-    private var neighborsPane: some View {
-        SettingsGlassPane(
-            title: SettingsPane.neighbors.title(languageCode: resolvedLanguageCode),
-            subtitle: copy(.neighborsSubtitle)
-        ) {
+    @ViewBuilder
+    private var neighborsRows: some View {
             SettingsGlassToggleRow(
                 title: copy(.neighborDiscovery),
                 subtitle: neighborSettings.enabled ? copy(.neighborDiscoveryOn) : copy(.neighborDiscoveryOff),
@@ -1015,14 +950,10 @@ struct SettingsView: View {
                     tint: .secondary
                 )
             }
-        }
     }
 
-    private var profilePane: some View {
-        SettingsGlassPane(
-            title: SettingsPane.profile.title(languageCode: resolvedLanguageCode),
-            subtitle: copy(.profileSubtitle)
-        ) {
+    @ViewBuilder
+    private var profileRows: some View {
             SettingsGlassStatusRow(
                 title: copy(.promptContext),
                 subtitle: copy(.promptContextDetail),
@@ -1041,15 +972,157 @@ struct SettingsView: View {
             )
 
             profileInputRows
+    }
+
+    @ViewBuilder
+    private var routinesRow: some View {
+            SettingsGlassPermissionRow(
+                title: RoutineCopy.text(.entryTitle, languageCode: resolvedLanguageCode),
+                subtitle: RoutineCopy.text(.entryDetail, languageCode: resolvedLanguageCode),
+                systemImage: "alarm",
+                tint: .accentColor,
+                buttonTitle: RoutineCopy.text(.entryButton, languageCode: resolvedLanguageCode),
+                buttonImage: "slider.horizontal.3",
+                action: openRoutines
+            )
+    }
+
+    @ViewBuilder
+    private var agentDetectionRow: some View {
+            SettingsGlassToggleRow(
+                title: copy(.agentDetection),
+                subtitle: copy(.agentDetectionDetail),
+                systemImage: "dot.radiowaves.left.and.right",
+                isOn: Binding(
+                    get: { agentProcessDetectionEnabled },
+                    set: { setAgentProcessDetection($0) }
+                )
+            )
+    }
+
+    @ViewBuilder
+    private var webSearchRow: some View {
+            SettingsGlassToggleRow(
+                title: copy(.webSearch),
+                subtitle: webSearchEnabled ? copy(.webSearchOn) : copy(.webSearchOff),
+                systemImage: "magnifyingglass.circle",
+                isOn: Binding(
+                    get: { webSearchEnabled },
+                    set: { setWebSearch($0) }
+                )
+            )
+    }
+
+    @ViewBuilder
+    private var nativeToolsRow: some View {
+            SettingsGlassToggleRow(
+                title: copy(.nativeTools),
+                subtitle: copy(.nativeToolsDetail),
+                systemImage: "timer",
+                isOn: Binding(
+                    get: { nativeToolsEnabled },
+                    set: { setNativeTools($0) }
+                )
+            )
+    }
+
+    private var chattinessRow: some View {
+        SettingsGlassRow(systemImage: "bubble.left") {
+            VStack(alignment: .leading, spacing: 2) {
+                Text(ProactiveCopy.chattinessMenuTitle(languageCode: resolvedLanguageCode))
+                    .font(.body.weight(.medium))
+            }
+        } trailing: {
+            Picker(ProactiveCopy.chattinessMenuTitle(languageCode: resolvedLanguageCode), selection: Binding(
+                get: { chattiness },
+                set: { setChattiness($0) }
+            )) {
+                ForEach(Chattiness.allCases, id: \.self) { level in
+                    Text(ProactiveCopy.chattinessTitle(level, languageCode: resolvedLanguageCode)).tag(level)
+                }
+            }
+            .labelsHidden()
+            .frame(width: 220, alignment: .trailing)
+        }
+    }
+
+    private func paneSection(_ pane: SettingsPane, tint: Color) -> some View {
+        SettingsGlassSectionHeader(
+            title: pane.title(languageCode: resolvedLanguageCode),
+            subtitle: "",
+            systemImage: pane.systemImage,
+            tint: tint
+        )
+    }
+
+    // MARK: - Sidebar panes (cat, memory, abilities, day, AI, advanced)
+
+    private func sidebarPane<Content: View>(_ pane: SettingsPane, @ViewBuilder content: () -> Content) -> some View {
+        SettingsGlassPane(
+            title: pane.title(languageCode: resolvedLanguageCode),
+            subtitle: pane.subtitle(languageCode: resolvedLanguageCode),
+            content: content
+        )
+    }
+
+    private var catPane: some View {
+        sidebarPane(.cat) {
+            skinsRows
+            languageRow
+            soundRow
+            chattinessRow
+        }
+    }
+
+    private var memoryPane: some View {
+        sidebarPane(.memory) {
+            profileRows
+        }
+    }
+
+    private var abilitiesPane: some View {
+        sidebarPane(.abilities) {
+            nativeToolsRow
+            webSearchRow
+            paneSection(.skills, tint: .purple)
+            skillsRows
+            compactPermissionsSection
+        }
+    }
+
+    private var dayPane: some View {
+        sidebarPane(.day) {
+            routinesRow
+            healthRow
         }
     }
 
     private var aiPane: some View {
+        sidebarPane(.ai) {
+            aiRows
+        }
+    }
+
+    private var advancedPane: some View {
+        sidebarPane(.advanced) {
+            launchAtLoginRow
+            agentDetectionRow
+            agentHooksSection
+            paneSection(.neighbors, tint: .green)
+            neighborsRows
+            paneSection(.about, tint: .secondary)
+            aboutRows
+            Button(action: showOnboarding) {
+                Label(SettingsCopy.text(.onboardingRestart, languageCode: resolvedLanguageCode), systemImage: "list.bullet.clipboard")
+            }
+            .buttonStyle(.bordered)
+            .controlSize(.regular)
+        }
+    }
+
+    @ViewBuilder
+    private var aiRows: some View {
         let preset = AIProviderPreset.preset(for: aiProvider.presetID) ?? AIProviderPreset.all[0]
-        return SettingsGlassPane(
-            title: SettingsPane.ai.title(languageCode: resolvedLanguageCode),
-            subtitle: copy(.aiSubtitle)
-        ) {
             SettingsOnboardingAISection(
                 readiness: aiProviderReadiness,
                 detections: aiProviderDetections,
@@ -1069,46 +1142,6 @@ struct SettingsView: View {
                 buttonTitle: LocalModelSetupCopy.text(.entryButton, languageCode: resolvedLanguageCode),
                 buttonImage: "arrow.down.circle",
                 action: openLocalModelSetup
-            )
-
-            SettingsGlassPermissionRow(
-                title: RoutineCopy.text(.entryTitle, languageCode: resolvedLanguageCode),
-                subtitle: RoutineCopy.text(.entryDetail, languageCode: resolvedLanguageCode),
-                systemImage: "alarm",
-                tint: .accentColor,
-                buttonTitle: RoutineCopy.text(.entryButton, languageCode: resolvedLanguageCode),
-                buttonImage: "slider.horizontal.3",
-                action: openRoutines
-            )
-
-            SettingsGlassToggleRow(
-                title: copy(.agentDetection),
-                subtitle: copy(.agentDetectionDetail),
-                systemImage: "dot.radiowaves.left.and.right",
-                isOn: Binding(
-                    get: { agentProcessDetectionEnabled },
-                    set: { setAgentProcessDetection($0) }
-                )
-            )
-
-            SettingsGlassToggleRow(
-                title: copy(.webSearch),
-                subtitle: webSearchEnabled ? copy(.webSearchOn) : copy(.webSearchOff),
-                systemImage: "magnifyingglass.circle",
-                isOn: Binding(
-                    get: { webSearchEnabled },
-                    set: { setWebSearch($0) }
-                )
-            )
-
-            SettingsGlassToggleRow(
-                title: copy(.nativeTools),
-                subtitle: copy(.nativeToolsDetail),
-                systemImage: "timer",
-                isOn: Binding(
-                    get: { nativeToolsEnabled },
-                    set: { setNativeTools($0) }
-                )
             )
 
             if preset.fields.contains(.apiKey) {
@@ -1146,14 +1179,10 @@ struct SettingsView: View {
                     monospaced: true
                 )
             }
-        }
     }
 
-    private var skillsPane: some View {
-        SettingsGlassPane(
-            title: SettingsPane.skills.title(languageCode: resolvedLanguageCode),
-            subtitle: copy(.skillsSubtitle)
-        ) {
+    @ViewBuilder
+    private var skillsRows: some View {
             if skills.isEmpty {
                 SettingsGlassStatusRow(
                     title: copy(.noSkills),
@@ -1181,7 +1210,6 @@ struct SettingsView: View {
             }
             .padding(.horizontal, 12)
             .padding(.vertical, 6)
-        }
     }
 
     @ViewBuilder
@@ -1207,11 +1235,8 @@ struct SettingsView: View {
             )
     }
 
-    private var skinsPane: some View {
-        SettingsGlassPane(
-            title: SettingsPane.skins.title(languageCode: resolvedLanguageCode),
-            subtitle: copy(.skinsSubtitle)
-        ) {
+    @ViewBuilder
+    private var skinsRows: some View {
             SettingsGlassTextFieldRow(
                 title: copy(.catName),
                 systemImage: "pawprint",
@@ -1238,7 +1263,6 @@ struct SettingsView: View {
                 }
             }
 
-        }
     }
 
     @ViewBuilder
@@ -1265,11 +1289,8 @@ struct SettingsView: View {
         }
     }
 
-    private var aboutPane: some View {
-        SettingsGlassPane(
-            title: SettingsPane.about.title(languageCode: resolvedLanguageCode),
-            subtitle: copy(.aboutSubtitle)
-        ) {
+    @ViewBuilder
+    private var aboutRows: some View {
             HStack(alignment: .center, spacing: 18) {
                 Image(nsImage: NSApp.applicationIconImage)
                     .resizable()
@@ -1328,7 +1349,6 @@ struct SettingsView: View {
             .font(.callout)
             .padding(.horizontal, 12)
             .padding(.vertical, 6)
-        }
     }
 
     private func skinLabel(_ id: String) -> String {
@@ -1483,9 +1503,9 @@ struct SettingsView: View {
 
     private var selectedPane: SettingsPane {
         guard let pane = SettingsPane(rawValue: selectedPaneRaw) else {
-            return .start
+            return .cat
         }
-        return visibleSettingsPanes.contains(pane) ? pane : .general
+        return pane.sidebarPane
     }
 
     private var onboardingStep: OnboardingStep {
@@ -1558,7 +1578,7 @@ struct SettingsView: View {
     }
 
     private func selectPane(_ pane: SettingsPane) {
-        selectedPaneRaw = visibleSettingsPanes.contains(pane) ? pane.rawValue : SettingsPane.general.rawValue
+        selectedPaneRaw = pane.sidebarPane.rawValue
     }
 
     private func moveOnboarding(by offset: Int) {

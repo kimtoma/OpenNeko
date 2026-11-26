@@ -165,22 +165,22 @@ public enum WhatsNewCopy {
                 zh: "说“3分钟计时器”之类，我能计时、提醒、复制、开链接。你点了才执行喵")
         case .routines:
             return localized(l,
-                ko: "설정 > AI > 루틴에서 아침 브리핑처럼 정한 시간에 할 일을 맡길 수 있다냥",
-                en: "Settings > AI > Routines: give me jobs for set times, like a morning briefing",
-                ja: "設定 > AI > ルーティンで、朝のブリーフィングなど決まった時間の仕事を任せられるにゃ",
-                zh: "在设置 > AI > 例程里，可以让我在固定时间做事，比如早间简报喵")
+                ko: "설정 > 하루 > 루틴에서 아침 브리핑처럼 정한 시간에 할 일을 맡길 수 있다냥",
+                en: "Settings > Day > Routines: give me jobs for set times, like a morning briefing",
+                ja: "設定 > 一日 > ルーティンで、朝のブリーフィングなど決まった時間の仕事を任せられるにゃ",
+                zh: "在设置 > 日常 > 例程里，可以让我在固定时间做事，比如早间简报喵")
         case .agentHooks:
             return localized(l,
-                ko: "설정 > 일반 > 에이전트 알림을 붙이면 Claude Code·Codex가 끝날 때 알려준다냥",
-                en: "Add Settings > General > Agent notifications and I'll tell you when Claude Code or Codex is done",
-                ja: "設定 > 一般 > エージェント通知を入れるとClaude Code・Codexの完了を知らせるにゃ",
-                zh: "在设置 > 通用 > 智能体通知里配置后，Claude Code、Codex 完成时我会提醒喵")
+                ko: "설정 > 고급 > 에이전트 알림을 붙이면 Claude Code·Codex가 끝날 때 알려준다냥",
+                en: "Add Settings > Advanced > Agent notifications and I'll tell you when Claude Code or Codex is done",
+                ja: "設定 > 詳細 > エージェント通知を入れるとClaude Code・Codexの完了を知らせるにゃ",
+                zh: "在设置 > 高级 > 智能体通知里配置后，Claude Code、Codex 完成时我会提醒喵")
         case .healthCompanion:
             return localized(l,
-                ko: "50분 넘게 계속 일하면 쉬자고 말해준다냥. 설정 > 일반에서 끌 수 있다냥",
-                en: "After 50 minutes of nonstop work I'll suggest a break. Turn it off in Settings > General",
-                ja: "50分以上働き続けたら休憩を勧めるにゃ。設定 > 一般でオフにできるにゃ",
-                zh: "连续工作超过50分钟我会提醒休息。可在设置 > 通用里关闭喵")
+                ko: "50분 넘게 계속 일하면 쉬자고 말해준다냥. 설정 > 하루에서 끌 수 있다냥",
+                en: "After 50 minutes of nonstop work I'll suggest a break. Turn it off in Settings > Day",
+                ja: "50分以上働き続けたら休憩を勧めるにゃ。設定 > 一日でオフにできるにゃ",
+                zh: "连续工作超过50分钟我会提醒休息。可在设置 > 日常里关闭喵")
         case .localModels:
             return localized(l,
                 ko: "구독 없이도 된다냥! 설정 > AI에서 이 맥에 맞는 무료 모델을 골라준다냥",

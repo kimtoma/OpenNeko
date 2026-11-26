@@ -21,6 +21,7 @@ final class SettingsWindowController {
         let webSearchEnabled: Bool
         let healthCompanionEnabled: Bool
         let nativeToolsEnabled: Bool
+        let chattiness: Chattiness
         let catName: String
         let userProfile: UserProfile
         let neighborSettings: NeighborSettings
@@ -45,6 +46,7 @@ final class SettingsWindowController {
     private let setSoundEffects: (Bool) -> Void
     private let setWebSearch: (Bool) -> Void
     private let setHealthCompanion: (Bool) -> Void
+    private let setChattiness: (Chattiness) -> Void
     private let setNativeTools: (Bool) -> Void
     private let setCatName: (String) -> Void
     private let setUserProfile: (UserProfile) -> Void
@@ -84,6 +86,7 @@ final class SettingsWindowController {
         setSoundEffects: @escaping (Bool) -> Void,
         setWebSearch: @escaping (Bool) -> Void,
         setHealthCompanion: @escaping (Bool) -> Void,
+        setChattiness: @escaping (Chattiness) -> Void,
         setNativeTools: @escaping (Bool) -> Void,
         setCatName: @escaping (String) -> Void,
         setUserProfile: @escaping (UserProfile) -> Void,
@@ -122,6 +125,7 @@ final class SettingsWindowController {
         self.setSoundEffects = setSoundEffects
         self.setWebSearch = setWebSearch
         self.setHealthCompanion = setHealthCompanion
+        self.setChattiness = setChattiness
         self.setNativeTools = setNativeTools
         self.setCatName = setCatName
         self.setUserProfile = setUserProfile
@@ -232,6 +236,7 @@ final class SettingsWindowController {
             webSearchEnabled: state.webSearchEnabled,
             healthCompanionEnabled: state.healthCompanionEnabled,
             nativeToolsEnabled: state.nativeToolsEnabled,
+            chattiness: state.chattiness,
             catName: state.catName,
             userProfile: state.userProfile,
             neighborSettings: state.neighborSettings,
@@ -253,6 +258,7 @@ final class SettingsWindowController {
             setSoundEffects: setSoundEffects,
             setWebSearch: setWebSearch,
             setHealthCompanion: setHealthCompanion,
+            setChattiness: setChattiness,
             setNativeTools: setNativeTools,
             setCatName: setCatName,
             setUserProfile: setUserProfile,

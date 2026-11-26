@@ -126,7 +126,7 @@ The cat keeps three plain Markdown files in `~/.openneko/memory/`:
 
 When you mention something from an earlier chat, the cat searches the local
 chat history and brings up to three related exchanges into the prompt.
-Open **Memory Notes** from the menu (or Settings > My Profile) to read and edit
+Open **Memory Notes** from the menu (or Settings > Memory) to read and edit
 the files. Local models always use your memory; for cloud providers you choose
 what is sent (everything, soul only, or nothing). Entries that look like
 passwords, keys or card numbers are refused.
@@ -209,7 +209,7 @@ OPENNEKO_PORT=48801 /path/to/OpenNeko.app/Contents/MacOS/OpenNeko
 ### Agent notifications
 
 OpenNeko can tell you when Claude Code or Codex finishes or needs your
-approval. Copy a snippet from Settings > General > Agent notifications:
+approval. Copy a snippet from Settings > Advanced > Agent notifications:
 
 - Claude Code (`~/.claude/settings.json`): a `Notification` hook posts
   `waiting` and a `Stop` hook posts `done`.

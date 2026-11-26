@@ -192,6 +192,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                     webSearchEnabled: true,
                     healthCompanionEnabled: true,
                     nativeToolsEnabled: true,
+                    chattiness: .normal,
                     catName: "",
                     userProfile: .empty,
                     neighborSettings: .defaults,
@@ -231,6 +232,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             },
             setHealthCompanion: { [weak self] enabled in
                 self?.setHealthCompanion(enabled)
+            },
+            setChattiness: { [weak self] level in
+                self?.setChattiness(level)
             },
             setNativeTools: { [weak self] enabled in
                 self?.setNativeTools(enabled)
@@ -377,10 +381,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             chattiness: { [weak self] in self?.appSettings.chattiness ?? .normal },
             mutedTopicCount: { [weak self] in self?.appSettings.mutedProactiveKinds.count ?? 0 },
             onSetChattiness: { [weak self] level in
-                guard let self else { return }
-                self.appSettings.chattiness = level
-                self.saveSettings()
-                self.menuBar?.refresh()
+                self?.setChattiness(level)
             },
             onResetMutedTopics: { [weak self] in
                 guard let self else { return }
@@ -803,6 +804,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         settingsWindow?.refresh()
     }
 
+    private func setChattiness(_ level: Chattiness) {
+        appSettings.chattiness = level
+        saveSettings()
+        settingsWindow?.refresh()
+        menuBar?.refresh()
+    }
+
     private func setCatName(_ name: String) {
         appSettings.catName = UserProfile.sanitized(name, limit: 64)
         saveSettings()
@@ -981,6 +989,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             webSearchEnabled: appSettings.webSearchEnabled,
             healthCompanionEnabled: appSettings.healthCompanionEnabled,
             nativeToolsEnabled: appSettings.nativeToolsEnabled,
+            chattiness: appSettings.chattiness,
             catName: appSettings.catName,
             userProfile: appSettings.userProfile,
             neighborSettings: appSettings.neighborSettings,
