@@ -69,6 +69,9 @@ OpenNeko supports these provider presets:
 - Ollama: connects to a local Ollama OpenAI-compatible server.
   No subscription? **Settings → AI → Local model setup** checks your Mac's memory and free disk, helps you install Ollama, downloads a model that fits (Apple Silicon only), and switches the cat to it.
 - Local OpenAI Compatible: connects to LM Studio, llama.cpp, vLLM, or similar.
+- Apple On-Device Model: replies with Apple's built-in model on macOS 26+
+  Macs with Apple Intelligence turned on (no download, no key). The app
+  still runs on macOS 14; the preset just reports that it is unavailable.
 - Gemini API Key: uses `GEMINI_API_KEY` or `GOOGLE_API_KEY`.
 - Claude API Key: uses `ANTHROPIC_API_KEY`.
 - Custom: accepts any OpenAI-compatible base URL, API key, and model.

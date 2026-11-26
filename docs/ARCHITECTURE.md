@@ -50,6 +50,10 @@ Matching rules live in `AgentProcessDetector` (tested).
   OpenAI-compatible, API keys, custom endpoint) and per-preset defaults.
 - `AIProviderDetection` / `AIProviderReadiness` / `AIProviderConnectionTestStatus`
   — detect installed CLIs and report connection-test state to Settings.
+- `OnDeviceModelAvailability` — readiness copy for the Apple on-device
+  preset (`apple-intelligence`); `App/AppleFoundationChatProvider.swift` is
+  the only file that imports FoundationModels, behind `canImport` +
+  `#available(macOS 26)`.
 - `ChatPromptBuilder` — composes system prompt from skill + profile +
   persona + language.
 - `HTTPChatRequestBuilder` / `HTTPChatStreamParser` — OpenAI-compatible

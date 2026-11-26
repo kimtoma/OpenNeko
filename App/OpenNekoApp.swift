@@ -1017,7 +1017,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             preset: preset,
             hasResolvedAPIKey: !(resolvedAPIKey ?? "").isEmpty,
             cliExecutableAvailable: cliExecutableAvailable(for: provider.type),
-            languageCode: currentLanguageCode()
+            languageCode: currentLanguageCode(),
+            onDeviceAvailability: provider.type == .appleFoundation ? AppleFoundationChatProvider.availability() : nil
         )
     }
 
@@ -1093,6 +1094,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
 
         if let detection = AIProviderDetection.ollamaDetection(models: await fetchOllamaModels()) {
+            detections.append(detection)
+        }
+
+        if let detection = AIProviderDetection.onDeviceDetection(availability: AppleFoundationChatProvider.availability()) {
             detections.append(detection)
         }
 
@@ -2438,6 +2443,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 model: providerConfig.model,
                 languageCode: languageCode
             ).chat(history: history, system: system)
+        case .appleFoundation:
+            return try await AppleFoundationChatProvider.chat(history: history, system: system, languageCode: languageCode)
         case .openAICompatible, .gemini, .anthropic:
             return try await HTTPChatProvider(
                 config: providerConfig,
@@ -2667,6 +2674,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             return error.userMessage(languageCode: languageCode)
         }
         if let error = error as? AgentCLIChatError {
+            return error.userMessage(languageCode: languageCode)
+        }
+        if let error = error as? AppleFoundationChatError {
             return error.userMessage(languageCode: languageCode)
         }
         return NekoBubbleCopy.genericChatError(languageCode: languageCode)

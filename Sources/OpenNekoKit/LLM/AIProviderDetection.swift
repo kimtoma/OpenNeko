@@ -179,6 +179,13 @@ public struct AIProviderDetection: Equatable, Identifiable, Sendable {
         )
     }
 
+    /// Apple's on-device model counts as a ready provider only when the
+    /// runtime check says it is available right now.
+    public static func onDeviceDetection(availability: OnDeviceModelAvailability) -> AIProviderDetection? {
+        guard availability == .available else { return nil }
+        return AIProviderDetection(presetID: "apple-intelligence", source: .local, detail: "Apple Intelligence")
+    }
+
     public static func uniqueReady(_ detections: [AIProviderDetection]) -> [AIProviderDetection] {
         var seen = Set<String>()
         var result: [AIProviderDetection] = []

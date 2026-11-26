@@ -29,9 +29,12 @@ public struct AIProviderReadiness: Equatable, Sendable {
         preset: AIProviderPreset,
         hasResolvedAPIKey: Bool,
         cliExecutableAvailable: Bool?,
-        languageCode: String? = nil
+        languageCode: String? = nil,
+        onDeviceAvailability: OnDeviceModelAvailability? = nil
     ) -> AIProviderReadiness {
         switch config.type {
+        case .appleFoundation:
+            return (onDeviceAvailability ?? .unknown).readiness(languageCode: languageCode)
         case .codexCLI, .claudeCLI, .geminiCLI:
             return cliReadiness(
                 preset: preset,
@@ -199,7 +202,7 @@ public struct AIProviderReadiness: Equatable, Sendable {
         case .codexCLI: "codex"
         case .claudeCLI: "claude"
         case .geminiCLI: "gemini"
-        case .openAICompatible, .gemini, .anthropic: ""
+        case .openAICompatible, .gemini, .anthropic, .appleFoundation: ""
         }
     }
 

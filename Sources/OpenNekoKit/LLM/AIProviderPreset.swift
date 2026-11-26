@@ -5,6 +5,7 @@ public enum AIProviderType: String, Codable, Equatable, Sendable {
     case openAICompatible = "openai-compat"
     case gemini
     case anthropic
+    case appleFoundation = "apple-foundation"
 
     /// The executable name of the login CLI backing this provider type,
     /// or nil for HTTP providers that need no local CLI.
@@ -13,7 +14,7 @@ public enum AIProviderType: String, Codable, Equatable, Sendable {
         case .codexCLI: "codex"
         case .claudeCLI: "claude"
         case .geminiCLI: "gemini"
-        case .openAICompatible, .gemini, .anthropic: nil
+        case .openAICompatible, .gemini, .anthropic, .appleFoundation: nil
         }
     }
 }
@@ -88,6 +89,14 @@ public struct AIProviderPreset: Equatable, Identifiable, Sendable {
             defaultBaseURL: "http://localhost:1234/v1",
             fields: [.baseURL, .model],
             note: "LM Studio, llama.cpp, vLLM 같은 로컬 서버와 연결합니다.",
+            isLocal: true
+        ),
+        AIProviderPreset(
+            id: "apple-intelligence",
+            title: "Apple 온디바이스 모델",
+            type: .appleFoundation,
+            fields: [],
+            note: "macOS 26 이상, Apple Intelligence가 켜진 Mac에서 다운로드 없이 대답합니다.",
             isLocal: true
         ),
         AIProviderPreset(
@@ -242,6 +251,7 @@ public struct AIProviderPreset: Equatable, Identifiable, Sendable {
         case "claude-oauth": return "Claude Login"
         case "gemini-oauth": return "Gemini Login"
         case "local-openai": return "Local OpenAI Compatible"
+        case "apple-intelligence": return "Apple On-Device Model"
         case "gemini": return "Gemini API Key"
         case "claude": return "Claude API Key"
         case "custom": return "Custom"
@@ -255,6 +265,7 @@ public struct AIProviderPreset: Equatable, Identifiable, Sendable {
         case "claude-oauth": return "Claudeログイン"
         case "gemini-oauth": return "Geminiログイン"
         case "local-openai": return "ローカルOpenAI互換"
+        case "apple-intelligence": return "Appleオンデバイスモデル"
         case "gemini": return "Gemini APIキー"
         case "claude": return "Claude APIキー"
         case "custom": return "カスタム"
@@ -268,6 +279,7 @@ public struct AIProviderPreset: Equatable, Identifiable, Sendable {
         case "claude-oauth": return "Claude 登录"
         case "gemini-oauth": return "Gemini 登录"
         case "local-openai": return "本地 OpenAI 兼容"
+        case "apple-intelligence": return "Apple 设备端模型"
         case "gemini": return "Gemini API Key"
         case "claude": return "Claude API Key"
         case "custom": return "自定义"
@@ -282,6 +294,7 @@ public struct AIProviderPreset: Equatable, Identifiable, Sendable {
         case "gemini-oauth": return "Uses your Gemini CLI Google login session."
         case "ollama": return "Connects to a local Ollama server."
         case "local-openai": return "Connects to local servers such as LM Studio, llama.cpp, or vLLM."
+        case "apple-intelligence": return "Replies with no download on macOS 26+ Macs with Apple Intelligence on."
         case "gemini": return "Uses a Google AI Studio API key."
         case "claude": return "Uses an Anthropic API key."
         case "custom": return "Enter an OpenAI-compatible endpoint manually."
@@ -296,6 +309,7 @@ public struct AIProviderPreset: Equatable, Identifiable, Sendable {
         case "gemini-oauth": return "Gemini CLIのGoogleログインセッションを使います。"
         case "ollama": return "ローカルOllamaサーバーに接続します。"
         case "local-openai": return "LM Studio、llama.cpp、vLLMなどのローカルサーバーに接続します。"
+        case "apple-intelligence": return "macOS 26以降でApple IntelligenceがオンのMacなら、ダウンロードなしで返答します。"
         case "gemini": return "Google AI StudioのAPIキーを使います。"
         case "claude": return "Anthropic APIキーを使います。"
         case "custom": return "OpenAI互換エンドポイントを手動で入力します。"
@@ -310,6 +324,7 @@ public struct AIProviderPreset: Equatable, Identifiable, Sendable {
         case "gemini-oauth": return "使用 Gemini CLI Google 登录会话。"
         case "ollama": return "连接本地 Ollama 服务器。"
         case "local-openai": return "连接 LM Studio、llama.cpp、vLLM 等本地服务器。"
+        case "apple-intelligence": return "在 macOS 26 及以上并开启 Apple Intelligence 的 Mac 上，无需下载即可回复。"
         case "gemini": return "使用 Google AI Studio API Key。"
         case "claude": return "使用 Anthropic API Key。"
         case "custom": return "手动输入 OpenAI 兼容端点。"

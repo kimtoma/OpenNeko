@@ -61,6 +61,7 @@ OpenNekoは次のprovider presetをサポートします。
 - Ollama: ローカルOllama OpenAI互換サーバーへ接続します。
   サブスクがなくても **設定 → AI → ローカルモデルの設定** でMacのメモリと空き容量を確認し、Ollamaの導入を案内して、合うモデルをダウンロードして接続します (Apple Silicon専用)。
 - ローカルOpenAI互換: LM Studio、llama.cpp、vLLMなどへ接続します。
+- Appleオンデバイスモデル: macOS 26以降でApple IntelligenceがオンのMacなら内蔵モデルで返答します（ダウンロード・キー不要）。アプリはmacOS 14でも動作し、このプリセットだけが利用不可と表示されます。
 - Gemini APIキー: `GEMINI_API_KEY`または`GOOGLE_API_KEY`を使います。
 - Claude APIキー: `ANTHROPIC_API_KEY`を使います。
 - カスタム: OpenAI互換Base URL、APIキー、モデルを直接入力します。

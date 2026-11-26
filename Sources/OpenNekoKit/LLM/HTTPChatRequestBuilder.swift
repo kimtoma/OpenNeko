@@ -47,7 +47,7 @@ public enum HTTPChatRequestBuilder {
             return try geminiRequest(config: config, apiKey: apiKey, history: history, system: system)
         case .anthropic:
             return try anthropicRequest(config: config, apiKey: apiKey, history: history, system: system)
-        case .codexCLI, .claudeCLI, .geminiCLI:
+        case .codexCLI, .claudeCLI, .geminiCLI, .appleFoundation:
             throw HTTPChatConfigurationError.unsupportedProvider(config.type)
         }
     }
@@ -193,7 +193,7 @@ public enum HTTPChatResponseParser {
             return try parseGemini(data)
         case .anthropic:
             return try parseAnthropic(data)
-        case .codexCLI, .claudeCLI, .geminiCLI:
+        case .codexCLI, .claudeCLI, .geminiCLI, .appleFoundation:
             throw HTTPChatConfigurationError.unsupportedResponse(type)
         }
     }
