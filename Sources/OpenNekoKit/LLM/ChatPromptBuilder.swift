@@ -169,13 +169,19 @@ public enum ChatPromptBuilder {
         skill: NekoSkill?,
         languageCode: String = "ko",
         userProfile: UserProfile = .empty,
-        now: Date = Date()
+        now: Date = Date(),
+        persona: String? = nil,
+        memoryContext: String? = nil
     ) -> String {
-        let base = [
-            defaultSystemPrompt(languageCode: languageCode),
+        var parts = [
+            persona ?? defaultSystemPrompt(languageCode: languageCode),
             "",
             profileContext(userProfile: userProfile, now: now, languageCode: languageCode),
-        ].joined(separator: "\n")
+        ]
+        if let memoryContext, !memoryContext.isEmpty {
+            parts.append(contentsOf: ["", memoryContext])
+        }
+        let base = parts.joined(separator: "\n")
 
         guard let skill else {
             return base

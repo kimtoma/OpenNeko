@@ -15,6 +15,8 @@ public struct AppSettings: Codable, Equatable, Sendable {
         healthCompanionEnabled: true,
         lastSeenWhatsNewRevision: 0,
         routines: [],
+        memoryEnabled: true,
+        memoryCloudScope: .ask,
         catName: "",
         userProfile: .empty,
         neighborSettings: .defaults,
@@ -34,6 +36,8 @@ public struct AppSettings: Codable, Equatable, Sendable {
     public var healthCompanionEnabled: Bool
     public var lastSeenWhatsNewRevision: Int
     public var routines: [Routine]
+    public var memoryEnabled: Bool
+    public var memoryCloudScope: MemoryCloudScope
     public var catName: String
     public var userProfile: UserProfile
     public var neighborSettings: NeighborSettings
@@ -53,6 +57,8 @@ public struct AppSettings: Codable, Equatable, Sendable {
         healthCompanionEnabled: Bool = true,
         lastSeenWhatsNewRevision: Int = 0,
         routines: [Routine] = [],
+        memoryEnabled: Bool = true,
+        memoryCloudScope: MemoryCloudScope = .ask,
         catName: String = "",
         userProfile: UserProfile = .empty,
         neighborSettings: NeighborSettings = .defaults,
@@ -71,6 +77,8 @@ public struct AppSettings: Codable, Equatable, Sendable {
         self.healthCompanionEnabled = healthCompanionEnabled
         self.lastSeenWhatsNewRevision = max(0, lastSeenWhatsNewRevision)
         self.routines = routines.map { $0.normalized() }
+        self.memoryEnabled = memoryEnabled
+        self.memoryCloudScope = memoryCloudScope
         self.catName = UserProfile.sanitized(catName, limit: 64)
         self.userProfile = userProfile.normalized()
         self.neighborSettings = neighborSettings.normalized()
@@ -91,6 +99,8 @@ public struct AppSettings: Codable, Equatable, Sendable {
         case healthCompanionEnabled
         case lastSeenWhatsNewRevision
         case routines
+        case memoryEnabled
+        case memoryCloudScope
         case catName
         case userProfile
         case neighborSettings
@@ -170,6 +180,10 @@ public struct AppSettings: Codable, Equatable, Sendable {
             ?? Self.defaults.lastSeenWhatsNewRevision)
         routines = ((try? container.decodeIfPresent([Routine].self, forKey: .routines)) ?? [])
             .map { $0.normalized() }
+        memoryEnabled = (try? container.decodeIfPresent(Bool.self, forKey: .memoryEnabled))
+            ?? Self.defaults.memoryEnabled
+        memoryCloudScope = (try? container.decodeIfPresent(MemoryCloudScope.self, forKey: .memoryCloudScope))
+            ?? Self.defaults.memoryCloudScope
         let legacyNeighbor = try? legacy?.decodeIfPresent(LegacyNeighbor.self, forKey: .neighbor)
         catName = UserProfile.sanitized(
             (try? container.decodeIfPresent(String.self, forKey: .catName))
@@ -214,6 +228,8 @@ public struct AppSettings: Codable, Equatable, Sendable {
         try container.encode(healthCompanionEnabled, forKey: .healthCompanionEnabled)
         try container.encode(lastSeenWhatsNewRevision, forKey: .lastSeenWhatsNewRevision)
         try container.encode(routines, forKey: .routines)
+        try container.encode(memoryEnabled, forKey: .memoryEnabled)
+        try container.encode(memoryCloudScope, forKey: .memoryCloudScope)
         try container.encode(catName, forKey: .catName)
         try container.encode(userProfile, forKey: .userProfile)
         try container.encode(neighborSettings, forKey: .neighborSettings)

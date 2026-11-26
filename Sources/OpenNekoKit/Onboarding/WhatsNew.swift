@@ -5,6 +5,7 @@ import Foundation
 /// find them. Each feature records the tour revision it first appeared in;
 /// bump `WhatsNew.currentRevision` when adding features to a new tour.
 public enum WhatsNewFeature: String, CaseIterable, Equatable, Sendable {
+    case memory
     case selectedText
     case voiceInput
     case taskDelegation
@@ -20,12 +21,14 @@ public enum WhatsNewFeature: String, CaseIterable, Equatable, Sendable {
         case .selectedText, .voiceInput, .taskDelegation, .catTools, .routines, .agentHooks,
              .healthCompanion, .localModels, .appleIntelligence:
             1
+        case .memory:
+            2
         }
     }
 }
 
 public enum WhatsNew {
-    public static let currentRevision = 1
+    public static let currentRevision = 2
 
     public struct Context: Equatable, Sendable {
         public var onDeviceModelAvailable: Bool
@@ -130,6 +133,12 @@ public enum WhatsNewCopy {
 
     private static func featureText(_ feature: WhatsNewFeature, _ l: String) -> String {
         switch feature {
+        case .memory:
+            return localized(l,
+                ko: "이제 대화를 기억한다냥. 메뉴 > 기억 노트에서 내가 기억하는 걸 보고 고칠 수 있다냥",
+                en: "I remember our chats now. Menu > Memory Notes shows what I keep, and you can edit it",
+                ja: "会話を覚えるようになったにゃ。メニュー > 記憶ノートで覚えたことを見て直せるにゃ",
+                zh: "我现在会记住聊天内容喵。菜单 > 记忆笔记里可以查看和修改我记住的事")
         case .selectedText:
             return localized(l,
                 ko: "글자를 선택하고 우클릭 → 서비스 → openNeko. 설명·번역·요약해준다냥",

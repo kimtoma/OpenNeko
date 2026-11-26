@@ -26,6 +26,7 @@ final class MenuBarController: NSObject, NSMenuDelegate {
     private let onOpenInputMonitoring: () -> Void
     private let onRetryKeyboardMonitor: () -> Void
     private let onShowWhatsNew: () -> Void
+    private let onOpenMemoryNotes: () -> Void
     private let menu = NSMenu()
 
     init(
@@ -51,7 +52,8 @@ final class MenuBarController: NSObject, NSMenuDelegate {
         onOpenAccessibility: @escaping () -> Void,
         onOpenInputMonitoring: @escaping () -> Void,
         onRetryKeyboardMonitor: @escaping () -> Void,
-        onShowWhatsNew: @escaping () -> Void
+        onShowWhatsNew: @escaping () -> Void,
+        onOpenMemoryNotes: @escaping () -> Void
     ) {
         self.onToggleCat = onToggleCat
         self.onOpenChatHistory = onOpenChatHistory
@@ -76,6 +78,7 @@ final class MenuBarController: NSObject, NSMenuDelegate {
         self.onOpenInputMonitoring = onOpenInputMonitoring
         self.onRetryKeyboardMonitor = onRetryKeyboardMonitor
         self.onShowWhatsNew = onShowWhatsNew
+        self.onOpenMemoryNotes = onOpenMemoryNotes
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
         super.init()
 
@@ -167,6 +170,10 @@ final class MenuBarController: NSObject, NSMenuDelegate {
         whatsNew.target = self
         menu.addItem(whatsNew)
 
+        let memoryNotes = NSMenuItem(title: MemoryCopy.text(.menuTitle, languageCode: language), action: #selector(memoryNotesTapped), keyEquivalent: "")
+        memoryNotes.target = self
+        menu.addItem(memoryNotes)
+
         let chatHistory = NSMenuItem(title: localized(.chatHistory, language: language), action: #selector(chatHistoryTapped), keyEquivalent: "")
         chatHistory.target = self
         menu.addItem(chatHistory)
@@ -222,6 +229,12 @@ final class MenuBarController: NSObject, NSMenuDelegate {
             systemImage: "bubble.left.and.bubble.right"
         )
         menu.addItem(chatHistory)
+
+        menu.addItem(iconMenuItem(
+            title: MemoryCopy.text(.menuTitle, languageCode: language),
+            action: #selector(memoryNotesTapped),
+            systemImage: "brain"
+        ))
 
         menu.addItem(iconMenuItem(
             title: WhatsNewCopy.menuTitle(languageCode: language),
@@ -368,6 +381,7 @@ final class MenuBarController: NSObject, NSMenuDelegate {
     @objc private func openAccessibilityTapped() { onOpenAccessibility() }
     @objc private func retryKeyboardMonitorTapped() { onRetryKeyboardMonitor() }
     @objc private func whatsNewTapped() { onShowWhatsNew() }
+    @objc private func memoryNotesTapped() { onOpenMemoryNotes() }
     @objc private func quitTapped() { onQuit() }
 
     private enum MenuCopy {

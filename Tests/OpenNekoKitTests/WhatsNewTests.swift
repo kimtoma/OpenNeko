@@ -29,6 +29,10 @@ final class WhatsNewTests: XCTestCase {
         ))
     }
 
+    func testPeopleWhoSawTheFirstTourOnlyMeetMemory() {
+        XCTAssertEqual(WhatsNew.pendingFeatures(lastSeenRevision: 1, context: withAI), [.memory])
+    }
+
     func testTourStepsGoIntroFeaturesOutroThenEnd() {
         var tour = WhatsNewTour(features: [.selectedText, .catTools])
         XCTAssertEqual(tour.current, .intro(count: 2))
