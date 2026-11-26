@@ -61,6 +61,7 @@ final class SettingsWindowController {
     private let refreshAIProviderDetections: () -> Void
     private let openLocalModelSetup: () -> Void
     private let openRoutines: () -> Void
+    private let openMemoryNotes: () -> Void
     private let showOnboarding: () -> Void
     private let completeOnboarding: () -> Void
     private let runSkill: (String) -> Void
@@ -99,6 +100,7 @@ final class SettingsWindowController {
         refreshAIProviderDetections: @escaping () -> Void,
         openLocalModelSetup: @escaping () -> Void,
         openRoutines: @escaping () -> Void,
+        openMemoryNotes: @escaping () -> Void,
         showOnboarding: @escaping () -> Void,
         completeOnboarding: @escaping () -> Void,
         runSkill: @escaping (String) -> Void,
@@ -136,6 +138,7 @@ final class SettingsWindowController {
         self.refreshAIProviderDetections = refreshAIProviderDetections
         self.openLocalModelSetup = openLocalModelSetup
         self.openRoutines = openRoutines
+        self.openMemoryNotes = openMemoryNotes
         self.showOnboarding = showOnboarding
         self.completeOnboarding = completeOnboarding
         self.runSkill = runSkill
@@ -266,6 +269,7 @@ final class SettingsWindowController {
             refreshAIProviderDetections: refreshAIProviderDetections,
             openLocalModelSetup: openLocalModelSetup,
             openRoutines: openRoutines,
+            openMemoryNotes: openMemoryNotes,
             showOnboarding: showOnboarding,
             completeOnboarding: completeOnboarding,
             runSkill: runSkill,

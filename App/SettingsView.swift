@@ -127,6 +127,7 @@ struct SettingsView: View {
     let refreshAIProviderDetections: () -> Void
     let openLocalModelSetup: () -> Void
     let openRoutines: () -> Void
+    let openMemoryNotes: () -> Void
     let showOnboarding: () -> Void
     let completeOnboarding: () -> Void
     let runSkill: (String) -> Void
@@ -1027,6 +1028,16 @@ struct SettingsView: View {
                 subtitle: copy(.promptContextDetail),
                 systemImage: "text.bubble",
                 tint: .accentColor
+            )
+
+            SettingsGlassPermissionRow(
+                title: MemoryCopy.text(.menuTitle, languageCode: resolvedLanguageCode),
+                subtitle: MemoryCopy.text(.enabledHelp, languageCode: resolvedLanguageCode),
+                systemImage: "brain",
+                tint: .accentColor,
+                buttonTitle: MemoryCopy.text(.openButton, languageCode: resolvedLanguageCode),
+                buttonImage: "square.and.pencil",
+                action: openMemoryNotes
             )
 
             profileInputRows

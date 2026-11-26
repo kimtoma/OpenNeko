@@ -100,6 +100,25 @@ the chat field so you can fix it before sending. If the Mac can't recognize
 your language on device, voice input stays off rather than sending audio to a
 server. The first use asks for microphone and speech recognition permission.
 
+## Memory
+
+The cat keeps three plain Markdown files in `~/.openneko/memory/`:
+
+- `soul.md`: the cat's personality and voice. Only you edit it; leave it
+  empty for the default persona.
+- `user.md`: lasting facts about you. The cat asks "remember this?" in a
+  bubble and adds a line only when you click.
+- `memory.md`: recent context. The cat notes it on its own (click the bubble
+  to undo). When it grows past about 4 KB, the oldest lines move to
+  `archive/YYYY-MM.md`; nothing is deleted.
+
+When you mention something from an earlier chat, the cat searches the local
+chat history and brings up to three related exchanges into the prompt.
+Open **Memory Notes** from the menu (or Settings > My Profile) to read and edit
+the files. Local models always use your memory; for cloud providers you choose
+what is sent (everything, soul only, or nothing). Entries that look like
+passwords, keys or card numbers are refused.
+
 ## Delegated Tasks
 
 Type `/task <what to do>` in the chat bubble, pick a project folder, and the

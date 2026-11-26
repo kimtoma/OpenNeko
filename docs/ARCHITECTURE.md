@@ -146,6 +146,21 @@ language to a recognizer locale, and merges the transcript into typed text.
 `requiresOnDeviceRecognition`. The hardened-runtime audio-input entitlement
 lives in `Config/OpenNeko.entitlements`.
 
+### Memory (Sources/OpenNekoKit/Memory/, App/MemoryNoteWindowController.swift)
+
+Three Markdown files in `~/.openneko/memory/` (`OPENNEKO_MEMORY_DIR`
+overrides): `soul.md` (persona, user-only), `user.md` (facts, added after the
+user clicks the "remember this?" bubble) and `memory.md` (recent context,
+written by the cat with an undo bubble). `MemoryStore` does atomic file IO and
+moves overflow past 4 KB into `archive/YYYY-MM.md`; `MemoryDocument` edits
+bullet lines; `MemoryProtocol` parses `<neko-memory>{"file":…,"add":…}</neko-memory>`
+blocks and `MemoryGuard` refuses secret-looking entries. `ConversationRecall`
+keyword-searches the local chat transcript for up to three related exchanges.
+`MemoryPrompt` decides what reaches the provider (`MemoryCloudScope`: local
+providers get everything, cloud providers follow the user's choice, asked once)
+and `ChatPromptBuilder.systemPrompt(persona:memoryContext:)` places the soul
+first and the memory block after the profile.
+
 ### What's new tour (Sources/OpenNekoKit/Onboarding/)
 
 After an update the cat introduces new features one bubble at a time.

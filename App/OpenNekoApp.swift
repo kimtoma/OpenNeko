@@ -65,6 +65,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var skillCatalog = NekoSkillCatalog(skills: [])
     private let settingsStore = AppSettingsStore()
     private let chatTranscriptStore = ChatTranscriptStore()
+    private let memoryStore = MemoryStore()
+    private var memoryNoteWindow: MemoryNoteWindowController?
     private let apiKeyStore = APIKeyStore()
     private let updateController = GitUpdateController()
     private let launchOptions = AppLaunchOptions(environment: ProcessInfo.processInfo.environment)
@@ -276,6 +278,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             openRoutines: { [weak self] in
                 self?.openRoutines()
             },
+            openMemoryNotes: { [weak self] in
+                self?.showMemoryNotes()
+            },
             showOnboarding: { [weak self] in
                 self?.showOnboarding()
             },
@@ -363,6 +368,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             },
             onShowWhatsNew: { [weak self] in
                 self?.startWhatsNewTour(replay: true)
+            },
+            onOpenMemoryNotes: { [weak self] in
+                self?.showMemoryNotes()
             }
         )
         startKeyboardMonitor(for: cat)
@@ -1008,12 +1016,17 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         AppLanguage.resolved(appSettings.languageCode)
     }
 
-    private func currentSystemPrompt(skill: NekoSkill?) -> String {
+    /// `query` is the user's new message; it is used to recall related
+    /// earlier exchanges from the local transcript.
+    private func currentSystemPrompt(skill: NekoSkill?, query: String? = nil) -> String {
         let languageCode = currentLanguageCode()
+        let memory = memoryPromptParts(query: query, languageCode: languageCode)
         var system = ChatPromptBuilder.systemPrompt(
             skill: skill,
             languageCode: languageCode,
-            userProfile: appSettings.userProfile
+            userProfile: appSettings.userProfile,
+            persona: memory.persona,
+            memoryContext: memory.context
         )
         if let catName = ChatPromptBuilder.catNameContext(appSettings.catName, languageCode: languageCode) {
             system += "\n\(catName)"
@@ -1024,7 +1037,129 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         if appSettings.nativeToolsEnabled {
             system += "\n\(NekoToolProtocol.instructions(languageCode: languageCode))"
         }
+        if memory.canWrite {
+            system += "\n\(MemoryProtocol.instructions(languageCode: languageCode))"
+        }
         return system
+    }
+
+    // MARK: - Memory
+
+    private var memoryScope: MemoryCloudScope {
+        let isLocal = AIProviderPreset.preset(for: appSettings.aiProvider.presetID)?.isLocal ?? false
+        return MemoryPrompt.effectiveScope(appSettings.memoryCloudScope, isLocalProvider: isLocal)
+    }
+
+    /// The soul is the user's own persona text, so it applies even when the
+    /// cat is not allowed to remember; facts, recent context and recall only
+    /// when memory is on and the provider may see them.
+    private func memoryPromptParts(query: String?, languageCode: String) -> (persona: String?, context: String?, canWrite: Bool) {
+        let scope = memoryScope
+        let snapshot = memoryStore.snapshot()
+        let persona = MemoryPrompt.persona(soul: snapshot.soul, scope: scope, languageCode: languageCode)
+        guard appSettings.memoryEnabled else { return (persona, nil, false) }
+        let recall = query.map {
+            ConversationRecall.search(query: $0, transcript: chatTranscript)
+        } ?? []
+        let context = MemoryPrompt.context(snapshot: snapshot, recall: recall, scope: scope, languageCode: languageCode)
+        return (persona, context, scope == .all)
+    }
+
+    /// Lasting facts wait for a click; recent context is written at once with
+    /// an undo bubble. Shown a few seconds after the reply so it stays readable.
+    private func offerMemoryProposals(_ proposals: [MemoryProposal]) {
+        guard appSettings.memoryEnabled, memoryScope == .all, !proposals.isEmpty else { return }
+        let language = currentLanguageCode()
+        var noted: [String] = []
+        for proposal in proposals where proposal.file == .memory {
+            if let line = try? memoryStore.append(proposal.text, to: .memory, languageCode: language) {
+                noted.append(line)
+            }
+        }
+        memoryNoteWindow?.reload()
+        let pendingFact = proposals.first { $0.file == .user }
+        guard pendingFact != nil || !noted.isEmpty else { return }
+
+        let generation = chatGeneration
+        DispatchQueue.main.asyncAfter(deadline: .now() + 4) { [weak self] in
+            guard let self, self.chatGeneration == generation, self.activeChatTask == nil else { return }
+            if let fact = pendingFact {
+                self.catWindow?.applyBridgeState(.hover)
+                self.catWindow?.showBubble(
+                    MemoryCopy.askToRemember(fact.text, languageCode: language),
+                    onClick: { [weak self] in self?.rememberFact(fact.text) },
+                    helpText: AgentTaskCopy.text(.approve, languageCode: language)
+                )
+            } else if let line = noted.last {
+                self.catWindow?.showBubble(
+                    MemoryCopy.noted(MemoryDocument.comparisonKey(line), languageCode: language),
+                    onClick: { [weak self] in self?.undoMemoryNotes(noted) }
+                )
+            }
+        }
+    }
+
+    private func rememberFact(_ text: String) {
+        _ = try? memoryStore.append(text, to: .user, languageCode: currentLanguageCode())
+        memoryNoteWindow?.reload()
+        catWindow?.applyBridgeState(.success)
+        catWindow?.showBubble(MemoryCopy.text(.remembered, languageCode: currentLanguageCode()))
+    }
+
+    private func undoMemoryNotes(_ lines: [String]) {
+        for line in lines {
+            try? memoryStore.remove(line, from: .memory)
+        }
+        memoryNoteWindow?.reload()
+        catWindow?.showBubble(MemoryCopy.text(.undone, languageCode: currentLanguageCode()))
+    }
+
+    /// Asked once, on the first cloud chat while the scope is undecided.
+    /// Not clicking settles on "soul only"; the Memory Notes window changes it.
+    private func askCloudMemoryScopeIfNeeded() {
+        guard
+            appSettings.memoryEnabled,
+            appSettings.memoryCloudScope == .ask,
+            AIProviderPreset.preset(for: appSettings.aiProvider.presetID)?.isLocal != true
+        else { return }
+        appSettings.memoryCloudScope = .soulOnly
+        saveSettings()
+        let language = currentLanguageCode()
+        let generation = chatGeneration
+        DispatchQueue.main.asyncAfter(deadline: .now() + 5) { [weak self] in
+            guard let self, self.chatGeneration == generation, self.activeChatTask == nil else { return }
+            self.catWindow?.showBubble(
+                MemoryCopy.cloudAsk(languageCode: language),
+                onClick: { [weak self] in
+                    guard let self else { return }
+                    self.appSettings.memoryCloudScope = .all
+                    self.saveSettings()
+                    self.memoryNoteWindow?.reload()
+                    self.catWindow?.showBubble(MemoryCopy.text(.cloudAllowed, languageCode: self.currentLanguageCode()))
+                },
+                helpText: AgentTaskCopy.text(.approve, languageCode: language)
+            )
+        }
+    }
+
+    private func showMemoryNotes() {
+        if memoryNoteWindow == nil {
+            memoryNoteWindow = MemoryNoteWindowController(
+                store: memoryStore,
+                languageCode: { [weak self] in self?.currentLanguageCode() ?? "ko" },
+                settings: { [weak self] in
+                    (self?.appSettings.memoryEnabled ?? true, self?.appSettings.memoryCloudScope ?? .ask)
+                },
+                onSettingsChange: { [weak self] enabled, scope in
+                    guard let self else { return }
+                    self.appSettings.memoryEnabled = enabled
+                    self.appSettings.memoryCloudScope = scope
+                    self.saveSettings()
+                    self.settingsWindow?.refresh()
+                }
+            )
+        }
+        memoryNoteWindow?.show()
     }
 
     private func skinLabel(_ id: String) -> String {
@@ -2031,8 +2166,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     private func appendChatTranscript(_ message: ChatMessage) {
         chatTranscript.append(message)
-        if chatTranscript.count > 160 {
-            chatTranscript = Array(chatTranscript.suffix(160))
+        // Kept long enough for past-conversation recall to find older turns.
+        if chatTranscript.count > 500 {
+            chatTranscript = Array(chatTranscript.suffix(500))
         }
         saveChatTranscript()
         refreshChatHistoryWindow()
@@ -2541,7 +2677,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let apiKey = resolvedAPIKey(for: providerConfig)
         let history = chatHistory
         let activeSkill = activeSkillForCurrentLanguage()
-        let system = currentSystemPrompt(skill: activeSkill)
+        let system = currentSystemPrompt(skill: activeSkill, query: storedMessage)
         cat?.applyBridgeState(.thinking)
         cat?.showBubble(NekoBubbleCopy.thinking(skillName: activeSkill?.name, languageCode: currentLanguageCode()))
 
@@ -2711,11 +2847,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         guard chatGeneration == generation else { return }
         activeChatTask = nil
         let extraction = NekoToolProtocol.extract(from: reply)
-        let displayReply = NekoBubbleCopy.styledChatReply(extraction.text, languageCode: currentLanguageCode())
+        let memory = MemoryProtocol.extract(from: extraction.text)
+        let displayReply = NekoBubbleCopy.styledChatReply(memory.text, languageCode: currentLanguageCode())
         appendChatTranscript(ChatMessage(role: .assistant, text: displayReply))
         catWindow?.applyBridgeState(.success)
         showCopyableReplyBubble(displayReply)
-        offerToolCall(extraction.calls.first)
+        offerFollowUps(tool: extraction.calls.first, memory: memory.proposals)
     }
 
     @MainActor
@@ -2731,7 +2868,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private func updateStreamingChat(generation: Int, text: String) {
         guard chatGeneration == generation, activeChatTask != nil else { return }
         catWindow?.applyBridgeState(NekoStatePriority.chatAnsweringState)
-        catWindow?.showBubble(NekoToolProtocol.stripPartial(text))
+        catWindow?.showBubble(MemoryProtocol.stripPartial(NekoToolProtocol.stripPartial(text)))
     }
 
     @MainActor
@@ -2739,7 +2876,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         guard chatGeneration == generation else { return }
         activeChatTask = nil
         let extraction = NekoToolProtocol.extract(from: reply)
-        let displayReply = NekoBubbleCopy.styledChatReply(extraction.text, languageCode: currentLanguageCode())
+        let memory = MemoryProtocol.extract(from: extraction.text)
+        let displayReply = NekoBubbleCopy.styledChatReply(memory.text, languageCode: currentLanguageCode())
         chatHistory.append(ChatMessage(role: .assistant, text: displayReply))
         appendChatTranscript(ChatMessage(role: .assistant, text: displayReply))
         if chatHistory.count > 12 {
@@ -2747,7 +2885,19 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
         catWindow?.applyBridgeState(.success)
         showCopyableReplyBubble(displayReply)
-        offerToolCall(extraction.calls.first)
+        offerFollowUps(tool: extraction.calls.first, memory: memory.proposals)
+    }
+
+    /// One follow-up bubble per reply: a tool approval wins over memory, and
+    /// the cloud-memory question comes only when neither is pending.
+    private func offerFollowUps(tool: NekoToolCall?, memory: [MemoryProposal]) {
+        if let tool, appSettings.nativeToolsEnabled {
+            offerToolCall(tool)
+        } else if !memory.isEmpty {
+            offerMemoryProposals(memory)
+        } else {
+            askCloudMemoryScopeIfNeeded()
+        }
     }
 
     // MARK: - Native tools
