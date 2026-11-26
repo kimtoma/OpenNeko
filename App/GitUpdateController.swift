@@ -68,17 +68,13 @@ final class GitUpdateController {
             return isGitRepository(url) ? url : nil
         }
 
-        var current = bundleURL
-        while true {
-            if isGitRepository(current) {
-                return current
+        for path in RepositoryRootSearch.candidates(startingAt: bundleURL.path) {
+            let url = URL(fileURLWithPath: path, isDirectory: true)
+            if isGitRepository(url) {
+                return url
             }
-            let parent = current.deletingLastPathComponent()
-            if parent.path == current.path {
-                return nil
-            }
-            current = parent
         }
+        return nil
     }
 
     private func isGitRepository(_ url: URL) -> Bool {

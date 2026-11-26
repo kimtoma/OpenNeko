@@ -20,7 +20,10 @@ final class VoiceInputController: ObservableObject {
 
     var languageCode: () -> String = { AppLanguage.resolved(nil) }
 
-    private let engine = AVAudioEngine()
+    /// Recreated for every dictation: an engine made before the mic
+    /// permission was granted, or before the input device changed, keeps a
+    /// stale format and `installTap` then raises an exception.
+    private var engine = AVAudioEngine()
     private var recognizer: SFSpeechRecognizer?
     private var request: SFSpeechAudioBufferRecognitionRequest?
     private var task: SFSpeechRecognitionTask?
@@ -122,9 +125,10 @@ final class VoiceInputController: ObservableObject {
         request.shouldReportPartialResults = true
         self.request = request
 
+        engine = AVAudioEngine()
         let input = engine.inputNode
         let format = input.outputFormat(forBus: 0)
-        guard format.sampleRate > 0 else {
+        guard format.sampleRate > 0, format.channelCount > 0 else {
             failure = .audioUnavailable
             isActive = false
             return
