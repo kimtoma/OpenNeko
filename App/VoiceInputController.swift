@@ -28,6 +28,10 @@ final class VoiceInputController: ObservableObject {
     private var request: SFSpeechAudioBufferRecognitionRequest?
     private var task: SFSpeechRecognitionTask?
     private var silenceTimer: Timer?
+    private var finalResultTimer: Timer?
+    private var sessions = VoiceDictationSessions()
+    private var configurationObserver: NSObjectProtocol?
+    private var engineRestarts = 0
     private var startedAt: TimeInterval = 0
     private var lastChangeAt: TimeInterval?
     /// False once the person stopped or cancelled; a permission prompt
@@ -57,8 +61,11 @@ final class VoiceInputController: ObservableObject {
     func cancel() {
         wantsToListen = false
         transcript = ""
+        sessions.next()
         task?.cancel()
-        stop()
+        stopRecording()
+        finalResultTimer?.invalidate()
+        finalResultTimer = nil
         task = nil
         request = nil
         isListening = false
@@ -120,39 +127,34 @@ final class VoiceInputController: ObservableObject {
             isActive = false
             return
         }
+        // A previous dictation that never delivered its final result must
+        // not keep running or end this one.
+        task?.cancel()
+        task = nil
+        finalResultTimer?.invalidate()
+        finalResultTimer = nil
+        let session = sessions.next()
+
         let request = SFSpeechAudioBufferRecognitionRequest()
         request.requiresOnDeviceRecognition = true
         request.shouldReportPartialResults = true
         self.request = request
 
         engine = AVAudioEngine()
-        let input = engine.inputNode
-        let format = input.outputFormat(forBus: 0)
-        guard format.sampleRate > 0, format.channelCount > 0 else {
+        engineRestarts = 0
+        guard startEngine(feeding: request) else {
             failure = .audioUnavailable
             isActive = false
             return
         }
-        input.removeTap(onBus: 0)
-        input.installTap(onBus: 0, bufferSize: 1024, format: format) { buffer, _ in
-            request.append(buffer)
-        }
-        engine.prepare()
-        do {
-            try engine.start()
-        } catch {
-            input.removeTap(onBus: 0)
-            failure = .audioUnavailable
-            isActive = false
-            return
-        }
+        observeConfigurationChanges(session: session)
 
         isListening = true
         startedAt = ProcessInfo.processInfo.systemUptime
         lastChangeAt = nil
         task = recognizer.recognitionTask(with: request) { [weak self] result, error in
             DispatchQueue.main.async {
-                guard let self else { return }
+                guard let self, self.sessions.isCurrent(session) else { return }
                 if let result {
                     let text = result.bestTranscription.formattedString
                     if text != self.transcript {
@@ -177,18 +179,93 @@ final class VoiceInputController: ObservableObject {
         }
     }
 
-    /// Stops recording; the recognizer then delivers its final result.
+    /// Installs the mic tap with the input's current format and starts the
+    /// engine.
+    private func startEngine(feeding request: SFSpeechAudioBufferRecognitionRequest) -> Bool {
+        let input = engine.inputNode
+        let format = input.outputFormat(forBus: 0)
+        guard format.sampleRate > 0, format.channelCount > 0 else { return false }
+        input.removeTap(onBus: 0)
+        input.installTap(onBus: 0, bufferSize: 1024, format: format) { buffer, _ in
+            request.append(buffer)
+        }
+        engine.prepare()
+        do {
+            try engine.start()
+            return true
+        } catch {
+            input.removeTap(onBus: 0)
+            return false
+        }
+    }
+
+    /// macOS stops the engine on its own when the audio devices change
+    /// (e.g. a Bluetooth headset switching profiles as the mic opens). Start
+    /// it again with the new format, or end the dictation if that fails, so
+    /// it never sits in "listening" with no audio coming in.
+    private func observeConfigurationChanges(session: Int) {
+        removeConfigurationObserver()
+        configurationObserver = NotificationCenter.default.addObserver(
+            forName: .AVAudioEngineConfigurationChange,
+            object: engine,
+            queue: .main
+        ) { [weak self] _ in
+            guard let self, self.sessions.isCurrent(session), self.isListening, let request = self.request else { return }
+            switch VoiceInputPolicy.afterConfigurationChange(
+                engineRunning: self.engine.isRunning,
+                restartsSoFar: self.engineRestarts
+            ) {
+            case .keepGoing:
+                break
+            case .restart:
+                self.engineRestarts += 1
+                if !self.startEngine(feeding: request) {
+                    self.finishListening()
+                }
+            case .finish:
+                self.finishListening()
+            }
+        }
+    }
+
+    private func removeConfigurationObserver() {
+        if let configurationObserver {
+            NotificationCenter.default.removeObserver(configurationObserver)
+        }
+        configurationObserver = nil
+    }
+
+    /// Stops recording; the recognizer then delivers its final result. If it
+    /// doesn't within `finalResultTimeout`, the dictation finishes anyway so
+    /// the mic can be used again.
     private func stop() {
+        stopRecording()
+        guard isListening, finalResultTimer == nil else { return }
+        let session = sessions.current
+        finalResultTimer = Timer.scheduledTimer(withTimeInterval: VoiceInputPolicy.finalResultTimeout, repeats: false) { [weak self] _ in
+            guard let self, self.sessions.isCurrent(session), self.isListening else { return }
+            self.task?.cancel()
+            self.finish()
+        }
+    }
+
+    /// Also runs when macOS already stopped the engine: the tap still has
+    /// to go and the request still needs `endAudio()` to deliver a result.
+    private func stopRecording() {
         silenceTimer?.invalidate()
         silenceTimer = nil
-        guard engine.isRunning else { return }
-        engine.stop()
+        removeConfigurationObserver()
+        if engine.isRunning {
+            engine.stop()
+        }
         engine.inputNode.removeTap(onBus: 0)
         request?.endAudio()
     }
 
     private func finish() {
-        stop()
+        stopRecording()
+        finalResultTimer?.invalidate()
+        finalResultTimer = nil
         task = nil
         request = nil
         if isListening, transcript.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {

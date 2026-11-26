@@ -36,6 +36,25 @@ public enum VoiceInputPolicy {
     public static let silenceTimeout: TimeInterval = 2.0
     /// With nothing heard at all, give up after this long.
     public static let noSpeechTimeout: TimeInterval = 8.0
+    /// After recording stops, wait this long for the recognizer's final
+    /// result, then finish anyway. On-device recognition sometimes never
+    /// delivers one, which used to leave the mic stuck in its stop state.
+    public static let finalResultTimeout: TimeInterval = 1.5
+    /// How many times one dictation restarts the audio engine after macOS
+    /// stopped it for a device change.
+    public static let maxEngineRestarts = 2
+
+    public enum ConfigurationChangeAction: Equatable, Sendable {
+        case keepGoing
+        case restart
+        case finish
+    }
+
+    /// What to do when the audio configuration changed mid-dictation.
+    public static func afterConfigurationChange(engineRunning: Bool, restartsSoFar: Int) -> ConfigurationChangeAction {
+        if engineRunning { return .keepGoing }
+        return restartsSoFar < maxEngineRestarts ? .restart : .finish
+    }
 
     /// Whether listening should end on its own now. `lastChangeAt` is when
     /// the transcript last changed (nil while nothing has been heard).
@@ -86,6 +105,26 @@ public enum VoiceInputPolicy {
         let typed = base.trimmingCharacters(in: .whitespaces)
         let joined = typed.isEmpty ? spoken : typed + " " + spoken
         return String(joined.prefix(maxCharacters))
+    }
+}
+
+/// Numbers each dictation so that a late callback from an earlier one (a
+/// final result or error arriving after the next dictation began) is
+/// ignored instead of ending the new one.
+public struct VoiceDictationSessions: Equatable, Sendable {
+    public private(set) var current = 0
+
+    public init() {}
+
+    /// Starts a new dictation (or retires the current one) and returns its id.
+    @discardableResult
+    public mutating func next() -> Int {
+        current += 1
+        return current
+    }
+
+    public func isCurrent(_ id: Int) -> Bool {
+        id == current
     }
 }
 
