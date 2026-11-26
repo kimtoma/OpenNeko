@@ -55,6 +55,7 @@ final class SettingsWindowController {
     private let testAIProviderConnection: () -> Void
     private let applyAIProviderDetection: (AIProviderDetection) -> Void
     private let refreshAIProviderDetections: () -> Void
+    private let openLocalModelSetup: () -> Void
     private let showOnboarding: () -> Void
     private let completeOnboarding: () -> Void
     private let runSkill: (String) -> Void
@@ -89,6 +90,7 @@ final class SettingsWindowController {
         testAIProviderConnection: @escaping () -> Void,
         applyAIProviderDetection: @escaping (AIProviderDetection) -> Void,
         refreshAIProviderDetections: @escaping () -> Void,
+        openLocalModelSetup: @escaping () -> Void,
         showOnboarding: @escaping () -> Void,
         completeOnboarding: @escaping () -> Void,
         runSkill: @escaping (String) -> Void,
@@ -122,6 +124,7 @@ final class SettingsWindowController {
         self.testAIProviderConnection = testAIProviderConnection
         self.applyAIProviderDetection = applyAIProviderDetection
         self.refreshAIProviderDetections = refreshAIProviderDetections
+        self.openLocalModelSetup = openLocalModelSetup
         self.showOnboarding = showOnboarding
         self.completeOnboarding = completeOnboarding
         self.runSkill = runSkill
@@ -246,6 +249,7 @@ final class SettingsWindowController {
             testAIProviderConnection: testAIProviderConnection,
             applyAIProviderDetection: applyAIProviderDetection,
             refreshAIProviderDetections: refreshAIProviderDetections,
+            openLocalModelSetup: openLocalModelSetup,
             showOnboarding: showOnboarding,
             completeOnboarding: completeOnboarding,
             runSkill: runSkill,

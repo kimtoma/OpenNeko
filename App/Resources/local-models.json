@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "updated": "2026-11-26",
+  "models": [
+    { "id": "qwen3:4b", "displayName": "Qwen3 4B", "downloadGB": 2.5, "supportsTools": true, "koreanTested": false },
+    { "id": "gemma4:e2b", "displayName": "Gemma 4 E2B", "downloadGB": 7.5, "supportsTools": true, "koreanTested": true },
+    { "id": "gemma4:e4b", "displayName": "Gemma 4 E4B", "downloadGB": 9.5, "supportsTools": true, "koreanTested": true },
+    { "id": "gemma4:12b", "displayName": "Gemma 4 12B", "downloadGB": 8.0, "supportsTools": true, "koreanTested": false },
+    { "id": "gemma4:26b", "displayName": "Gemma 4 26B", "downloadGB": 19.0, "supportsTools": true, "koreanTested": false },
+    { "id": "gemma4:31b", "displayName": "Gemma 4 31B", "downloadGB": 20.0, "supportsTools": true, "koreanTested": false },
+    { "id": "qwen3:30b-a3b", "displayName": "Qwen3 30B A3B", "downloadGB": 19.0, "supportsTools": true, "koreanTested": false }
+  ],
+  "tiers": [
+    { "minMemoryGB": 8, "primary": "qwen3:4b", "smarter": "gemma4:e2b" },
+    { "minMemoryGB": 16, "primary": "gemma4:e2b", "lighter": "qwen3:4b", "smarter": "gemma4:e4b" },
+    { "minMemoryGB": 32, "primary": "gemma4:12b", "lighter": "gemma4:e2b", "smarter": "qwen3:30b-a3b" },
+    { "minMemoryGB": 64, "primary": "gemma4:26b", "lighter": "gemma4:12b", "smarter": "gemma4:31b" }
+  ]
+}

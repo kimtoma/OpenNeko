@@ -101,6 +101,17 @@ Routes: `POST /state`, `GET /health|/anim|/pos|/debug/position|/capture|
 Payload types live in OpenNekoKit (`StateBridgeRequest`,
 `AppSettingsDebugSnapshot`) so they stay tested.
 
+### Local model setup (Sources/OpenNekoKit/LocalModels/, App/LocalModelSetupController.swift)
+
+Free-mode wizard opened from Settings → AI. `App/Resources/local-models.json`
+is the model catalog (memory tiers → primary/lighter/smarter Ollama models).
+`LocalModelRecommender` picks a model from `HardwareProfile` (memory, Apple
+Silicon, free disk), `OllamaPullTracker` aggregates the `/api/pull` NDJSON
+stream, `LocalModelSetupFlow` reduces wizard steps and builds the Ollama
+provider config, and `LocalModelSetupCopy` holds the en/ko/ja/zh copy. The
+App controller only probes Ollama, opens the download page, streams the pull,
+and warms the model up.
+
 ### Neighbors (Sources/OpenNekoKit/Neighbors/, App/NeighborNetwork.swift, App/GuestCatWindow.swift)
 
 LAN discovery + visits: `NeighborProtocol` defines the wire messages
