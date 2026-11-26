@@ -108,7 +108,7 @@ OpenNeko 支持以下 provider preset:
 
 ## 连接器 (MCP)
 
-在 **设置 → 能力 → 连接器** 中，可以从 Claude 桌面版配置或任何 `{"mcpServers": ...}` 格式的 JSON 文件（例如项目的 `.mcp.json`）导入本地 MCP 服务器。导入前会原样显示将要运行的命令，且不会修改源文件；环境变量的值（通常是令牌）保存在钥匙串中，而不是 `settings.json`。连接器开启时，聊天模型可以使用其工具，每次调用都要你点击允许才会执行。结果会作为数据交回模型，猫咪据此回答，每次调用都会记入活动日志。暂不支持远程 (URL) 服务器。
+在 **设置 → 连接器** 中，可以从 Claude 桌面版配置或任何 `{"mcpServers": ...}` 格式的 JSON 文件（例如项目的 `.mcp.json`）导入本地 MCP 服务器。导入前会原样显示将要运行的命令，且不会修改源文件；环境变量的值（通常是令牌）保存在钥匙串中，而不是 `settings.json`。连接器开启时，聊天模型可以使用其工具，每次调用都要你点击允许才会执行。结果会作为数据交回模型，猫咪据此回答，每次调用都会记入活动日志。暂不支持远程 (URL) 服务器。
 
 ## 技能
 
@@ -166,7 +166,7 @@ OPENNEKO_PORT=48801 /path/to/OpenNeko.app/Contents/MacOS/OpenNeko
 ### 智能体通知
 
 Claude Code 或 Codex 完成任务或需要你批准时，猫咪会提醒你。
-在 设置 > 高级 > 智能体通知 中复制配置片段。
+在 设置 > 智能体 > 智能体通知 中复制配置片段。
 
 - Claude Code (`~/.claude/settings.json`)：`Notification` 钩子发送 `waiting`，
   `Stop` 钩子发送 `done`。

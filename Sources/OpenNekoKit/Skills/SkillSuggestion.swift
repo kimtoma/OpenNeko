@@ -63,10 +63,10 @@ public enum SkillSuggestionCopy {
         let list = names.joined(separator: ", ")
         return pick(
             languageCode,
-            ko: "이 스킬은 \(list) 커넥터가 있으면 더 잘한다냥 (설정 > 능력)",
-            en: "This skill works best with the \(list) connector (Settings > Abilities)",
-            ja: "このスキルは\(list)コネクタがあるともっと上手にできるにゃ（設定 > できること）",
-            zh: "这个技能配合 \(list) 连接器效果更好（设置 > 能力）"
+            ko: "이 스킬은 \(list) 커넥터가 있으면 더 잘한다냥 (설정 > 커넥터)",
+            en: "This skill works best with the \(list) connector (Settings > Connectors)",
+            ja: "このスキルは\(list)コネクタがあるともっと上手にできるにゃ（設定 > コネクタ）",
+            zh: "这个技能配合 \(list) 连接器效果更好（设置 > 连接器）"
         )
     }
 
