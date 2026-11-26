@@ -75,6 +75,13 @@ OpenNeko supports these provider presets:
 
 Saved API keys are stored in macOS Keychain, not in `settings.json`.
 
+## Selected Text
+
+Select text in any app, then choose **Services → openNeko: Explain /
+Translate / Summarize** (or right-click → Services). The cat answers in its
+bubble with your current AI provider. Only the text you send is used.
+If the items don't appear right after installing, log out and back in once.
+
 ## Delegated Tasks
 
 Type `/task <what to do>` in the chat bubble, pick a project folder, and the

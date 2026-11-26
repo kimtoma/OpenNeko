@@ -98,6 +98,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var lastUserInteraction = ProcessInfo.processInfo.systemUptime
     private var healthTracker = HealthNudgeTracker()
     private let agentTaskController = AgentTaskController()
+    private let selectedTextProvider = SelectedTextServiceProvider()
     private var agentTaskRevertTimer: Timer?
     private var nextAutoEffect = ProcessInfo.processInfo.systemUptime + 25
     private var lunchedToday = false
@@ -110,6 +111,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.setActivationPolicy(.accessory)
+        selectedTextProvider.handler = { [weak self] action, text in
+            self?.handleSelectedText(action, text: text)
+        }
+        NSApp.servicesProvider = selectedTextProvider
+        NSUpdateDynamicServices()
 
         let cat = CatWindow()
         catWindow = cat
@@ -2123,6 +2129,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             runSkill(skill: skill, inputOverride: argument.isEmpty ? nil : argument)
             return true
         }
+    }
+
+    // MARK: - Selected text (Services menu)
+
+    private func handleSelectedText(_ action: SelectedTextAction, text: String) {
+        let language = currentLanguageCode()
+        guard let prompt = action.prompt(for: text, languageCode: language) else { return }
+        sendChat(prompt, cat: catWindow)
+        catWindow?.showBubble(action.workingBubble(languageCode: language))
     }
 
     // MARK: - Delegated tasks (/task)
