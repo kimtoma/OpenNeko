@@ -112,6 +112,16 @@ provider config, and `LocalModelSetupCopy` holds the en/ko/ja/zh copy. The
 App controller only probes Ollama, opens the download page, streams the pull,
 and warms the model up.
 
+### Native tools (Sources/OpenNekoKit/Tools/)
+
+Timer, reminder, clipboard and open-URL tools for every provider through a
+text protocol: the system prompt (`NekoToolProtocol.instructions`) lets the
+model append one `<neko-tool>{json}</neko-tool>` block; `extract` strips it
+from the reply and validates it into a `NekoToolCall` (http/https only,
+bounded delays and sizes). `OpenNekoApp` shows `NekoToolCopy.approval` in the
+bubble and runs the call only when it is clicked, logging it to the agent
+activity log.
+
 ### Delegated tasks (Sources/OpenNekoKit/Agents/, App/AgentTaskController.swift)
 
 `/task` hands a prompt to the local Claude Code CLI inside a user-picked

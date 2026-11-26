@@ -35,6 +35,8 @@ public enum SettingsCopyKey: String, CaseIterable, Sendable {
     case webSearch
     case webSearchOn
     case webSearchOff
+    case nativeTools
+    case nativeToolsDetail
     case healthCompanion
     case healthCompanionDetail
     case neighborDiscovery
@@ -219,6 +221,10 @@ public enum SettingsCopy {
             return localized(language, ko: "웹 검색", en: "Web Search", ja: "Web検索", zh: "网页搜索")
         case .webSearchOn:
             return localized(language, ko: "검색 지원 provider에 전달할 준비가 되어 있습니다.", en: "Ready to pass search support to compatible providers.", ja: "対応プロバイダーに検索補助を渡せます。", zh: "已准备好传递给支持搜索的 provider。")
+        case .nativeTools:
+            return localized(language, ko: "고양이 도구", en: "Cat tools", ja: "ねこツール", zh: "猫咪工具")
+        case .nativeToolsDetail:
+            return localized(language, ko: "타이머·리마인더·복사·웹페이지 열기를 부탁할 수 있어요. 실행 전에 말풍선을 눌러 허락해요.", en: "Ask for timers, reminders, copying, or opening a page. Click the bubble to allow each one.", ja: "タイマー・リマインダー・コピー・Webページを頼めます。実行前に吹き出しをクリックして許可します。", zh: "可以请求计时器、提醒、复制或打开网页。每次执行前点击气泡允许。")
         case .healthCompanion:
             return localized(language, ko: "건강 알림", en: "Break reminders", ja: "休憩リマインダー", zh: "休息提醒")
         case .healthCompanionDetail:
