@@ -8,6 +8,8 @@ public enum ProactiveKind: String, CaseIterable, Codable, Sendable {
     case agentNotice
     /// A routine the user scheduled.
     case routine
+    /// A heads-up shortly before a calendar event (calendar context is on).
+    case schedule
     /// The "what's new" tour after an update.
     case whatsNew
     /// Break / stretch / water reminders.
@@ -22,7 +24,7 @@ public enum ProactiveKind: String, CaseIterable, Codable, Sendable {
     public var priority: ProactivePriority {
         switch self {
         case .agentNotice: .requested
-        case .routine, .whatsNew: .scheduled
+        case .routine, .schedule, .whatsNew: .scheduled
         case .healthBreak, .dailyRitual, .memorySuggestion, .neighbor: .suggestion
         }
     }

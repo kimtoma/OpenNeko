@@ -22,6 +22,7 @@ final class SettingsWindowController {
         let healthCompanionEnabled: Bool
         let nativeToolsEnabled: Bool
         let chattiness: Chattiness
+        let calendarContextEnabled: Bool
         let catName: String
         let userProfile: UserProfile
         let neighborSettings: NeighborSettings
@@ -47,6 +48,7 @@ final class SettingsWindowController {
     private let setWebSearch: (Bool) -> Void
     private let setHealthCompanion: (Bool) -> Void
     private let setChattiness: (Chattiness) -> Void
+    private let setCalendarContext: (Bool) -> Void
     private let setNativeTools: (Bool) -> Void
     private let setCatName: (String) -> Void
     private let setUserProfile: (UserProfile) -> Void
@@ -87,6 +89,7 @@ final class SettingsWindowController {
         setWebSearch: @escaping (Bool) -> Void,
         setHealthCompanion: @escaping (Bool) -> Void,
         setChattiness: @escaping (Chattiness) -> Void,
+        setCalendarContext: @escaping (Bool) -> Void,
         setNativeTools: @escaping (Bool) -> Void,
         setCatName: @escaping (String) -> Void,
         setUserProfile: @escaping (UserProfile) -> Void,
@@ -126,6 +129,7 @@ final class SettingsWindowController {
         self.setWebSearch = setWebSearch
         self.setHealthCompanion = setHealthCompanion
         self.setChattiness = setChattiness
+        self.setCalendarContext = setCalendarContext
         self.setNativeTools = setNativeTools
         self.setCatName = setCatName
         self.setUserProfile = setUserProfile
@@ -237,6 +241,7 @@ final class SettingsWindowController {
             healthCompanionEnabled: state.healthCompanionEnabled,
             nativeToolsEnabled: state.nativeToolsEnabled,
             chattiness: state.chattiness,
+            calendarContextEnabled: state.calendarContextEnabled,
             catName: state.catName,
             userProfile: state.userProfile,
             neighborSettings: state.neighborSettings,
@@ -259,6 +264,7 @@ final class SettingsWindowController {
             setWebSearch: setWebSearch,
             setHealthCompanion: setHealthCompanion,
             setChattiness: setChattiness,
+            setCalendarContext: setCalendarContext,
             setNativeTools: setNativeTools,
             setCatName: setCatName,
             setUserProfile: setUserProfile,

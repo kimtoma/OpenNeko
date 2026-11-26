@@ -13,6 +13,10 @@
         <string>_openneko._tcp</string>
     </array>
     <key>NSHighResolutionCapable</key><true/>
+    <key>NSCalendarsFullAccessUsageDescription</key>
+    <string>openNeko reads only the titles and times of today's events, to mention what's next and give chat context. Turned on in Settings > Day.</string>
+    <key>NSRemindersFullAccessUsageDescription</key>
+    <string>openNeko reads only the titles and due dates of reminders due today, to give chat context. Turned on in Settings > Day.</string>
     <key>NSMicrophoneUsageDescription</key>
     <string>openNeko listens only while you hold the mic button, to turn your voice into chat text.</string>
     <key>NSSpeechRecognitionUsageDescription</key>

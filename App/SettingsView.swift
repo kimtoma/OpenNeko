@@ -91,6 +91,7 @@ struct SettingsView: View {
     let healthCompanionEnabled: Bool
     let nativeToolsEnabled: Bool
     let chattiness: Chattiness
+    let calendarContextEnabled: Bool
     let catName: String
     let userProfile: UserProfile
     let neighborSettings: NeighborSettings
@@ -113,6 +114,7 @@ struct SettingsView: View {
     let setWebSearch: (Bool) -> Void
     let setHealthCompanion: (Bool) -> Void
     let setChattiness: (Chattiness) -> Void
+    let setCalendarContext: (Bool) -> Void
     let setNativeTools: (Bool) -> Void
     let setCatName: (String) -> Void
     let setUserProfile: (UserProfile) -> Void
@@ -890,6 +892,19 @@ struct SettingsView: View {
             )
     }
 
+    @ViewBuilder
+    private var calendarRow: some View {
+            SettingsGlassCheckboxRow(
+                title: DayContextCopy.toggleTitle(languageCode: resolvedLanguageCode),
+                subtitle: DayContextCopy.toggleHelp(languageCode: resolvedLanguageCode),
+                systemImage: "calendar",
+                isOn: Binding(
+                    get: { calendarContextEnabled },
+                    set: { setCalendarContext($0) }
+                )
+            )
+    }
+
 
     private var agentHooksSection: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -1092,6 +1107,7 @@ struct SettingsView: View {
 
     private var dayPane: some View {
         sidebarPane(.day) {
+            calendarRow
             routinesRow
             healthRow
         }

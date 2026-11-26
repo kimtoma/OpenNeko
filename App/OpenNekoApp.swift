@@ -102,6 +102,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var lastUserInteraction = ProcessInfo.processInfo.systemUptime
     private var healthTracker = HealthNudgeTracker()
     private var proactiveLedger = ProactiveLedger()
+    private let dayContext = DayContextProvider()
+    private var announcedEventKeys: Set<String> = []
     private var lastSuggestion: (kind: ProactiveKind, shownAt: TimeInterval)?
     private let agentTaskController = AgentTaskController()
     private let selectedTextProvider = SelectedTextServiceProvider()
@@ -193,6 +195,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                     healthCompanionEnabled: true,
                     nativeToolsEnabled: true,
                     chattiness: .normal,
+                    calendarContextEnabled: false,
                     catName: "",
                     userProfile: .empty,
                     neighborSettings: .defaults,
@@ -235,6 +238,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             },
             setChattiness: { [weak self] level in
                 self?.setChattiness(level)
+            },
+            setCalendarContext: { [weak self] enabled in
+                self?.setCalendarContext(enabled)
             },
             setNativeTools: { [weak self] enabled in
                 self?.setNativeTools(enabled)
@@ -397,6 +403,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
         let routineTimer = Timer(timeInterval: 30, repeats: true) { [weak self] _ in
             self?.checkRoutines()
+            self?.checkUpcomingEvent()
+        }
+        if appSettings.calendarContextEnabled {
+            dayContext.start()
         }
         RunLoop.main.add(routineTimer, forMode: .common)
         self.routineTimer = routineTimer
@@ -804,6 +814,29 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         settingsWindow?.refresh()
     }
 
+    /// Turning it on asks macOS for calendar access first; if that is
+    /// refused the toggle stays off and the cat says where to fix it.
+    private func setCalendarContext(_ enabled: Bool) {
+        guard enabled else {
+            appSettings.calendarContextEnabled = false
+            dayContext.stop()
+            saveSettings()
+            settingsWindow?.refresh()
+            return
+        }
+        dayContext.requestAccess { [weak self] granted in
+            guard let self else { return }
+            self.appSettings.calendarContextEnabled = granted
+            self.saveSettings()
+            self.settingsWindow?.refresh()
+            if granted {
+                self.dayContext.start()
+            } else {
+                self.catWindow?.showBubble(DayContextCopy.accessDenied(languageCode: self.currentLanguageCode()))
+            }
+        }
+    }
+
     private func setChattiness(_ level: Chattiness) {
         appSettings.chattiness = level
         saveSettings()
@@ -990,6 +1023,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             healthCompanionEnabled: appSettings.healthCompanionEnabled,
             nativeToolsEnabled: appSettings.nativeToolsEnabled,
             chattiness: appSettings.chattiness,
+            calendarContextEnabled: appSettings.calendarContextEnabled,
             catName: appSettings.catName,
             userProfile: appSettings.userProfile,
             neighborSettings: appSettings.neighborSettings,
@@ -1068,6 +1102,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
         if memory.canWrite {
             system += "\n\(MemoryProtocol.instructions(languageCode: languageCode))"
+        }
+        if appSettings.calendarContextEnabled,
+           let today = DayContext.prompt(
+               events: dayContext.events,
+               reminders: dayContext.reminders,
+               now: Date(),
+               languageCode: languageCode
+           ) {
+            system += "\n\n\(today)"
         }
         return system
     }
@@ -2461,6 +2504,21 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         appSettings.routines = RoutineScheduler.markingRan(routine.id, in: appSettings.routines, now: now, calendar: .current)
         saveSettings()
         runRoutine(routine)
+    }
+
+    /// A short heads-up about ten minutes before the next event. Waits while
+    /// a meeting or presentation is up, and is said once per event.
+    private func checkUpcomingEvent() {
+        guard appSettings.calendarContextEnabled else { return }
+        let now = Date()
+        guard let event = DayContext.upcoming(dayContext.events, now: now, announced: announcedEventKeys) else { return }
+        guard claimProactiveTurn(.schedule) else { return }
+        announcedEventKeys.insert(DayContext.announcementKey(event))
+        catWindow?.showBubble(DayContextCopy.headsUp(
+            event,
+            minutes: DayContext.minutesUntil(event, now: now),
+            languageCode: currentLanguageCode()
+        ))
     }
 
     private func runRoutine(_ routine: Routine) {

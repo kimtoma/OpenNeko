@@ -143,13 +143,23 @@ Every step is written to `~/Library/Application Support/openNeko/agent-activity.
 
 ## Routines
 
-Settings → AI → Routines lets the cat run jobs at set times while OpenNeko is
+Settings → Day → Routines lets the cat run jobs at set times while OpenNeko is
 running, such as a weekday morning briefing or an end-of-day wrap-up. A
 routine without a folder sends its prompt to your AI provider and answers in
 the bubble. A routine with a folder runs Claude Code read-only inside that
 folder (for example, summarizing yesterday's commits); anything else asks you
 first. Each routine runs at most once a day, and one missed while the Mac was
 asleep still runs if the Mac wakes within two hours.
+
+## Calendar
+
+Turn on **Settings → Day → Use Calendar and Reminders** and macOS asks for
+access once. The cat then knows today's remaining events and the reminders
+due today when you chat (so a morning briefing routine can mention them), and
+says so about ten minutes before an event starts. Only titles and times are
+read: no notes, attendees or locations. Titles are passed to the AI as data,
+not instructions. The heads-up waits while a meeting or presentation is on
+screen. Turn the toggle off to stop it.
 
 ## Skills
 

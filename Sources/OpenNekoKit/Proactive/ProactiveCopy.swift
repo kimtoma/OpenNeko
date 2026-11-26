@@ -33,6 +33,8 @@ public enum ProactiveCopy {
             return localized(languageCode, ko: "에이전트 알림", en: "agent updates", ja: "エージェント通知", zh: "智能体通知")
         case .routine:
             return localized(languageCode, ko: "루틴", en: "routines", ja: "ルーティン", zh: "例程")
+        case .schedule:
+            return localized(languageCode, ko: "일정 알림", en: "calendar heads-ups", ja: "予定の通知", zh: "日程提醒")
         case .whatsNew:
             return localized(languageCode, ko: "새 기능 소개", en: "what's new", ja: "新機能紹介", zh: "新功能介绍")
         case .healthBreak:

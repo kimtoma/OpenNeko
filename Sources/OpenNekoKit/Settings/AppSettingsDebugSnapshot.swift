@@ -14,6 +14,7 @@ public struct AppSettingsDebugSnapshot: Codable, Equatable, Sendable {
     public let soundEffectsEnabled: Bool
     public let webSearchEnabled: Bool
     public let healthCompanionEnabled: Bool
+    public let calendarContextEnabled: Bool
     public let nativeToolsEnabled: Bool
     public let catName: String
     public let userProfileConfigured: Bool
@@ -36,6 +37,7 @@ public struct AppSettingsDebugSnapshot: Codable, Equatable, Sendable {
         soundEffectsEnabled = settings.soundEffectsEnabled
         webSearchEnabled = settings.webSearchEnabled
         healthCompanionEnabled = settings.healthCompanionEnabled
+        calendarContextEnabled = settings.calendarContextEnabled
         nativeToolsEnabled = settings.nativeToolsEnabled
         catName = settings.catName
         userProfileConfigured = settings.userProfile != .empty
