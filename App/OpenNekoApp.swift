@@ -103,6 +103,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var healthTracker = HealthNudgeTracker()
     private var proactiveLedger = ProactiveLedger()
     private let dayContext = DayContextProvider()
+    private let connectors = ConnectorManager()
     private var announcedEventKeys: Set<String> = []
     private var lastSuggestion: (kind: ProactiveKind, shownAt: TimeInterval)?
     private let agentTaskController = AgentTaskController()
@@ -196,6 +197,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                     nativeToolsEnabled: true,
                     chattiness: .normal,
                     calendarContextEnabled: false,
+                    connectors: [],
                     catName: "",
                     userProfile: .empty,
                     neighborSettings: .defaults,
@@ -241,6 +243,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             },
             setCalendarContext: { [weak self] enabled in
                 self?.setCalendarContext(enabled)
+            },
+            connectorAction: { [weak self] action in
+                self?.handleConnectorAction(action)
             },
             setNativeTools: { [weak self] enabled in
                 self?.setNativeTools(enabled)
@@ -408,6 +413,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         if appSettings.calendarContextEnabled {
             dayContext.start()
         }
+        connectors.onChange = { [weak self] in
+            self?.settingsWindow?.refresh()
+        }
+        connectors.sync(appSettings.connectors)
         RunLoop.main.add(routineTimer, forMode: .common)
         self.routineTimer = routineTimer
         configureAgentProcessDetection()
@@ -481,6 +490,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationWillTerminate(_ notification: Notification) {
+        connectors.stopAll()
         bridgeIdleTimer?.invalidate()
         typingTimer?.invalidate()
         keyboardMonitorRetryTimer?.invalidate()
@@ -1024,6 +1034,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             nativeToolsEnabled: appSettings.nativeToolsEnabled,
             chattiness: appSettings.chattiness,
             calendarContextEnabled: appSettings.calendarContextEnabled,
+            connectors: connectorRows(),
             catName: appSettings.catName,
             userProfile: appSettings.userProfile,
             neighborSettings: appSettings.neighborSettings,
@@ -1102,6 +1113,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
         if memory.canWrite {
             system += "\n\(MemoryProtocol.instructions(languageCode: languageCode))"
+        }
+        if appSettings.nativeToolsEnabled,
+           let connectorTools = MCPToolPrompt.instructions(tools: connectors.tools, languageCode: languageCode) {
+            system += "\n\(connectorTools)"
         }
         if appSettings.calendarContextEnabled,
            let today = DayContext.prompt(
@@ -3099,10 +3114,156 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             NSPasteboard.general.setString(text, forType: .string)
         case let .openURL(url):
             NSWorkspace.shared.open(url)
+        case let .mcp(server, tool, argumentsJSON):
+            runConnectorTool(server: server, tool: tool, argumentsJSON: argumentsJSON)
         }
         logToolCall(call)
         catWindow?.applyBridgeState(.success)
         catWindow?.showBubble(NekoToolCopy.done(call, languageCode: language))
+    }
+
+    // MARK: - Connectors (MCP)
+
+    /// Runs an approved connector tool, then hands the result back to the
+    /// model as a hidden turn so the cat answers with it.
+    private func runConnectorTool(server: String, tool: String, argumentsJSON: String) {
+        catWindow?.applyBridgeState(.thinking)
+        connectors.call(server: server, tool: tool, argumentsJSON: argumentsJSON) { [weak self] result in
+            guard let self else { return }
+            let language = self.currentLanguageCode()
+            switch result {
+            case let .success(output):
+                self.sendHiddenChatTurn(MCPToolPrompt.followUp(
+                    server: server,
+                    tool: tool,
+                    result: output.text,
+                    isError: output.isError,
+                    languageCode: language
+                ))
+            case .failure:
+                self.catWindow?.applyBridgeState(.error)
+                self.catWindow?.showBubble(ConnectorCopy.callFailed(server: server, languageCode: language))
+            }
+        }
+    }
+
+    /// A model turn the person did not type (a tool result). It joins the
+    /// chat history for context but not the saved transcript.
+    private func sendHiddenChatTurn(_ text: String) {
+        cancelActiveChatRequest()
+        let generation = chatGeneration
+        chatHistory.append(ChatMessage(role: .user, text: text))
+        if chatHistory.count > 12 {
+            chatHistory = Array(chatHistory.suffix(12))
+        }
+        let providerConfig = appSettings.aiProvider
+        let apiKey = resolvedAPIKey(for: providerConfig)
+        let history = chatHistory
+        let system = currentSystemPrompt(skill: activeSkillForCurrentLanguage())
+        catWindow?.applyBridgeState(.thinking)
+        activeChatTask = Task { [weak self] in
+            do {
+                let reply = try await self?.chatReply(
+                    providerConfig: providerConfig,
+                    apiKey: apiKey,
+                    history: history,
+                    system: system,
+                    onPartial: { [weak self] partial in
+                        Task { @MainActor [weak self] in
+                            self?.updateStreamingChat(generation: generation, text: partial)
+                        }
+                    }
+                ) ?? ""
+                await self?.finishChat(generation: generation, reply: reply)
+            } catch is CancellationError {
+                return
+            } catch {
+                await self?.failChat(generation: generation, message: text, error: error)
+            }
+        }
+    }
+
+    private func connectorRows() -> [ConnectorRowState] {
+        let language = currentLanguageCode()
+        return appSettings.connectors.map { config in
+            let status: String
+            switch connectors.state(of: config.name) {
+            case .ready: status = ConnectorCopy.toolCount(connectors.toolCount(of: config.name), languageCode: language)
+            case .starting: status = ConnectorCopy.text(.starting, languageCode: language)
+            case .failed: status = ConnectorCopy.text(.failed, languageCode: language)
+            case .stopped: status = ""
+            }
+            return ConnectorRowState(name: config.name, commandLine: config.commandLine, enabled: config.enabled, status: status)
+        }
+    }
+
+    private func handleConnectorAction(_ action: ConnectorAction) {
+        noteUserInteraction()
+        switch action {
+        case .importClaudeDesktop:
+            let url = FileManager.default.homeDirectoryForCurrentUser
+                .appendingPathComponent(MCPConfigImport.claudeDesktopRelativePath)
+            importConnectors(from: url, source: "claude-desktop")
+        case .importFile:
+            let panel = NSOpenPanel()
+            panel.canChooseFiles = true
+            panel.canChooseDirectories = false
+            panel.allowsMultipleSelection = false
+            panel.allowedContentTypes = [.json]
+            panel.showsHiddenFiles = true
+            NSApp.activate(ignoringOtherApps: true)
+            guard panel.runModal() == .OK, let url = panel.url else { return }
+            importConnectors(from: url, source: "file")
+        case let .setEnabled(name, enabled):
+            guard let index = appSettings.connectors.firstIndex(where: { $0.name == name }) else { return }
+            appSettings.connectors[index].enabled = enabled
+            saveConnectors()
+        case let .remove(name):
+            appSettings.connectors.removeAll { $0.name == name }
+            connectors.deleteEnv(for: name)
+            saveConnectors()
+        }
+    }
+
+    /// Read only: shows exactly which commands would run and asks first.
+    private func importConnectors(from url: URL, source: String) {
+        let language = currentLanguageCode()
+        guard
+            let data = try? Data(contentsOf: url),
+            let result = MCPConfigImport.parse(data, source: source),
+            !result.servers.isEmpty
+        else {
+            catWindow?.showBubble(ConnectorCopy.text(.nothingFound, languageCode: language))
+            return
+        }
+        var lines = result.servers.map { server -> String in
+            let env = server.config.envKeys.isEmpty ? "" : "  (env: \(server.config.envKeys.joined(separator: ", ")))"
+            return "• \(server.config.name): \(server.config.commandLine)\(env)"
+        }
+        lines += ["", ConnectorCopy.text(.importConfirmDetail, languageCode: language)]
+        if let skipped = ConnectorCopy.skipped(remote: result.skippedRemote.count, languageCode: language) {
+            lines.append(skipped)
+        }
+        let alert = NSAlert()
+        alert.messageText = ConnectorCopy.text(.importConfirmTitle, languageCode: language)
+        alert.informativeText = lines.joined(separator: "\n")
+        alert.alertStyle = .warning
+        alert.addButton(withTitle: ConnectorCopy.text(.importButton, languageCode: language))
+        alert.addButton(withTitle: ConnectorCopy.text(.cancel, languageCode: language))
+        NSApp.activate(ignoringOtherApps: true)
+        guard alert.runModal() == .alertFirstButtonReturn else { return }
+
+        for server in result.servers {
+            connectors.saveEnv(server.env, for: server.config.name)
+        }
+        appSettings.connectors = MCPConfigImport.merged(appSettings.connectors, adding: result.servers.map(\.config))
+        saveConnectors()
+    }
+
+    private func saveConnectors() {
+        saveSettings()
+        connectors.sync(appSettings.connectors)
+        settingsWindow?.refresh()
     }
 
     private func fireToolTimer(_ call: NekoToolCall) {

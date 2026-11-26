@@ -8,9 +8,13 @@ public enum NekoToolCall: Equatable, Sendable {
     case reminder(seconds: Int, message: String)
     case copyToClipboard(String)
     case openURL(URL)
+    /// A tool on one of the person's MCP connectors. `argumentsJSON` is a
+    /// JSON object, re-encoded by the validator.
+    case mcp(server: String, tool: String, argumentsJSON: String)
 
     public static let maxDelaySeconds = 24 * 60 * 60
     public static let maxClipboardCharacters = 10_000
+    public static let maxMCPArgumentCharacters = 4_000
 
     public var name: String {
         switch self {
@@ -18,6 +22,7 @@ public enum NekoToolCall: Equatable, Sendable {
         case .reminder: "reminder"
         case .copyToClipboard: "clipboard"
         case .openURL: "open_url"
+        case let .mcp(server, tool, _): "mcp \(server)/\(tool)"
         }
     }
 
@@ -28,6 +33,7 @@ public enum NekoToolCall: Equatable, Sendable {
         case let .reminder(seconds, message): "\(seconds)s \(message)"
         case let .copyToClipboard(text): "\(text.count) chars"
         case let .openURL(url): url.absoluteString
+        case let .mcp(_, _, arguments): String(arguments.prefix(200))
         }
     }
 
@@ -60,6 +66,23 @@ public enum NekoToolCall: Equatable, Sendable {
                 return nil
             }
             return .openURL(url)
+        case "mcp":
+            guard
+                let server = object["server"] as? String, MCPServerConfig.isValidName(server),
+                let name = object["name"] as? String, MCPServerConfig.isValidName(name)
+            else {
+                return nil
+            }
+            let arguments = object["arguments"] as? [String: Any] ?? [:]
+            guard
+                JSONSerialization.isValidJSONObject(arguments),
+                let data = try? JSONSerialization.data(withJSONObject: arguments, options: [.sortedKeys]),
+                let json = String(data: data, encoding: .utf8),
+                json.count <= maxMCPArgumentCharacters
+            else {
+                return nil
+            }
+            return .mcp(server: server, tool: name, argumentsJSON: json)
         default:
             return nil
         }

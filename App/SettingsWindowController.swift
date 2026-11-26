@@ -23,6 +23,7 @@ final class SettingsWindowController {
         let nativeToolsEnabled: Bool
         let chattiness: Chattiness
         let calendarContextEnabled: Bool
+        let connectors: [ConnectorRowState]
         let catName: String
         let userProfile: UserProfile
         let neighborSettings: NeighborSettings
@@ -49,6 +50,7 @@ final class SettingsWindowController {
     private let setHealthCompanion: (Bool) -> Void
     private let setChattiness: (Chattiness) -> Void
     private let setCalendarContext: (Bool) -> Void
+    private let connectorAction: (ConnectorAction) -> Void
     private let setNativeTools: (Bool) -> Void
     private let setCatName: (String) -> Void
     private let setUserProfile: (UserProfile) -> Void
@@ -90,6 +92,7 @@ final class SettingsWindowController {
         setHealthCompanion: @escaping (Bool) -> Void,
         setChattiness: @escaping (Chattiness) -> Void,
         setCalendarContext: @escaping (Bool) -> Void,
+        connectorAction: @escaping (ConnectorAction) -> Void,
         setNativeTools: @escaping (Bool) -> Void,
         setCatName: @escaping (String) -> Void,
         setUserProfile: @escaping (UserProfile) -> Void,
@@ -130,6 +133,7 @@ final class SettingsWindowController {
         self.setHealthCompanion = setHealthCompanion
         self.setChattiness = setChattiness
         self.setCalendarContext = setCalendarContext
+        self.connectorAction = connectorAction
         self.setNativeTools = setNativeTools
         self.setCatName = setCatName
         self.setUserProfile = setUserProfile
@@ -242,6 +246,7 @@ final class SettingsWindowController {
             nativeToolsEnabled: state.nativeToolsEnabled,
             chattiness: state.chattiness,
             calendarContextEnabled: state.calendarContextEnabled,
+            connectors: state.connectors,
             catName: state.catName,
             userProfile: state.userProfile,
             neighborSettings: state.neighborSettings,
@@ -265,6 +270,7 @@ final class SettingsWindowController {
             setHealthCompanion: setHealthCompanion,
             setChattiness: setChattiness,
             setCalendarContext: setCalendarContext,
+            connectorAction: connectorAction,
             setNativeTools: setNativeTools,
             setCatName: setCatName,
             setUserProfile: setUserProfile,
@@ -293,4 +299,19 @@ final class SettingsWindowController {
             selectSkin: selectSkin
         )
     }
+}
+
+/// One connector row in Settings > Abilities.
+struct ConnectorRowState: Equatable {
+    let name: String
+    let commandLine: String
+    let enabled: Bool
+    let status: String
+}
+
+enum ConnectorAction {
+    case importClaudeDesktop
+    case importFile
+    case setEnabled(String, Bool)
+    case remove(String)
 }

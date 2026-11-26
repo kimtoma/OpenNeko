@@ -6,6 +6,7 @@ import Foundation
 /// bump `WhatsNew.currentRevision` when adding features to a new tour.
 public enum WhatsNewFeature: String, CaseIterable, Equatable, Sendable {
     case calendar
+    case connectors
     case memory
     case selectedText
     case voiceInput
@@ -24,7 +25,7 @@ public enum WhatsNewFeature: String, CaseIterable, Equatable, Sendable {
             1
         case .memory:
             2
-        case .calendar:
+        case .calendar, .connectors:
             3
         }
     }
@@ -142,6 +143,12 @@ public enum WhatsNewCopy {
                 en: "Turn on Calendar in Settings > Day: I'll know today's plans and warn you 10 min ahead",
                 ja: "設定 > 一日でカレンダーをオンにすると今日の予定を知って10分前に知らせるにゃ",
                 zh: "在设置 > 日常里打开日历，我会知道今天的安排并提前10分钟提醒喵")
+        case .connectors:
+            return localized(l,
+                ko: "설정 > 능력에서 Claude 데스크톱의 MCP 커넥터를 가져와 대화에서 쓸 수 있다냥",
+                en: "Settings > Abilities can import Claude Desktop's MCP connectors for use in chat",
+                ja: "設定 > できることでClaudeデスクトップのMCPコネクタを読み込んで会話で使えるにゃ",
+                zh: "在设置 > 能力里可以导入 Claude 桌面版的 MCP 连接器，在聊天中使用喵")
         case .memory:
             return localized(l,
                 ko: "이제 대화를 기억한다냥. 메뉴 > 기억 노트에서 내가 기억하는 걸 보고 고칠 수 있다냥",

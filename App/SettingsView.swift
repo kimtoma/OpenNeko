@@ -92,6 +92,7 @@ struct SettingsView: View {
     let nativeToolsEnabled: Bool
     let chattiness: Chattiness
     let calendarContextEnabled: Bool
+    let connectors: [ConnectorRowState]
     let catName: String
     let userProfile: UserProfile
     let neighborSettings: NeighborSettings
@@ -115,6 +116,7 @@ struct SettingsView: View {
     let setHealthCompanion: (Bool) -> Void
     let setChattiness: (Chattiness) -> Void
     let setCalendarContext: (Bool) -> Void
+    let connectorAction: (ConnectorAction) -> Void
     let setNativeTools: (Bool) -> Void
     let setCatName: (String) -> Void
     let setUserProfile: (UserProfile) -> Void
@@ -1041,6 +1043,70 @@ struct SettingsView: View {
             )
     }
 
+    private func connectorCopy(_ key: ConnectorCopy.Key) -> String {
+        ConnectorCopy.text(key, languageCode: resolvedLanguageCode)
+    }
+
+    @ViewBuilder
+    private var connectorsSection: some View {
+        SettingsGlassSectionHeader(
+            title: connectorCopy(.sectionTitle),
+            subtitle: connectorCopy(.sectionDetail),
+            systemImage: "powerplug",
+            tint: .indigo
+        )
+        if connectors.isEmpty {
+            Text(connectorCopy(.empty))
+                .font(.callout)
+                .foregroundStyle(.secondary)
+                .padding(.horizontal, 12)
+        }
+        ForEach(connectors, id: \.name) { connector in
+            SettingsGlassRow(systemImage: "server.rack", iconTint: connector.enabled ? .indigo : .secondary) {
+                VStack(alignment: .leading, spacing: 2) {
+                    HStack(spacing: 6) {
+                        Text(connector.name)
+                            .font(.body.weight(.medium))
+                        if !connector.status.isEmpty {
+                            Text(connector.status)
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                    Text(connector.commandLine)
+                        .font(.caption.monospaced())
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                        .truncationMode(.middle)
+                }
+            } trailing: {
+                HStack(spacing: 8) {
+                    Toggle(connector.name, isOn: Binding(
+                        get: { connector.enabled },
+                        set: { connectorAction(.setEnabled(connector.name, $0)) }
+                    ))
+                    .labelsHidden()
+                    .toggleStyle(.switch)
+                    .controlSize(.small)
+                    Button(connectorCopy(.remove)) {
+                        connectorAction(.remove(connector.name))
+                    }
+                    .controlSize(.small)
+                }
+            }
+        }
+        HStack(spacing: 8) {
+            Button(connectorCopy(.importClaudeDesktop)) {
+                connectorAction(.importClaudeDesktop)
+            }
+            Button(connectorCopy(.importFile)) {
+                connectorAction(.importFile)
+            }
+        }
+        .buttonStyle(.bordered)
+        .controlSize(.regular)
+    }
+
     private var chattinessRow: some View {
         SettingsGlassRow(systemImage: "bubble.left") {
             VStack(alignment: .leading, spacing: 2) {
@@ -1099,6 +1165,7 @@ struct SettingsView: View {
         sidebarPane(.abilities) {
             nativeToolsRow
             webSearchRow
+            connectorsSection
             paneSection(.skills, tint: .purple)
             skillsRows
             compactPermissionsSection

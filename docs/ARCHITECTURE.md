@@ -134,6 +134,19 @@ bounded delays and sizes). `OpenNekoApp` shows `NekoToolCopy.approval` in the
 bubble and runs the call only when it is clicked, logging it to the agent
 activity log.
 
+### Connectors (Sources/OpenNekoKit/Connectors/, App/ConnectorManager.swift)
+
+`MCPServerConfig` (in `AppSettings.connectors`) stores command, args and env
+*names*; env values are a JSON blob in the Keychain (`mcp-env:<name>`).
+`MCPConfigImport` reads `{"mcpServers": ...}` files read-only (stdio servers
+only). `MCPProtocol` builds/parses the JSON-RPC lines; `MCPClient` runs one
+server per connector over stdio (initialize → tools/list) and
+`ConnectorManager.sync` starts/stops them from settings. `MCPToolPrompt`
+lists ready tools in the system prompt; the model asks with
+`<neko-tool>{"tool":"mcp",...}</neko-tool>` (`NekoToolCall.mcp`), the person
+clicks to approve, and the result returns as a hidden chat turn marked as
+data (`MCPToolPrompt.followUp`).
+
 ### Calendar context (Sources/OpenNekoKit/Context/, App/DayContextProvider.swift)
 
 Opt-in (`AppSettings.calendarContextEnabled`, Settings → Day). The provider

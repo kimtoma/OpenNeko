@@ -161,6 +161,17 @@ read: no notes, attendees or locations. Titles are passed to the AI as data,
 not instructions. The heads-up waits while a meeting or presentation is on
 screen. Turn the toggle off to stop it.
 
+## Connectors (MCP)
+
+**Settings → Abilities → Connectors** imports local MCP servers from Claude
+Desktop's config or from any `{"mcpServers": ...}` JSON file (such as a
+project's `.mcp.json`). The import shows exactly which commands will run and
+never changes the source file; environment values (often tokens) go to the
+Keychain, not `settings.json`. While a connector is on, its tools are offered
+to the chat model, and every call waits for your click. The result goes back
+to the model as data so the cat can answer with it, and each call is written
+to the activity log. Remote (URL) servers are not supported yet.
+
 ## Skills
 
 Bundled and user skills are prompt instructions stored as `SKILL.md` files.
