@@ -27,6 +27,7 @@ final class AIProviderPresetTests: XCTestCase {
             "gemini-oauth",
             "ollama",
             "local-openai",
+            "apple-intelligence",
             "gemini",
             "claude",
             "custom",
