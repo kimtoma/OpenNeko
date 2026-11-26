@@ -17,6 +17,8 @@ public enum NekoToolCopy {
         case let .openURL(url):
             let host = url.host ?? url.absoluteString
             return localized(l, ko: "🌐 \(host) 열까냥? 눌러서 허락", en: "🌐 Open \(host)? Click to allow", ja: "🌐 \(host)を開くにゃ？クリックで許可", zh: "🌐 打开 \(host) 吗？点击允许")
+        case let .mcp(server, tool, _):
+            return localized(l, ko: "🔌 \(server)의 \(tool) 실행할까냥? 눌러서 허락", en: "🔌 Run \(tool) on \(server)? Click to allow", ja: "🔌 \(server)の\(tool)を実行するにゃ？クリックで許可", zh: "🔌 运行 \(server) 的 \(tool) 吗？点击允许")
         }
     }
 
@@ -30,6 +32,8 @@ public enum NekoToolCopy {
             return localized(l, ko: "복사했다냥", en: "Copied, nya", ja: "コピーしたにゃ", zh: "已复制喵")
         case .openURL:
             return localized(l, ko: "열었다냥", en: "Opened it, nya", ja: "開いたにゃ", zh: "打开了喵")
+        case .mcp:
+            return localized(l, ko: "실행 중이다냥…", en: "Running it, nya…", ja: "実行中にゃ…", zh: "正在运行喵…")
         }
     }
 
@@ -41,7 +45,7 @@ public enum NekoToolCopy {
             return localized(l, ko: "⏰ 시간 다 됐다냥!\(what)", en: "⏰ Time's up, nya!\(what)", ja: "⏰ 時間だにゃ！\(what)", zh: "⏰ 时间到了喵！\(what)")
         case let .reminder(_, message):
             return localized(l, ko: "🔔 \(message) 할 시간이다냥", en: "🔔 Reminder: \(message), nya", ja: "🔔 \(message)の時間にゃ", zh: "🔔 提醒：\(message) 喵")
-        case .copyToClipboard, .openURL:
+        case .copyToClipboard, .openURL, .mcp:
             return nil
         }
     }

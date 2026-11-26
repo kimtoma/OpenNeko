@@ -14,6 +14,7 @@ public struct AppSettings: Codable, Equatable, Sendable {
         nativeToolsEnabled: true,
         healthCompanionEnabled: true,
         calendarContextEnabled: false,
+        connectors: [],
         lastSeenWhatsNewRevision: 0,
         routines: [],
         memoryEnabled: true,
@@ -40,6 +41,8 @@ public struct AppSettings: Codable, Equatable, Sendable {
     /// Today's calendar events and reminders in chat, plus heads-ups. Off
     /// until the person turns it on and grants access.
     public var calendarContextEnabled: Bool
+    /// MCP servers the person added (env values are in the Keychain).
+    public var connectors: [MCPServerConfig]
     public var lastSeenWhatsNewRevision: Int
     public var routines: [Routine]
     public var memoryEnabled: Bool
@@ -64,6 +67,7 @@ public struct AppSettings: Codable, Equatable, Sendable {
         nativeToolsEnabled: Bool = true,
         healthCompanionEnabled: Bool = true,
         calendarContextEnabled: Bool = false,
+        connectors: [MCPServerConfig] = [],
         lastSeenWhatsNewRevision: Int = 0,
         routines: [Routine] = [],
         memoryEnabled: Bool = true,
@@ -87,6 +91,7 @@ public struct AppSettings: Codable, Equatable, Sendable {
         self.nativeToolsEnabled = nativeToolsEnabled
         self.healthCompanionEnabled = healthCompanionEnabled
         self.calendarContextEnabled = calendarContextEnabled
+        self.connectors = Self.normalizedConnectors(connectors)
         self.lastSeenWhatsNewRevision = max(0, lastSeenWhatsNewRevision)
         self.routines = routines.map { $0.normalized() }
         self.memoryEnabled = memoryEnabled
@@ -112,6 +117,7 @@ public struct AppSettings: Codable, Equatable, Sendable {
         case nativeToolsEnabled
         case healthCompanionEnabled
         case calendarContextEnabled
+        case connectors
         case lastSeenWhatsNewRevision
         case routines
         case memoryEnabled
@@ -195,6 +201,9 @@ public struct AppSettings: Codable, Equatable, Sendable {
             ?? Self.defaults.healthCompanionEnabled
         calendarContextEnabled = (try? container.decodeIfPresent(Bool.self, forKey: .calendarContextEnabled))
             ?? Self.defaults.calendarContextEnabled
+        connectors = Self.normalizedConnectors(
+            (try? container.decodeIfPresent([MCPServerConfig].self, forKey: .connectors)) ?? []
+        )
         lastSeenWhatsNewRevision = max(0, (try? container.decodeIfPresent(Int.self, forKey: .lastSeenWhatsNewRevision))
             ?? Self.defaults.lastSeenWhatsNewRevision)
         routines = ((try? container.decodeIfPresent([Routine].self, forKey: .routines)) ?? [])
@@ -253,6 +262,7 @@ public struct AppSettings: Codable, Equatable, Sendable {
         try container.encode(nativeToolsEnabled, forKey: .nativeToolsEnabled)
         try container.encode(healthCompanionEnabled, forKey: .healthCompanionEnabled)
         try container.encode(calendarContextEnabled, forKey: .calendarContextEnabled)
+        try container.encode(connectors, forKey: .connectors)
         try container.encode(lastSeenWhatsNewRevision, forKey: .lastSeenWhatsNewRevision)
         try container.encode(routines, forKey: .routines)
         try container.encode(memoryEnabled, forKey: .memoryEnabled)
@@ -263,6 +273,18 @@ public struct AppSettings: Codable, Equatable, Sendable {
         try container.encode(userProfile, forKey: .userProfile)
         try container.encode(neighborSettings, forKey: .neighborSettings)
         try container.encode(peerID, forKey: .peerID)
+    }
+
+    /// Valid names only, first one wins on duplicates, capped.
+    static func normalizedConnectors(_ connectors: [MCPServerConfig]) -> [MCPServerConfig] {
+        var seen: Set<String> = []
+        var result: [MCPServerConfig] = []
+        for connector in connectors.map({ $0.normalized() })
+        where MCPServerConfig.isValidName(connector.name) && !connector.command.isEmpty && !seen.contains(connector.name) {
+            seen.insert(connector.name)
+            result.append(connector)
+        }
+        return Array(result.prefix(MCPServerConfig.maxServers))
     }
 
     private static func normalizedLegacySkinID(_ id: String?) -> String? {

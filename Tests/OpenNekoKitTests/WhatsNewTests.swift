@@ -30,8 +30,8 @@ final class WhatsNewTests: XCTestCase {
     }
 
     func testPeopleWhoSawTheFirstTourOnlyMeetMemory() {
-        XCTAssertEqual(WhatsNew.pendingFeatures(lastSeenRevision: 1, context: withAI), [.calendar, .memory])
-        XCTAssertEqual(WhatsNew.pendingFeatures(lastSeenRevision: 2, context: withAI), [.calendar])
+        XCTAssertEqual(WhatsNew.pendingFeatures(lastSeenRevision: 1, context: withAI), [.calendar, .connectors, .memory])
+        XCTAssertEqual(WhatsNew.pendingFeatures(lastSeenRevision: 2, context: withAI), [.calendar, .connectors])
     }
 
     func testTourStepsGoIntroFeaturesOutroThenEnd() {
