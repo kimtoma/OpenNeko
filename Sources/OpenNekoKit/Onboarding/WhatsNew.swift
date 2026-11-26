@@ -147,10 +147,10 @@ public enum WhatsNewCopy {
                 zh: "选中文字，右键 → 服务 → openNeko，帮你解释、翻译、总结喵")
         case .voiceInput:
             return localized(l,
-                ko: "채팅창의 🎤를 누르고 있는 동안 말하면 글자로 바꿔준다냥. 맥 안에서만 인식한다냥",
-                en: "Hold 🎤 in the chat box and talk: I type it for you, recognized on this Mac only",
-                ja: "チャット欄の🎤を押しながら話すと文字にするにゃ。認識はこのMac内だけにゃ",
-                zh: "按住聊天框里的🎤说话，我帮你转成文字。只在本机识别喵")
+                ko: "채팅창의 🎤를 한 번 누르고 말하면 글자로 바꿔준다냥. 말을 멈추면 알아서 끝난다냥",
+                en: "Tap 🎤 in the chat box and talk: I type it for you and stop when you pause",
+                ja: "チャット欄の🎤を押して話すと文字にするにゃ。話し終えると自動で止まるにゃ",
+                zh: "点一下聊天框里的🎤说话，我帮你转成文字，停顿时自动结束喵")
         case .taskDelegation:
             return localized(l,
                 ko: "채팅에 /task 할 일 → 폴더를 고르면 Claude Code에 맡긴다냥. 위험한 건 먼저 묻는다냥",
