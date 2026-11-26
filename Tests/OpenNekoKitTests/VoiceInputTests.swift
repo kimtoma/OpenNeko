@@ -58,6 +58,16 @@ final class VoiceInputTests: XCTestCase {
         XCTAssertLessThan(VoiceInputPolicy.finalResultTimeout, VoiceInputPolicy.silenceTimeout)
     }
 
+    func testEngineStoppedByDeviceChangeRestartsThenGivesUp() {
+        XCTAssertEqual(VoiceInputPolicy.afterConfigurationChange(engineRunning: true, restartsSoFar: 0), .keepGoing)
+        XCTAssertEqual(VoiceInputPolicy.afterConfigurationChange(engineRunning: false, restartsSoFar: 0), .restart)
+        XCTAssertEqual(VoiceInputPolicy.afterConfigurationChange(engineRunning: false, restartsSoFar: 1), .restart)
+        XCTAssertEqual(
+            VoiceInputPolicy.afterConfigurationChange(engineRunning: false, restartsSoFar: VoiceInputPolicy.maxEngineRestarts),
+            .finish
+        )
+    }
+
     func testCopyForEveryLanguage() {
         let failures: [VoiceInputFailure] = [.microphoneDenied, .speechDenied, .onDeviceUnavailable, .audioUnavailable, .nothingHeard]
         for language in AppLanguage.supportedCodes {

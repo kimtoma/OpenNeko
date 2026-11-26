@@ -40,6 +40,21 @@ public enum VoiceInputPolicy {
     /// result, then finish anyway. On-device recognition sometimes never
     /// delivers one, which used to leave the mic stuck in its stop state.
     public static let finalResultTimeout: TimeInterval = 1.5
+    /// How many times one dictation restarts the audio engine after macOS
+    /// stopped it for a device change.
+    public static let maxEngineRestarts = 2
+
+    public enum ConfigurationChangeAction: Equatable, Sendable {
+        case keepGoing
+        case restart
+        case finish
+    }
+
+    /// What to do when the audio configuration changed mid-dictation.
+    public static func afterConfigurationChange(engineRunning: Bool, restartsSoFar: Int) -> ConfigurationChangeAction {
+        if engineRunning { return .keepGoing }
+        return restartsSoFar < maxEngineRestarts ? .restart : .finish
+    }
 
     /// Whether listening should end on its own now. `lastChangeAt` is when
     /// the transcript last changed (nil while nothing has been heard).
