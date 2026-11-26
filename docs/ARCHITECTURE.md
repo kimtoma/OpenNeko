@@ -126,6 +126,17 @@ bounded delays and sizes). `OpenNekoApp` shows `NekoToolCopy.approval` in the
 bubble and runs the call only when it is clicked, logging it to the agent
 activity log.
 
+### What's new tour (Sources/OpenNekoKit/Onboarding/)
+
+After an update the cat introduces new features one bubble at a time.
+`WhatsNewFeature` tags each feature with the tour revision it appeared in,
+`WhatsNew` picks the pending features for this Mac (Apple Intelligence only
+when available) and waits until first-launch setup is done,
+`WhatsNewTour` steps intro → features → outro, and `WhatsNewCopy` holds the
+en/ko/ja/zh copy. `AppSettings.lastSeenWhatsNewRevision` records the last
+tour shown; the menu item "What's New" replays it. Bump
+`WhatsNew.currentRevision` when a release adds features to introduce.
+
 ### Delegated tasks (Sources/OpenNekoKit/Agents/, App/AgentTaskController.swift)
 
 `/task` hands a prompt to the local Claude Code CLI inside a user-picked
