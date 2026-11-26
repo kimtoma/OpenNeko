@@ -145,10 +145,10 @@ public enum WhatsNewCopy {
                 zh: "在设置 > 日常里打开日历，我会知道今天的安排并提前10分钟提醒喵")
         case .connectors:
             return localized(l,
-                ko: "설정 > 능력에서 Claude 데스크톱의 MCP 커넥터를 가져와 대화에서 쓸 수 있다냥",
-                en: "Settings > Abilities can import Claude Desktop's MCP connectors for use in chat",
-                ja: "設定 > できることでClaudeデスクトップのMCPコネクタを読み込んで会話で使えるにゃ",
-                zh: "在设置 > 能力里可以导入 Claude 桌面版的 MCP 连接器，在聊天中使用喵")
+                ko: "설정 > 커넥터에서 Claude 데스크톱의 MCP 커넥터를 가져와 대화에서 쓸 수 있다냥",
+                en: "Settings > Connectors can import Claude Desktop's MCP connectors for use in chat",
+                ja: "設定 > コネクタでClaudeデスクトップのMCPコネクタを読み込んで会話で使えるにゃ",
+                zh: "在设置 > 连接器里可以导入 Claude 桌面版的 MCP 连接器，在聊天中使用喵")
         case .memory:
             return localized(l,
                 ko: "이제 대화를 기억한다냥. 메뉴 > 기억 노트에서 내가 기억하는 걸 보고 고칠 수 있다냥",
@@ -187,10 +187,10 @@ public enum WhatsNewCopy {
                 zh: "在设置 > 日常 > 例程里，可以让我在固定时间做事，比如早间简报喵")
         case .agentHooks:
             return localized(l,
-                ko: "설정 > 고급 > 에이전트 알림을 붙이면 Claude Code·Codex가 끝날 때 알려준다냥",
-                en: "Add Settings > Advanced > Agent notifications and I'll tell you when Claude Code or Codex is done",
-                ja: "設定 > 詳細 > エージェント通知を入れるとClaude Code・Codexの完了を知らせるにゃ",
-                zh: "在设置 > 高级 > 智能体通知里配置后，Claude Code、Codex 完成时我会提醒喵")
+                ko: "설정 > 에이전트에서 알림을 붙이면 Claude Code·Codex가 끝날 때 알려준다냥",
+                en: "Add a hook from Settings > Agents and I'll tell you when Claude Code or Codex is done",
+                ja: "設定 > エージェントで通知を入れるとClaude Code・Codexの完了を知らせるにゃ",
+                zh: "在设置 > 智能体里配置通知后，Claude Code、Codex 完成时我会提醒喵")
         case .healthCompanion:
             return localized(l,
                 ko: "50분 넘게 계속 일하면 쉬자고 말해준다냥. 설정 > 하루에서 끌 수 있다냥",

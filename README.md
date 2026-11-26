@@ -163,7 +163,7 @@ screen. Turn the toggle off to stop it.
 
 ## Connectors (MCP)
 
-**Settings → Abilities → Connectors** imports local MCP servers from Claude
+**Settings → Connectors** imports local MCP servers from Claude
 Desktop's config or from any `{"mcpServers": ...}` JSON file (such as a
 project's `.mcp.json`). The import shows exactly which commands will run and
 never changes the source file; environment values (often tokens) go to the
@@ -236,7 +236,7 @@ OPENNEKO_PORT=48801 /path/to/OpenNeko.app/Contents/MacOS/OpenNeko
 ### Agent notifications
 
 OpenNeko can tell you when Claude Code or Codex finishes or needs your
-approval. Copy a snippet from Settings > Advanced > Agent notifications:
+approval. Copy a snippet from Settings > Agents > Agent notifications:
 
 - Claude Code (`~/.claude/settings.json`): a `Notification` hook posts
   `waiting` and a `Stop` hook posts `done`.

@@ -301,7 +301,7 @@ final class SettingsWindowController {
     }
 }
 
-/// One connector row in Settings > Abilities.
+/// One connector row in Settings > Connectors.
 struct ConnectorRowState: Equatable {
     let name: String
     let commandLine: String

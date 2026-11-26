@@ -101,11 +101,12 @@ state; `SettingsPane`/`SettingsCopy` define panes and localized labels;
 `App/LaunchAtLoginController.swift` handle login items. API keys are NOT in
 AppSettings — Keychain only.
 
-The window has six sidebar tabs, grouped by what the person wants to do
-rather than by subsystem: Cat (skin, language, sound, chattiness), Memory
-(profile and memory notes), Abilities (native tools, web search, skills,
-permissions), Day (routines, break reminders), AI (providers) and Advanced
-(launch at login, agent detection and hooks, neighbors, about).
+The window has twelve short sidebar panes, one topic each, so none needs
+to scroll: Cat (name, skin), Chat (language, chattiness, sound), Memory
+(profile and memory notes), AI (providers), Tools (native tools, web
+search), Skills, Connectors (MCP), Day (calendar, routines, breaks),
+Agents (detection, hook snippets), Neighbors, Permissions and About
+(launch at login, version, updates).
 `SettingsPane.sidebar` lists them; the older fine-grained cases remain as
 section identifiers and map to their tab through `sidebarPane`.
 

@@ -598,16 +598,28 @@ struct SettingsView: View {
     @ViewBuilder
     private var selectedPaneContent: some View {
         switch selectedPane.sidebarPane {
+        case .chat:
+            chatPane
         case .memory:
             memoryPane
-        case .abilities:
-            abilitiesPane
-        case .day:
-            dayPane
         case .ai:
             aiPane
-        case .advanced:
-            advancedPane
+        case .tools:
+            toolsPane
+        case .skills:
+            skillsPane
+        case .connectors:
+            connectorsPane
+        case .day:
+            dayPane
+        case .agents:
+            agentsPane
+        case .neighbors:
+            neighborsPane
+        case .permissions:
+            permissionsPane
+        case .about:
+            aboutPane
         default:
             catPane
         }
@@ -1049,12 +1061,10 @@ struct SettingsView: View {
 
     @ViewBuilder
     private var connectorsSection: some View {
-        SettingsGlassSectionHeader(
-            title: connectorCopy(.sectionTitle),
-            subtitle: connectorCopy(.sectionDetail),
-            systemImage: "powerplug",
-            tint: .indigo
-        )
+        Text(connectorCopy(.sectionDetail))
+            .font(.callout)
+            .foregroundStyle(.secondary)
+            .padding(.horizontal, 12)
         if connectors.isEmpty {
             Text(connectorCopy(.empty))
                 .font(.callout)
@@ -1136,7 +1146,7 @@ struct SettingsView: View {
         )
     }
 
-    // MARK: - Sidebar panes (cat, memory, abilities, day, AI, advanced)
+    // MARK: - Sidebar panes (one short topic each, see SettingsPane.sidebar)
 
     private func sidebarPane<Content: View>(_ pane: SettingsPane, @ViewBuilder content: () -> Content) -> some View {
         SettingsGlassPane(
@@ -1149,9 +1159,14 @@ struct SettingsView: View {
     private var catPane: some View {
         sidebarPane(.cat) {
             skinsRows
+        }
+    }
+
+    private var chatPane: some View {
+        sidebarPane(.chat) {
             languageRow
-            soundRow
             chattinessRow
+            soundRow
         }
     }
 
@@ -1161,14 +1176,22 @@ struct SettingsView: View {
         }
     }
 
-    private var abilitiesPane: some View {
-        sidebarPane(.abilities) {
+    private var toolsPane: some View {
+        sidebarPane(.tools) {
             nativeToolsRow
             webSearchRow
-            connectorsSection
-            paneSection(.skills, tint: .purple)
+        }
+    }
+
+    private var skillsPane: some View {
+        sidebarPane(.skills) {
             skillsRows
-            compactPermissionsSection
+        }
+    }
+
+    private var connectorsPane: some View {
+        sidebarPane(.connectors) {
+            connectorsSection
         }
     }
 
@@ -1186,15 +1209,29 @@ struct SettingsView: View {
         }
     }
 
-    private var advancedPane: some View {
-        sidebarPane(.advanced) {
-            launchAtLoginRow
+    private var agentsPane: some View {
+        sidebarPane(.agents) {
             agentDetectionRow
             agentHooksSection
-            paneSection(.neighbors, tint: .green)
+        }
+    }
+
+    private var neighborsPane: some View {
+        sidebarPane(.neighbors) {
             neighborsRows
-            paneSection(.about, tint: .secondary)
+        }
+    }
+
+    private var permissionsPane: some View {
+        sidebarPane(.permissions) {
+            permissionDetailSection
+        }
+    }
+
+    private var aboutPane: some View {
+        sidebarPane(.about) {
             aboutRows
+            launchAtLoginRow
             Button(action: showOnboarding) {
                 Label(SettingsCopy.text(.onboardingRestart, languageCode: resolvedLanguageCode), systemImage: "list.bullet.clipboard")
             }
@@ -1853,7 +1890,7 @@ private struct SettingsSidebarSelector: View {
                     }
                     .foregroundStyle(selection == pane ? Color.primary : Color.secondary)
                     .padding(.horizontal, 10)
-                    .frame(maxWidth: .infinity, minHeight: 34, alignment: .leading)
+                    .frame(maxWidth: .infinity, minHeight: 30, alignment: .leading)
                     .background {
                         if selection == pane {
                             RoundedRectangle(cornerRadius: 7, style: .continuous)
