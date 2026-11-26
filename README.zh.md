@@ -58,6 +58,7 @@ OpenNeko 支持以下 provider preset:
 - Claude 登录: 使用本地 Claude CLI 登录会话。
 - Gemini 登录: 使用 Gemini CLI 的 Google 登录会话。
 - Ollama: 连接本地 Ollama OpenAI 兼容服务器。
+  没有订阅？在 **设置 → AI → 设置本地模型** 中检查 Mac 的内存和可用空间，引导安装 Ollama，下载合适的模型并直接连接（仅限 Apple 芯片）。
 - 本地 OpenAI 兼容: 连接 LM Studio、llama.cpp、vLLM 等服务。
 - Gemini API Key: 使用 `GEMINI_API_KEY` 或 `GOOGLE_API_KEY`。
 - Claude API Key: 使用 `ANTHROPIC_API_KEY`。

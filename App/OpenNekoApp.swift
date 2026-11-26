@@ -57,6 +57,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var stateBridgeServer: StateBridgeServer?
     private var neighborNetwork: NeighborNetwork?
     private var settingsWindow: SettingsWindowController?
+    private var localModelSetupController: LocalModelSetupController?
     private var chatHistoryWindowController: ChatHistoryWindowController?
     private var skinManager: SkinManager?
     private var skillCatalog = NekoSkillCatalog(skills: [])
@@ -246,6 +247,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             },
             refreshAIProviderDetections: { [weak self] in
                 self?.refreshAIProviderDetections()
+            },
+            openLocalModelSetup: { [weak self] in
+                self?.openLocalModelSetup()
             },
             showOnboarding: { [weak self] in
                 self?.showOnboarding()
@@ -791,6 +795,28 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         appSettings.aiProvider = detection.config()
         resetAIConnectionTest(refresh: false)
         saveSettings()
+        settingsWindow?.refresh()
+    }
+
+    private func openLocalModelSetup() {
+        if localModelSetupController == nil {
+            localModelSetupController = LocalModelSetupController(
+                languageCode: { [weak self] in
+                    self?.currentLanguageCode() ?? AppLanguage.resolved(nil)
+                },
+                applyProvider: { [weak self] config in
+                    self?.applyLocalModelProvider(config)
+                }
+            )
+        }
+        localModelSetupController?.show()
+    }
+
+    private func applyLocalModelProvider(_ config: AIProviderConfig) {
+        appSettings.aiProvider = config
+        resetAIConnectionTest(refresh: false)
+        saveSettings()
+        refreshAIProviderDetections()
         settingsWindow?.refresh()
     }
 

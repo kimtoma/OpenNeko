@@ -121,6 +121,7 @@ struct SettingsView: View {
     let testAIProviderConnection: () -> Void
     let applyAIProviderDetection: (AIProviderDetection) -> Void
     let refreshAIProviderDetections: () -> Void
+    let openLocalModelSetup: () -> Void
     let showOnboarding: () -> Void
     let completeOnboarding: () -> Void
     let runSkill: (String) -> Void
@@ -1008,6 +1009,16 @@ struct SettingsView: View {
                 refresh: refreshAIProviderDetections,
                 selectPreset: selectAIProviderPreset,
                 autoApplyDetected: false
+            )
+
+            SettingsGlassPermissionRow(
+                title: LocalModelSetupCopy.text(.entryTitle, languageCode: resolvedLanguageCode),
+                subtitle: LocalModelSetupCopy.text(.entryDetail, languageCode: resolvedLanguageCode),
+                systemImage: "externaldrive.badge.plus",
+                tint: .accentColor,
+                buttonTitle: LocalModelSetupCopy.text(.entryButton, languageCode: resolvedLanguageCode),
+                buttonImage: "arrow.down.circle",
+                action: openLocalModelSetup
             )
 
             SettingsGlassToggleRow(
