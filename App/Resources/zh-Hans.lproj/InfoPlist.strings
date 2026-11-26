@@ -1,0 +1,2 @@
+"NSMicrophoneUsageDescription" = "仅在你按住麦克风按钮时收听，把语音转成聊天文字。";
+"NSSpeechRecognitionUsageDescription" = "在这台 Mac 上把语音转成聊天文字。音频不会发送到服务器。";

@@ -92,6 +92,14 @@ Translate / Summarize** (or right-click → Services). The cat answers in its
 bubble with your current AI provider. Only the text you send is used.
 If the items don't appear right after installing, log out and back in once.
 
+## Voice Input
+
+Hold the 🎤 button in the chat box and speak; release to stop. Speech is
+recognized on this Mac only (macOS on-device speech recognition) and lands in
+the chat field so you can fix it before sending. If the Mac can't recognize
+your language on device, voice input stays off rather than sending audio to a
+server. The first use asks for microphone and speech recognition permission.
+
 ## Delegated Tasks
 
 Type `/task <what to do>` in the chat bubble, pick a project folder, and the

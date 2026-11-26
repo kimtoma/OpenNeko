@@ -13,6 +13,10 @@
         <string>_openneko._tcp</string>
     </array>
     <key>NSHighResolutionCapable</key><true/>
+    <key>NSMicrophoneUsageDescription</key>
+    <string>openNeko listens only while you hold the mic button, to turn your voice into chat text.</string>
+    <key>NSSpeechRecognitionUsageDescription</key>
+    <string>openNeko turns your voice into chat text on this Mac. Audio is not sent to a server.</string>
     <key>NSServices</key>
     <array>
         <dict>

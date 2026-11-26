@@ -155,6 +155,9 @@ private struct CatChatView: View {
     @State private var selectedSuggestionIndex = 0
     @State private var suppressSuggestions = false
     @FocusState private var isFocused: Bool
+    @ObservedObject private var voice = VoiceInputController.shared
+    @State private var isHoldingMic = false
+    @State private var voiceBase = ""
     let placeholder: String
     let slashCommands: [SlashCommandDescriptor]
     let onSend: (String) -> Void
@@ -169,7 +172,7 @@ private struct CatChatView: View {
                 }
 
                 HStack(spacing: 8) {
-                    TextField(placeholder, text: $text)
+                    TextField(currentPlaceholder, text: $text)
                         .textFieldStyle(.plain)
                         .focused($isFocused)
                         .onSubmit(send)
@@ -184,6 +187,8 @@ private struct CatChatView: View {
                             RoundedRectangle(cornerRadius: 9, style: .continuous)
                                 .stroke(fieldStroke, lineWidth: 1)
                         }
+
+                    micButton
 
                     Button(action: send) {
                         Image(systemName: "paperplane.fill")
@@ -226,6 +231,10 @@ private struct CatChatView: View {
             selectedSuggestionIndex = 0
             notifySuggestionCount()
         }
+        .onChange(of: voice.transcript) { _, transcript in
+            guard isHoldingMic || voice.isListening else { return }
+            text = VoiceInputPolicy.merged(base: voiceBase, transcript: transcript)
+        }
         .onChange(of: visibleSuggestions.count) { _, _ in
             selectedSuggestionIndex = min(selectedSuggestionIndex, max(visibleSuggestions.count - 1, 0))
             notifySuggestionCount()
@@ -236,6 +245,51 @@ private struct CatChatView: View {
                 isFocused = true
             }
         }
+    }
+
+    private var currentPlaceholder: String {
+        let language = voice.languageCode()
+        if voice.isListening {
+            return VoiceInputCopy.listening(languageCode: language)
+        }
+        if let failure = voice.failure {
+            return VoiceInputCopy.failure(failure, languageCode: language)
+        }
+        return placeholder
+    }
+
+    /// Hold to talk: press starts on-device recognition, release stops it.
+    /// The transcript lands in the field; nothing is sent until Send.
+    private var micButton: some View {
+        Image(systemName: voice.isListening ? "waveform" : "mic.fill")
+            .font(.system(size: 13, weight: .semibold))
+            .foregroundStyle(voice.isListening ? Color.red : Color.primary)
+            .frame(width: 28, height: 28)
+            .background {
+                Circle()
+                    .fill(voice.isListening ? Color.red.opacity(0.18) : sendButtonFill)
+            }
+            .overlay {
+                Circle()
+                    .stroke(sendButtonStroke, lineWidth: 1)
+            }
+            .contentShape(Circle())
+            .gesture(
+                DragGesture(minimumDistance: 0)
+                    .onChanged { _ in
+                        guard !isHoldingMic else { return }
+                        isHoldingMic = true
+                        voiceBase = text
+                        voice.press()
+                    }
+                    .onEnded { _ in
+                        isHoldingMic = false
+                        voice.release()
+                        isFocused = true
+                    }
+            )
+            .help(VoiceInputCopy.micHelp(languageCode: voice.languageCode()))
+            .accessibilityLabel(VoiceInputCopy.micHelp(languageCode: voice.languageCode()))
     }
 
     private var panelFill: Color {

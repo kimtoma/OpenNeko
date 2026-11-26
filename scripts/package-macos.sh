@@ -111,6 +111,7 @@ if [[ -n "${DEVELOPER_ID_APPLICATION:-}" ]]; then
   /usr/bin/codesign \
     --force \
     --options runtime \
+    --entitlements "$ROOT_DIR/Config/OpenNeko.entitlements" \
     --timestamp \
     --sign "$DEVELOPER_ID_APPLICATION" \
     "$APP_PATH"
