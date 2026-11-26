@@ -101,6 +101,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var agentProcessActivities: [AgentProcessActivity] = []
     private var lastUserInteraction = ProcessInfo.processInfo.systemUptime
     private var healthTracker = HealthNudgeTracker()
+    private var proactiveLedger = ProactiveLedger()
+    private var lastSuggestion: (kind: ProactiveKind, shownAt: TimeInterval)?
     private let agentTaskController = AgentTaskController()
     private let selectedTextProvider = SelectedTextServiceProvider()
     private var agentTaskRevertTimer: Timer?
@@ -371,6 +373,21 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             },
             onOpenMemoryNotes: { [weak self] in
                 self?.showMemoryNotes()
+            },
+            chattiness: { [weak self] in self?.appSettings.chattiness ?? .normal },
+            mutedTopicCount: { [weak self] in self?.appSettings.mutedProactiveKinds.count ?? 0 },
+            onSetChattiness: { [weak self] level in
+                guard let self else { return }
+                self.appSettings.chattiness = level
+                self.saveSettings()
+                self.menuBar?.refresh()
+            },
+            onResetMutedTopics: { [weak self] in
+                guard let self else { return }
+                self.appSettings.mutedProactiveKinds = []
+                self.saveSettings()
+                self.menuBar?.refresh()
+                self.catWindow?.showBubble(ProactiveCopy.mutesReset(languageCode: self.currentLanguageCode()))
             }
         )
         startKeyboardMonitor(for: cat)
@@ -686,13 +703,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         case .none:
             maybeStartAutonomousWalk(now: now, cat: cat)
         case let .healthNudge(kind):
-            playAutonomousState(kind.catState, bubble: NekoBubbleCopy.healthNudge(kind, languageCode: currentLanguageCode()))
+            let bubble = claimProactiveTurn(.healthBreak) ? NekoBubbleCopy.healthNudge(kind, languageCode: currentLanguageCode()) : nil
+            playAutonomousState(kind.catState, bubble: bubble)
         case .lunch:
             lunchedToday = true
-            playAutonomousState(.lunch, bubble: NekoBubbleCopy.lunch(languageCode: currentLanguageCode()), revertAfter: 90)
+            let bubble = claimProactiveTurn(.dailyRitual) ? NekoBubbleCopy.lunch(languageCode: currentLanguageCode()) : nil
+            playAutonomousState(.lunch, bubble: bubble, revertAfter: 90)
         case .leaveWork:
             cheeredLeaveWorkToday = true
-            playAutonomousState(.success, bubble: NekoBubbleCopy.leaveWork(languageCode: currentLanguageCode()))
+            let bubble = claimProactiveTurn(.dailyRitual) ? NekoBubbleCopy.leaveWork(languageCode: currentLanguageCode()) : nil
+            playAutonomousState(.success, bubble: bubble)
         case .nap:
             playAutonomousState(.nap, bubble: nil)
         case .yawn:
@@ -1043,6 +1063,77 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         return system
     }
 
+    // MARK: - Speaking up on its own
+
+    /// Asks the shared gate whether the cat may speak up now, and records it
+    /// when it may. Every unprompted bubble goes through here.
+    private func claimProactiveTurn(_ kind: ProactiveKind) -> Bool {
+        let day = MemoryDocument.dayStamp(Date())
+        let decision = ProactiveGate.decide(
+            kind,
+            day: day,
+            ledger: proactiveLedger,
+            chattiness: appSettings.chattiness,
+            muted: appSettings.mutedProactiveKinds,
+            quiet: currentQuietReason()
+        )
+        guard decision.shouldSpeak else { return false }
+        proactiveLedger.record(kind, day: day)
+        if kind.isMutable {
+            lastSuggestion = (kind, ProcessInfo.processInfo.systemUptime)
+        }
+        return true
+    }
+
+    /// Meeting apps, or a presentation / video app filling the screen. Reads
+    /// only the frontmost bundle id and window bounds, never titles or pixels.
+    private func currentQuietReason() -> QuietReason? {
+        guard let app = NSWorkspace.shared.frontmostApplication else { return nil }
+        let bundleID = app.bundleIdentifier
+        var fills = false
+        if let bundleID, QuietContext.presentationApps.contains(bundleID) || QuietContext.videoApps.contains(bundleID) {
+            fills = Self.frontWindowFillsScreen(pid: app.processIdentifier)
+        }
+        return QuietContext.reason(frontmostBundleID: bundleID, frontWindowFillsScreen: fills)
+    }
+
+    private static func frontWindowFillsScreen(pid: pid_t) -> Bool {
+        guard let windows = CGWindowListCopyWindowInfo([.optionOnScreenOnly, .excludeDesktopElements], kCGNullWindowID) as? [[String: Any]] else {
+            return false
+        }
+        for info in windows {
+            guard
+                (info[kCGWindowOwnerPID as String] as? pid_t) == pid,
+                (info[kCGWindowLayer as String] as? Int) == 0,
+                let boundsInfo = info[kCGWindowBounds as String] as? NSDictionary,
+                let bounds = CGRect(dictionaryRepresentation: boundsInfo)
+            else { continue }
+            return NSScreen.screens.contains { screen in
+                abs(screen.frame.width - bounds.width) < 2 && abs(screen.frame.height - bounds.height) < 2
+            }
+        }
+        return false
+    }
+
+    /// "Stop" right after a suggestion turns that kind of message off.
+    private func handleProactiveStopRequest(_ message: String, cat: CatWindow?) -> Bool {
+        guard
+            ProactiveMute.isStopRequest(message),
+            let kind = ProactiveMute.target(
+                lastSuggestion: lastSuggestion?.kind,
+                shownAt: lastSuggestion?.shownAt,
+                now: ProcessInfo.processInfo.systemUptime
+            )
+        else { return false }
+        appSettings.mutedProactiveKinds.insert(kind)
+        saveSettings()
+        lastSuggestion = nil
+        menuBar?.refresh()
+        cat?.applyBridgeState(.success)
+        cat?.showBubble(ProactiveCopy.muted(kind, languageCode: currentLanguageCode()))
+        return true
+    }
+
     // MARK: - Memory
 
     private var memoryScope: MemoryCloudScope {
@@ -1082,7 +1173,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
         let generation = chatGeneration
         DispatchQueue.main.asyncAfter(deadline: .now() + 4) { [weak self] in
-            guard let self, self.chatGeneration == generation, self.activeChatTask == nil else { return }
+            guard let self, self.chatGeneration == generation, self.activeChatTask == nil,
+                  self.claimProactiveTurn(.memorySuggestion) else { return }
             if let fact = pendingFact {
                 self.catWindow?.applyBridgeState(.hover)
                 self.catWindow?.showBubble(
@@ -1625,7 +1717,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private func handleNeighborEvent(_ event: NeighborEvent) {
         menuBar?.refresh()
         settingsWindow?.refresh()
-        if let text = NeighborEventPresentation.mainBubbleText(for: event, languageCode: currentLanguageCode()) {
+        if let text = NeighborEventPresentation.mainBubbleText(for: event, languageCode: currentLanguageCode()),
+           claimProactiveTurn(.neighbor) {
             catWindow?.showBubble(text)
         }
         switch event {
@@ -2354,6 +2447,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let now = Date()
         guard let routine = RoutineScheduler.due(appSettings.routines, now: now, calendar: .current).first else { return }
         if routine.folder == nil, activeChatTask != nil { return }
+        // During a meeting or presentation the routine waits (within its catch-up window).
+        guard claimProactiveTurn(.routine) else { return }
         appSettings.routines = RoutineScheduler.markingRan(routine.id, in: appSettings.routines, now: now, calendar: .current)
         saveSettings()
         runRoutine(routine)
@@ -2414,7 +2509,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 hasCompletedFirstLaunch: appSettings.hasCompletedFirstLaunch,
                 lastSeenRevision: appSettings.lastSeenWhatsNewRevision,
                 context: context
-            ) else { return }
+            ), claimProactiveTurn(.whatsNew) else { return }
             features = WhatsNew.pendingFeatures(lastSeenRevision: appSettings.lastSeenWhatsNewRevision, context: context)
             appSettings.lastSeenWhatsNewRevision = WhatsNew.currentRevision
             saveSettings()
@@ -2661,6 +2756,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
 
         if handleSlashCommand(text, cat: cat) {
+            return
+        }
+
+        if handleProactiveStopRequest(message, cat: cat) {
             return
         }
 

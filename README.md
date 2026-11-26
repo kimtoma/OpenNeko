@@ -100,6 +100,17 @@ the chat field so you can fix it before sending. If the Mac can't recognize
 your language on device, voice input stays off rather than sending audio to a
 server. The first use asks for microphone and speech recognition permission.
 
+## Speaking Up
+
+Everything the cat says without being asked (break reminders, lunch and
+end-of-day lines, memory suggestions, neighbor cats, routines, the what's new
+tour) goes through one gate. Pick **Chattiness** in the menu: Quiet (3 a day),
+Normal (8) or Chatty (15). Agent updates and routines don't count toward it.
+While a meeting app (Zoom, Teams, FaceTime, Webex) is in front, or Keynote,
+PowerPoint or a video player fills the screen, suggestions are skipped and
+routines wait. Reply "stop" right after a suggestion and that kind of message
+stays off; the Chattiness menu turns it back on.
+
 ## Memory
 
 The cat keeps three plain Markdown files in `~/.openneko/memory/`:
