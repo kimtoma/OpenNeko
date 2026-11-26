@@ -78,6 +78,11 @@ skill invocation. Bubble copy strings: `NekoBubbleCopy` (localized en/ko/ja/zh).
 (`~/.openneko/skills/*/SKILL.md`). `NekoSkillManifestParser` parses SKILL.md
 frontmatter; `SlashCommand` maps chat input to skills; `NekoSkillLocalization`
 localizes names. Skill bodies are prompt text only — never executed.
+`uses:` in the frontmatter names connectors (`NekoSkill.uses`);
+`SkillSuggestion.prioritized` lists their tools first and
+`missingConnectors` drives a hint. `SkillSuggestion.suggest` offers a skill
+after a plain chat message that contains its name's keywords, once per skill
+per day, through `ProactiveKind.skillSuggestion`.
 
 ### Skins (Sources/OpenNekoKit/Skin/, App/SkinPackageService.swift)
 

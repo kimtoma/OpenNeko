@@ -14,7 +14,8 @@ public enum NekoSkillLocalization {
             description: text.description,
             input: skill.input,
             body: text.body,
-            source: skill.source
+            source: skill.source,
+            uses: skill.uses
         )
     }
 

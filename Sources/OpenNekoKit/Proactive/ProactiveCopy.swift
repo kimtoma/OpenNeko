@@ -45,6 +45,8 @@ public enum ProactiveCopy {
             return localized(languageCode, ko: "기억 제안", en: "memory suggestion", ja: "記憶の提案", zh: "记忆提议")
         case .neighbor:
             return localized(languageCode, ko: "이웃 고양이", en: "neighbor cat", ja: "近くのねこの", zh: "邻居猫")
+        case .skillSuggestion:
+            return localized(languageCode, ko: "스킬 추천", en: "skill suggestion", ja: "スキルのおすすめ", zh: "技能推荐")
         }
     }
 
