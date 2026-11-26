@@ -1,0 +1,2 @@
+"NSMicrophoneUsageDescription" = "마이크 버튼을 누르고 있는 동안에만 들어서 목소리를 채팅 글자로 바꿔요.";
+"NSSpeechRecognitionUsageDescription" = "목소리를 이 맥 안에서 채팅 글자로 바꿔요. 음성은 서버로 보내지 않아요.";

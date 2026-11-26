@@ -120,6 +120,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         NSApp.servicesProvider = selectedTextProvider
         NSUpdateDynamicServices()
 
+        VoiceInputController.shared.languageCode = { [weak self] in
+            self?.currentLanguageCode() ?? AppLanguage.resolved(nil)
+        }
         let cat = CatWindow()
         catWindow = cat
         cat.onChatSend = { [weak self, weak cat] text in

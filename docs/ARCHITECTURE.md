@@ -136,6 +136,16 @@ checks every 30 seconds: chat routines go through `sendChat`, folder routines
 start a read-only `AgentTaskSession` (no edit tools, no auto-accepted
 edits). `RoutineTemplate` and `RoutineCopy` hold starters and en/ko/ja/zh copy.
 
+### Voice input (Sources/OpenNekoKit/Voice/, App/VoiceInputController.swift)
+
+Push-to-talk mic button in the chat box. `VoiceInputPolicy` decides the
+permission order (microphone, then speech recognition), refuses to run when
+on-device recognition is unavailable (no server fallback), maps the app
+language to a recognizer locale, and merges the transcript into typed text.
+`VoiceInputController` drives `AVAudioEngine` + `SFSpeechRecognizer` with
+`requiresOnDeviceRecognition`. The hardened-runtime audio-input entitlement
+lives in `Config/OpenNeko.entitlements`.
+
 ### What's new tour (Sources/OpenNekoKit/Onboarding/)
 
 After an update the cat introduces new features one bubble at a time.

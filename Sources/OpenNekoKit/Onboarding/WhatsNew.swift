@@ -6,6 +6,7 @@ import Foundation
 /// bump `WhatsNew.currentRevision` when adding features to a new tour.
 public enum WhatsNewFeature: String, CaseIterable, Equatable, Sendable {
     case selectedText
+    case voiceInput
     case taskDelegation
     case catTools
     case routines
@@ -16,7 +17,7 @@ public enum WhatsNewFeature: String, CaseIterable, Equatable, Sendable {
 
     public var revision: Int {
         switch self {
-        case .selectedText, .taskDelegation, .catTools, .routines, .agentHooks,
+        case .selectedText, .voiceInput, .taskDelegation, .catTools, .routines, .agentHooks,
              .healthCompanion, .localModels, .appleIntelligence:
             1
         }
@@ -135,6 +136,12 @@ public enum WhatsNewCopy {
                 en: "Select text, right-click → Services → openNeko to explain, translate or summarize",
                 ja: "文字を選んで右クリック → サービス → openNeko。説明・翻訳・要約するにゃ",
                 zh: "选中文字，右键 → 服务 → openNeko，帮你解释、翻译、总结喵")
+        case .voiceInput:
+            return localized(l,
+                ko: "채팅창의 🎤를 누르고 있는 동안 말하면 글자로 바꿔준다냥. 맥 안에서만 인식한다냥",
+                en: "Hold 🎤 in the chat box and talk: I type it for you, recognized on this Mac only",
+                ja: "チャット欄の🎤を押しながら話すと文字にするにゃ。認識はこのMac内だけにゃ",
+                zh: "按住聊天框里的🎤说话，我帮你转成文字。只在本机识别喵")
         case .taskDelegation:
             return localized(l,
                 ko: "채팅에 /task 할 일 → 폴더를 고르면 Claude Code에 맡긴다냥. 위험한 건 먼저 묻는다냥",

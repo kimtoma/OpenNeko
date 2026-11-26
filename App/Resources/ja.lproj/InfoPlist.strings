@@ -1,0 +1,2 @@
+"NSMicrophoneUsageDescription" = "マイクボタンを押している間だけ聞いて、声をチャットの文字にします。";
+"NSSpeechRecognitionUsageDescription" = "このMac内で声をチャットの文字にします。音声はサーバーに送信しません。";
