@@ -88,6 +88,7 @@ struct SettingsView: View {
     let resolvedLanguageCode: String
     let soundEffectsEnabled: Bool
     let webSearchEnabled: Bool
+    let healthCompanionEnabled: Bool
     let catName: String
     let userProfile: UserProfile
     let neighborSettings: NeighborSettings
@@ -108,6 +109,7 @@ struct SettingsView: View {
     let setLanguageCode: (String?) -> Void
     let setSoundEffects: (Bool) -> Void
     let setWebSearch: (Bool) -> Void
+    let setHealthCompanion: (Bool) -> Void
     let setCatName: (String) -> Void
     let setUserProfile: (UserProfile) -> Void
     let setNeighborEnabled: (Bool) -> Void
@@ -928,6 +930,16 @@ struct SettingsView: View {
                 isOn: Binding(
                     get: { soundEffectsEnabled },
                     set: { setSoundEffects($0) }
+                )
+            )
+
+            SettingsGlassCheckboxRow(
+                title: copy(.healthCompanion),
+                subtitle: copy(.healthCompanionDetail),
+                systemImage: "figure.cooldown",
+                isOn: Binding(
+                    get: { healthCompanionEnabled },
+                    set: { setHealthCompanion($0) }
                 )
             )
 

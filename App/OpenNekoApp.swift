@@ -96,7 +96,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var activeAgentProcessSource: String?
     private var agentProcessActivities: [AgentProcessActivity] = []
     private var lastUserInteraction = ProcessInfo.processInfo.systemUptime
-    private var lastStretchAt = ProcessInfo.processInfo.systemUptime
+    private var healthTracker = HealthNudgeTracker()
     private var nextAutoEffect = ProcessInfo.processInfo.systemUptime + 25
     private var lunchedToday = false
     private var cheeredLeaveWorkToday = false
@@ -172,6 +172,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                     resolvedLanguageCode: AppLanguage.resolved(nil),
                     soundEffectsEnabled: true,
                     webSearchEnabled: true,
+                    healthCompanionEnabled: true,
                     catName: "",
                     userProfile: .empty,
                     neighborSettings: .defaults,
@@ -208,6 +209,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             },
             setWebSearch: { [weak self] enabled in
                 self?.setWebSearch(enabled)
+            },
+            setHealthCompanion: { [weak self] enabled in
+                self?.setHealthCompanion(enabled)
             },
             setCatName: { [weak self] name in
                 self?.setCatName(name)
@@ -592,7 +596,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         autonomousTimer?.invalidate()
         let now = ProcessInfo.processInfo.systemUptime
         lastUserInteraction = now
-        lastStretchAt = now
         nextAutoEffect = now + 25
         autonomousModeUntil = now + 3
         autonomousTimer = Timer.scheduledTimer(withTimeInterval: autonomousTickInterval, repeats: true) { [weak self] _ in
@@ -622,23 +625,28 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
         guard cat.canStartAutonomousAction() else { return }
 
+        let wallClock = Date()
+        let healthNudge = healthTracker.nextNudge(
+            at: wallClock.timeIntervalSinceReferenceDate,
+            day: Calendar.current.ordinality(of: .day, in: .era, for: wallClock) ?? 0,
+            enabled: appSettings.healthCompanionEnabled
+        )
         let context = CatAutonomousContext(
             uptime: now,
-            hour: Calendar.current.component(.hour, from: Date()),
+            hour: Calendar.current.component(.hour, from: wallClock),
             lastInteraction: lastUserInteraction,
-            lastStretch: lastStretchAt,
             nextAutoEffect: nextAutoEffect,
             lunchAlreadyShown: lunchedToday,
             leaveWorkAlreadyShown: cheeredLeaveWorkToday,
-            isAvailable: true
+            isAvailable: true,
+            healthNudge: healthNudge
         )
 
         switch CatAutonomousBehavior.action(for: context, randomValue: Double.random(in: 0..<1)) {
         case .none:
             maybeStartAutonomousWalk(now: now, cat: cat)
-        case .stretch:
-            lastStretchAt = now
-            playAutonomousState(.yawn, bubble: NekoBubbleCopy.stretch(languageCode: currentLanguageCode()))
+        case let .healthNudge(kind):
+            playAutonomousState(kind.catState, bubble: NekoBubbleCopy.healthNudge(kind, languageCode: currentLanguageCode()))
         case .lunch:
             lunchedToday = true
             playAutonomousState(.lunch, bubble: NekoBubbleCopy.lunch(languageCode: currentLanguageCode()), revertAfter: 90)
@@ -719,6 +727,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private func setWebSearch(_ enabled: Bool) {
         appSettings.webSearchEnabled = enabled
         resetAIConnectionTest(refresh: false)
+        saveSettings()
+        settingsWindow?.refresh()
+    }
+
+    private func setHealthCompanion(_ enabled: Bool) {
+        appSettings.healthCompanionEnabled = enabled
         saveSettings()
         settingsWindow?.refresh()
     }
@@ -899,6 +913,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             resolvedLanguageCode: languageCode,
             soundEffectsEnabled: appSettings.soundEffectsEnabled,
             webSearchEnabled: appSettings.webSearchEnabled,
+            healthCompanionEnabled: appSettings.healthCompanionEnabled,
             catName: appSettings.catName,
             userProfile: appSettings.userProfile,
             neighborSettings: appSettings.neighborSettings,
@@ -1793,6 +1808,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private func handleKeyDown(cat: CatWindow?) {
         noteUserInteraction()
         keyDownCount += 1
+        healthTracker.recordActivity(at: Date().timeIntervalSinceReferenceDate)
         let now = ProcessInfo.processInfo.systemUptime
         if typingTracker.keyDown(at: now) {
             cat?.setTypingActive(true, animationSpeed: typingTracker.animationSpeed)

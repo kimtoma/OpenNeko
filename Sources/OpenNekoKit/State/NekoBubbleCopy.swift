@@ -5,6 +5,17 @@ public enum NekoBubbleCopy {
         localized(languageCode, ko: "스트레칭 시간이다냥! 기지개 쭉 펴라냥", en: "Stretch time, nya! Loosen up a little.", ja: "ストレッチ時間にゃ! ぐーっと伸びるにゃ", zh: "伸展时间喵! 起来舒展一下喵")
     }
 
+    public static func healthNudge(_ kind: HealthNudgeKind, languageCode: String?) -> String {
+        switch kind {
+        case .stretch:
+            return stretch(languageCode: languageCode)
+        case .eyes:
+            return localized(languageCode, ko: "눈 좀 쉬자냥! 20초만 먼 곳 보라냥", en: "Rest your eyes, nya! Look far away for 20s.", ja: "目を休めるにゃ! 20秒遠くを見るにゃ", zh: "让眼睛休息喵! 看远处20秒喵")
+        case .water:
+            return localized(languageCode, ko: "물 한 잔 마시고 오라냥", en: "Go grab some water, nya.", ja: "お水を一杯飲んでくるにゃ", zh: "去喝杯水吧喵")
+        }
+    }
+
     public static func lunch(languageCode: String?) -> String {
         localized(languageCode, ko: "점심 시간이다냥! 맛있는 거 먹고 오라냥", en: "Lunch time, nya! Go eat something nice.", ja: "ランチ時間にゃ! おいしいもの食べてくるにゃ", zh: "午餐时间喵! 去吃点好吃的喵")
     }
