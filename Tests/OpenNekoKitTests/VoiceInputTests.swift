@@ -45,6 +45,19 @@ final class VoiceInputTests: XCTestCase {
         XCTAssertTrue(VoiceInputPolicy.shouldAutoStop(startedAt: 0, lastChangeAt: 59.9, now: 60))
     }
 
+    func testLateCallbacksFromAnEarlierDictationAreIgnored() {
+        var sessions = VoiceDictationSessions()
+        let first = sessions.next()
+        XCTAssertTrue(sessions.isCurrent(first))
+        let second = sessions.next()
+        XCTAssertFalse(sessions.isCurrent(first))
+        XCTAssertTrue(sessions.isCurrent(second))
+        sessions.next() // cancel retires the current one too
+        XCTAssertFalse(sessions.isCurrent(second))
+        XCTAssertGreaterThan(VoiceInputPolicy.finalResultTimeout, 0)
+        XCTAssertLessThan(VoiceInputPolicy.finalResultTimeout, VoiceInputPolicy.silenceTimeout)
+    }
+
     func testCopyForEveryLanguage() {
         let failures: [VoiceInputFailure] = [.microphoneDenied, .speechDenied, .onDeviceUnavailable, .audioUnavailable, .nothingHeard]
         for language in AppLanguage.supportedCodes {

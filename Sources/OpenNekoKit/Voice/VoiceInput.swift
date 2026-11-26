@@ -36,6 +36,10 @@ public enum VoiceInputPolicy {
     public static let silenceTimeout: TimeInterval = 2.0
     /// With nothing heard at all, give up after this long.
     public static let noSpeechTimeout: TimeInterval = 8.0
+    /// After recording stops, wait this long for the recognizer's final
+    /// result, then finish anyway. On-device recognition sometimes never
+    /// delivers one, which used to leave the mic stuck in its stop state.
+    public static let finalResultTimeout: TimeInterval = 1.5
 
     /// Whether listening should end on its own now. `lastChangeAt` is when
     /// the transcript last changed (nil while nothing has been heard).
@@ -86,6 +90,26 @@ public enum VoiceInputPolicy {
         let typed = base.trimmingCharacters(in: .whitespaces)
         let joined = typed.isEmpty ? spoken : typed + " " + spoken
         return String(joined.prefix(maxCharacters))
+    }
+}
+
+/// Numbers each dictation so that a late callback from an earlier one (a
+/// final result or error arriving after the next dictation began) is
+/// ignored instead of ending the new one.
+public struct VoiceDictationSessions: Equatable, Sendable {
+    public private(set) var current = 0
+
+    public init() {}
+
+    /// Starts a new dictation (or retires the current one) and returns its id.
+    @discardableResult
+    public mutating func next() -> Int {
+        current += 1
+        return current
+    }
+
+    public func isCurrent(_ id: Int) -> Bool {
+        id == current
     }
 }
 

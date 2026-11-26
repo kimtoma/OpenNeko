@@ -28,6 +28,8 @@ final class VoiceInputController: ObservableObject {
     private var request: SFSpeechAudioBufferRecognitionRequest?
     private var task: SFSpeechRecognitionTask?
     private var silenceTimer: Timer?
+    private var finalResultTimer: Timer?
+    private var sessions = VoiceDictationSessions()
     private var startedAt: TimeInterval = 0
     private var lastChangeAt: TimeInterval?
     /// False once the person stopped or cancelled; a permission prompt
@@ -57,8 +59,11 @@ final class VoiceInputController: ObservableObject {
     func cancel() {
         wantsToListen = false
         transcript = ""
+        sessions.next()
         task?.cancel()
-        stop()
+        stopRecording()
+        finalResultTimer?.invalidate()
+        finalResultTimer = nil
         task = nil
         request = nil
         isListening = false
@@ -120,6 +125,14 @@ final class VoiceInputController: ObservableObject {
             isActive = false
             return
         }
+        // A previous dictation that never delivered its final result must
+        // not keep running or end this one.
+        task?.cancel()
+        task = nil
+        finalResultTimer?.invalidate()
+        finalResultTimer = nil
+        let session = sessions.next()
+
         let request = SFSpeechAudioBufferRecognitionRequest()
         request.requiresOnDeviceRecognition = true
         request.shouldReportPartialResults = true
@@ -152,7 +165,7 @@ final class VoiceInputController: ObservableObject {
         lastChangeAt = nil
         task = recognizer.recognitionTask(with: request) { [weak self] result, error in
             DispatchQueue.main.async {
-                guard let self else { return }
+                guard let self, self.sessions.isCurrent(session) else { return }
                 if let result {
                     let text = result.bestTranscription.formattedString
                     if text != self.transcript {
@@ -177,8 +190,21 @@ final class VoiceInputController: ObservableObject {
         }
     }
 
-    /// Stops recording; the recognizer then delivers its final result.
+    /// Stops recording; the recognizer then delivers its final result. If it
+    /// doesn't within `finalResultTimeout`, the dictation finishes anyway so
+    /// the mic can be used again.
     private func stop() {
+        stopRecording()
+        guard isListening, finalResultTimer == nil else { return }
+        let session = sessions.current
+        finalResultTimer = Timer.scheduledTimer(withTimeInterval: VoiceInputPolicy.finalResultTimeout, repeats: false) { [weak self] _ in
+            guard let self, self.sessions.isCurrent(session), self.isListening else { return }
+            self.task?.cancel()
+            self.finish()
+        }
+    }
+
+    private func stopRecording() {
         silenceTimer?.invalidate()
         silenceTimer = nil
         guard engine.isRunning else { return }
@@ -188,7 +214,9 @@ final class VoiceInputController: ObservableObject {
     }
 
     private func finish() {
-        stop()
+        stopRecording()
+        finalResultTimer?.invalidate()
+        finalResultTimer = nil
         task = nil
         request = nil
         if isListening, transcript.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
