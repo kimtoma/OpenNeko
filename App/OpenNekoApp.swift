@@ -10,7 +10,17 @@ struct OpenNekoApp: App {
 
     var body: some Scene {
         // LSUIElement 앱: 보이는 Scene 없음. 메뉴바/창은 AppDelegate가 관리.
+        // The app menu's Settings item (⌘,) must open the real settings
+        // window, not this empty SwiftUI Settings scene.
         Settings { EmptyView() }
+            .commands {
+                CommandGroup(replacing: .appSettings) {
+                    Button(MenuBarController.settingsTitle(language: AppLanguage.resolved(nil))) {
+                        appDelegate.showSettingsWindow()
+                    }
+                    .keyboardShortcut(",", modifiers: .command)
+                }
+            }
     }
 }
 
@@ -570,6 +580,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         keyboardMonitor?.stop()
         guard let cat else { return }
         startKeyboardMonitor(for: cat)
+    }
+
+    func showSettingsWindow() {
+        settingsWindow?.show()
     }
 
     private func openInputMonitoringSettings() {
