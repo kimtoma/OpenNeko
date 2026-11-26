@@ -61,11 +61,16 @@ OpenNeko는 다음 provider preset을 지원합니다.
 - Ollama: 로컬 Ollama OpenAI 호환 서버에 연결합니다.
   유료 구독이 없다면 **설정 → AI → 로컬 모델 설치**에서 Mac의 메모리와 여유 공간을 확인하고, Ollama 설치를 안내한 뒤 맞는 모델을 받아 바로 연결합니다 (Apple Silicon 전용).
 - 로컬 OpenAI 호환: LM Studio, llama.cpp, vLLM 등에 연결합니다.
+- Apple 온디바이스 모델: macOS 26 이상, Apple Intelligence가 켜진 Mac에서 내장 모델로 대답합니다 (다운로드·키 불필요). 앱은 여전히 macOS 14에서 동작하고, 이 프리셋만 사용 불가로 표시됩니다.
 - Gemini API 키: `GEMINI_API_KEY` 또는 `GOOGLE_API_KEY`를 사용합니다.
 - Claude API 키: `ANTHROPIC_API_KEY`를 사용합니다.
 - 사용자 지정: OpenAI 호환 Base URL, API 키, 모델을 직접 입력합니다.
 
 저장된 API 키는 `settings.json`이 아니라 macOS Keychain에 저장됩니다.
+
+## 고양이 도구
+
+"3분 타이머 맞춰줘"처럼 타이머, 리마인더, 텍스트 복사, 웹페이지 열기를 부탁할 수 있어요. 모델이 동작을 제안하면 고양이가 먼저 물어보고, 말풍선을 눌러야 실행돼요. 타이머와 리마인더는 OpenNeko가 켜져 있는 동안 동작합니다. AI 설정의 **고양이 도구**에서 끌 수 있어요.
 
 ## 선택한 텍스트
 

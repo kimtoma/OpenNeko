@@ -89,6 +89,7 @@ struct SettingsView: View {
     let soundEffectsEnabled: Bool
     let webSearchEnabled: Bool
     let healthCompanionEnabled: Bool
+    let nativeToolsEnabled: Bool
     let catName: String
     let userProfile: UserProfile
     let neighborSettings: NeighborSettings
@@ -110,6 +111,7 @@ struct SettingsView: View {
     let setSoundEffects: (Bool) -> Void
     let setWebSearch: (Bool) -> Void
     let setHealthCompanion: (Bool) -> Void
+    let setNativeTools: (Bool) -> Void
     let setCatName: (String) -> Void
     let setUserProfile: (UserProfile) -> Void
     let setNeighborEnabled: (Bool) -> Void
@@ -1074,6 +1076,16 @@ struct SettingsView: View {
                 isOn: Binding(
                     get: { webSearchEnabled },
                     set: { setWebSearch($0) }
+                )
+            )
+
+            SettingsGlassToggleRow(
+                title: copy(.nativeTools),
+                subtitle: copy(.nativeToolsDetail),
+                systemImage: "timer",
+                isOn: Binding(
+                    get: { nativeToolsEnabled },
+                    set: { setNativeTools($0) }
                 )
             )
 

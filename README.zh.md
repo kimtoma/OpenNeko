@@ -61,11 +61,16 @@ OpenNeko 支持以下 provider preset:
 - Ollama: 连接本地 Ollama OpenAI 兼容服务器。
   没有订阅？在 **设置 → AI → 设置本地模型** 中检查 Mac 的内存和可用空间，引导安装 Ollama，下载合适的模型并直接连接（仅限 Apple 芯片）。
 - 本地 OpenAI 兼容: 连接 LM Studio、llama.cpp、vLLM 等服务。
+- Apple 设备端模型：在 macOS 26 及以上并开启 Apple Intelligence 的 Mac 上用内置模型回复（无需下载和密钥）。应用仍支持 macOS 14，只是此预设会显示为不可用。
 - Gemini API Key: 使用 `GEMINI_API_KEY` 或 `GOOGLE_API_KEY`。
 - Claude API Key: 使用 `ANTHROPIC_API_KEY`。
 - 自定义: 手动输入 OpenAI 兼容 Base URL、API Key 和模型。
 
 保存的 API Key 会存入 macOS Keychain，而不是 `settings.json`。
+
+## 猫咪工具
+
+可以像“设一个 3 分钟计时器”这样请求计时器、提醒、复制文字或打开网页。模型提出操作后，猫咪会先询问，点击气泡才会执行。计时器和提醒在 OpenNeko 运行期间有效。可在 AI 设置的 **猫咪工具** 中关闭。
 
 ## 选中的文字
 
