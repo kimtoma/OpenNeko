@@ -75,6 +75,16 @@ OpenNeko supports these provider presets:
 
 Saved API keys are stored in macOS Keychain, not in `settings.json`.
 
+## Delegated Tasks
+
+Type `/task <what to do>` in the chat bubble, pick a project folder, and the
+cat hands the task to your local Claude Code CLI inside that folder only.
+Reading and editing files in the folder is allowed; anything else (shell
+commands, network) comes back as an approval question: click the bubble to
+allow or deny it for this task. Home, root, and system folders are refused.
+Every step is written to `~/Library/Application Support/openNeko/agent-activity.jsonl`
+(`/tasklog` opens it). `/task stop` cancels.
+
 ## Skills
 
 Bundled and user skills are prompt instructions stored as `SKILL.md` files.
