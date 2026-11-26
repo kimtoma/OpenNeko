@@ -67,6 +67,10 @@ OpenNeko는 다음 provider preset을 지원합니다.
 
 저장된 API 키는 `settings.json`이 아니라 macOS Keychain에 저장됩니다.
 
+## 작업 맡기기
+
+채팅 말풍선에 `/task 할 일`을 입력하고 프로젝트 폴더를 고르면, 고양이가 로컬 Claude Code CLI에 그 폴더 안에서만 작업을 맡깁니다. 폴더 안 파일 읽기·수정은 허용되고, 그 밖의 동작(셸 명령, 네트워크)은 승인 요청으로 돌아와요. 말풍선을 눌러 이번 작업에 한해 허락하거나 거절할 수 있습니다. 홈·루트·시스템 폴더는 거부합니다. 모든 단계는 `~/Library/Application Support/openNeko/agent-activity.jsonl`에 기록되고 `/tasklog`로 열 수 있어요. `/task stop`으로 취소합니다.
+
 ## 스킬
 
 번들 및 사용자 스킬은 `SKILL.md`로 저장되는 프롬프트 지시문입니다. 스킬 안의 스크립트는 실행되지 않습니다.

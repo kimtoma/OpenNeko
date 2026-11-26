@@ -97,6 +97,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var agentProcessActivities: [AgentProcessActivity] = []
     private var lastUserInteraction = ProcessInfo.processInfo.systemUptime
     private var healthTracker = HealthNudgeTracker()
+    private let agentTaskController = AgentTaskController()
+    private var agentTaskRevertTimer: Timer?
     private var nextAutoEffect = ProcessInfo.processInfo.systemUptime + 25
     private var lunchedToday = false
     private var cheeredLeaveWorkToday = false
@@ -2083,6 +2085,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             setLanguageCode(code)
             cat?.showBubble(NekoBubbleCopy.currentLanguage(AppLanguage.displayName(for: code), languageCode: currentLanguageCode()))
             return true
+        case "task":
+            handleTaskCommand(argument, cat: cat)
+            return true
+        case "tasklog":
+            openAgentActivityLog()
+            return true
         case "sound":
             let enabled: Bool
             switch argument.lowercased() {
@@ -2117,6 +2125,137 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
     }
 
+    // MARK: - Delegated tasks (/task)
+
+    private func handleTaskCommand(_ argument: String, cat: CatWindow?) {
+        let language = currentLanguageCode()
+        let trimmed = argument.trimmingCharacters(in: .whitespacesAndNewlines)
+        if trimmed.lowercased() == "stop" {
+            agentTaskController.cancel()
+            return
+        }
+        guard !trimmed.isEmpty else {
+            cat?.showBubble(AgentTaskCopy.text(.usage, languageCode: language))
+            return
+        }
+        guard !agentTaskController.isBusy else {
+            cat?.showBubble(AgentTaskCopy.text(.busy, languageCode: language))
+            return
+        }
+        guard Self.commandExists("claude", environment: ProcessPathEnvironment.spawnEnvironment(terminalDefaults: true)) else {
+            cat?.applyBridgeState(.error)
+            cat?.showBubble(AgentTaskCopy.text(.claudeMissing, languageCode: language))
+            return
+        }
+
+        let panel = NSOpenPanel()
+        panel.canChooseDirectories = true
+        panel.canChooseFiles = false
+        panel.allowsMultipleSelection = false
+        panel.canCreateDirectories = false
+        panel.message = AgentTaskCopy.text(.pickFolderMessage, languageCode: language)
+        panel.prompt = AgentTaskCopy.text(.pickFolderButton, languageCode: language)
+        NSApp.activate(ignoringOtherApps: true)
+        guard panel.runModal() == .OK, let url = panel.url else { return }
+
+        switch AgentTaskFolderPolicy.validate(url.path, homeDirectory: NSHomeDirectory()) {
+        case let .failure(rejection):
+            cat?.applyBridgeState(.error)
+            cat?.showBubble(AgentTaskCopy.folderRejected(rejection.reason, languageCode: language))
+        case let .success(folder):
+            agentTaskController.onUpdate = { [weak self] session in
+                self?.handleAgentTaskUpdate(session)
+            }
+            let model = appSettings.aiProvider.presetID == "claude-oauth" ? appSettings.aiProvider.model : ""
+            agentTaskController.start(prompt: trimmed, folder: folder, model: model)
+            cat?.showBubble(AgentTaskCopy.text(.started, languageCode: language))
+        }
+    }
+
+    private func handleAgentTaskUpdate(_ session: AgentTaskSession) {
+        guard let cat = catWindow else { return }
+        let language = currentLanguageCode()
+        bridgeIdleTimer?.invalidate()
+        autonomousStateTimer?.invalidate()
+        agentTaskRevertTimer?.invalidate()
+        cat.applyBridgeState(session.phase.catState)
+
+        switch session.phase {
+        case .running:
+            break
+        case .awaitingApproval:
+            showAgentApprovalBubble()
+            // The bubble auto-hides, so keep reminding until the user answers.
+            agentTaskRevertTimer = Timer.scheduledTimer(withTimeInterval: 45, repeats: true) { [weak self] _ in
+                self?.showAgentApprovalBubble()
+            }
+        case .finished, .failed, .denied:
+            if let text = AgentTaskCopy.resultBubble(session.phase, languageCode: language) {
+                cat.showBubble(text, onClick: { [weak self] in self?.openAgentActivityLog() })
+            }
+            agentTaskRevertTimer = Timer.scheduledTimer(withTimeInterval: 12, repeats: false) { [weak self] _ in
+                self?.catWindow?.applyBridgeState(.idle)
+            }
+        }
+    }
+
+    private func showAgentApprovalBubble() {
+        guard let session = agentTaskController.session, case .awaitingApproval = session.phase else {
+            agentTaskRevertTimer?.invalidate()
+            return
+        }
+        let language = currentLanguageCode()
+        catWindow?.showBubble(
+            AgentTaskCopy.text(.approvalBubble, languageCode: language),
+            onClick: { [weak self] in self?.presentAgentApproval() },
+            helpText: AgentTaskCopy.text(.approvalTitle, languageCode: language)
+        )
+    }
+
+    private func presentAgentApproval() {
+        guard let session = agentTaskController.session,
+              case let .awaitingApproval(requests) = session.phase
+        else { return }
+        let language = currentLanguageCode()
+        let isRisky = requests.contains { $0.risk == .irreversible }
+        var lines = [AgentTaskCopy.text(.approvalMessage, languageCode: language), ""]
+        lines += requests.map { "• \($0.allowRule)" }
+        lines += ["", "📁 \(session.folder)"]
+        if isRisky {
+            lines += ["", AgentTaskCopy.text(.irreversibleWarning, languageCode: language)]
+        }
+
+        let alert = NSAlert()
+        alert.messageText = AgentTaskCopy.text(.approvalTitle, languageCode: language)
+        alert.informativeText = lines.joined(separator: "\n")
+        alert.alertStyle = isRisky ? .critical : .informational
+        // Risky requests make "Deny" the default (Return) button.
+        let approveTitle = AgentTaskCopy.text(.approve, languageCode: language)
+        let denyTitle = AgentTaskCopy.text(.deny, languageCode: language)
+        let order = isRisky ? [denyTitle, approveTitle] : [approveTitle, denyTitle]
+        order.forEach { alert.addButton(withTitle: $0) }
+
+        NSApp.activate(ignoringOtherApps: true)
+        let response = alert.runModal()
+        let approveIndex = isRisky ? 1 : 0
+        let approved = response == NSApplication.ModalResponse(rawValue: NSApplication.ModalResponse.alertFirstButtonReturn.rawValue + approveIndex)
+        if approved {
+            agentTaskController.approve()
+            catWindow?.showBubble(AgentTaskCopy.text(.approved, languageCode: language))
+        } else {
+            agentTaskController.deny()
+        }
+    }
+
+    private func openAgentActivityLog() {
+        let url = AgentTaskController.logURL
+        if !FileManager.default.fileExists(atPath: url.path) {
+            try? FileManager.default.createDirectory(at: url.deletingLastPathComponent(), withIntermediateDirectories: true)
+            FileManager.default.createFile(atPath: url.path, contents: nil)
+        }
+        NSWorkspace.shared.activateFileViewerSelecting([url])
+    }
+
     private func slashCommandCatalog() -> [SlashCommandDescriptor] {
         let languageCode = currentLanguageCode()
         let appCommands = [
@@ -2144,6 +2283,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 name: "sound",
                 kind: .app,
                 description: slashDescription(.sound, languageCode: languageCode)
+            ),
+            SlashCommandDescriptor(
+                name: "task",
+                kind: .app,
+                description: AgentTaskCopy.text(.slashDescription, languageCode: languageCode)
+            ),
+            SlashCommandDescriptor(
+                name: "tasklog",
+                kind: .app,
+                description: AgentTaskCopy.text(.logDescription, languageCode: languageCode)
             ),
         ]
         let skillCommands = enabledSkills().map {

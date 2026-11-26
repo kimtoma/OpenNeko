@@ -67,6 +67,10 @@ OpenNeko 支持以下 provider preset:
 
 保存的 API Key 会存入 macOS Keychain，而不是 `settings.json`。
 
+## 委派任务
+
+在聊天气泡中输入 `/task 要做的事` 并选择项目文件夹，猫咪会把任务交给本地 Claude Code CLI，只在该文件夹内执行。允许读取和编辑文件夹内的文件，其他操作（shell 命令、网络）会作为批准请求返回：点击气泡即可仅针对本次任务允许或拒绝。主目录、根目录和系统文件夹会被拒绝。所有步骤都会记录到 `~/Library/Application Support/openNeko/agent-activity.jsonl`，可用 `/tasklog` 打开。`/task stop` 取消。
+
 ## 技能
 
 内置技能和用户技能都是保存为 `SKILL.md` 的提示词指令。技能中的脚本不会被执行。

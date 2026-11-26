@@ -112,6 +112,18 @@ provider config, and `LocalModelSetupCopy` holds the en/ko/ja/zh copy. The
 App controller only probes Ollama, opens the download page, streams the pull,
 and warms the model up.
 
+### Delegated tasks (Sources/OpenNekoKit/Agents/, App/AgentTaskController.swift)
+
+`/task` hands a prompt to the local Claude Code CLI inside a user-picked
+folder. `AgentTaskFolderPolicy` refuses root/home/system folders,
+`AgentTaskSession` builds the `claude` arguments (stream-json,
+`acceptEdits`, read/edit tools only, approved rules added per round, resume
+by session id) and turns `permission_denials` into approval questions,
+`ClaudeTaskEventParser` parses the stream, `AgentActivityEntry` is the JSONL
+activity log line, and `AgentTaskCopy` holds the copy. The App controller
+runs the process; `OpenNekoApp` shows the folder picker, bubbles and the
+approval alert.
+
 ### Neighbors (Sources/OpenNekoKit/Neighbors/, App/NeighborNetwork.swift, App/GuestCatWindow.swift)
 
 LAN discovery + visits: `NeighborProtocol` defines the wire messages
