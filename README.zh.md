@@ -116,6 +116,18 @@ curl -X POST http://127.0.0.1:48800/state \
 OPENNEKO_PORT=48801 /path/to/OpenNeko.app/Contents/MacOS/OpenNeko
 ```
 
+### 智能体通知
+
+Claude Code 或 Codex 完成任务或需要你批准时，猫咪会提醒你。
+在 设置 > 通用 > 智能体通知 中复制配置片段。
+
+- Claude Code (`~/.claude/settings.json`)：`Notification` 钩子发送 `waiting`，
+  `Stop` 钩子发送 `done`。
+- Codex (`~/.codex/config.toml` 顶部)：`notify` 命令发送 `done`。
+
+桥接还接受 `waiting`、`needs_input`、`attention`(猫咪请求你确认并保持 10 分钟)
+以及 `done`、`finished`、`complete`(显示为 `success`)。OpenNeko 不会自动修改这些文件。
+
 ## 打包
 
 运行本地发布检查:

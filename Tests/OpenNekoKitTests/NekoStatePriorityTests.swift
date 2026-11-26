@@ -34,4 +34,19 @@ final class NekoStatePriorityTests: XCTestCase {
             XCTAssertFalse(NekoStatePriority.oneShotStates.contains(state))
         }
     }
+
+    func testBridgeRevertDelayKeepsAttentionRequestsUpLonger() {
+        let attention = StateBridgeEvent(state: .hover, source: "claude-code", message: nil, isAttentionRequest: true)
+        let coding = StateBridgeEvent(state: .coding, source: "agent", message: nil)
+
+        XCTAssertEqual(NekoStatePriority.bridgeRevertDelay(for: attention), 600)
+        XCTAssertEqual(NekoStatePriority.bridgeRevertDelay(for: coding), 90)
+    }
+
+    func testBridgeRevertDelayIsNilForIdleAndOneShotStates() {
+        for state in [CatState.idle, .success, .error, .click] {
+            let event = StateBridgeEvent(state: state, source: "agent", message: nil)
+            XCTAssertNil(NekoStatePriority.bridgeRevertDelay(for: event), state.rawValue)
+        }
+    }
 }

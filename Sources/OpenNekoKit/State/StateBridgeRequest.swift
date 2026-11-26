@@ -9,11 +9,15 @@ public struct StateBridgeEvent: Equatable, Sendable {
     public let state: CatState
     public let source: String
     public let message: String?
+    /// True when the sender asked for the user's attention (e.g. an agent
+    /// waiting for approval), as opposed to plain status updates.
+    public let isAttentionRequest: Bool
 
-    public init(state: CatState, source: String, message: String?) {
+    public init(state: CatState, source: String, message: String?, isAttentionRequest: Bool = false) {
         self.state = state
         self.source = source
         self.message = message
+        self.isAttentionRequest = isAttentionRequest
     }
 }
 
@@ -35,15 +39,24 @@ public enum StateBridgeRequest {
         return StateBridgeEvent(
             state: state,
             source: String((payload.source ?? "agent").prefix(40)),
-            message: payload.message.map { String($0.prefix(120)) }.flatMap { $0.isEmpty ? nil : $0 }
+            message: payload.message.map { String($0.prefix(120)) }.flatMap { $0.isEmpty ? nil : $0 },
+            isAttentionRequest: attentionStates.contains(rawState)
         )
     }
 
+    /// Bridge-only aliases that ask for the user's attention. They animate as
+    /// `hover` until dedicated sprites exist.
+    public static let attentionStates: Set<String> = ["waiting", "needs_input", "attention"]
+
+    /// Bridge-only aliases for "the agent finished".
+    public static let doneStates: Set<String> = ["done", "finished", "complete"]
+
     private static func mappedState(_ rawState: String) -> CatState? {
+        if attentionStates.contains(rawState) { return .hover }
+        if doneStates.contains(rawState) { return .success }
         switch rawState {
-        case "waiting": .hover
-        case "clicked": .click
-        default: CatState(rawValue: rawState)
+        case "clicked": return .click
+        default: return CatState(rawValue: rawState)
         }
     }
 

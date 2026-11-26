@@ -133,6 +133,7 @@ struct SettingsView: View {
     @State private var selectedPaneRaw = SettingsPane.start.rawValue
     @State private var onboardingStepRaw = OnboardingStep.welcome.rawValue
     @State private var didCopyBridgeCommand = false
+    @State private var copiedHookTarget: AgentHookTarget?
     @State private var catNameDraft: String?
     @State private var profileDraft: UserProfile?
 
@@ -930,6 +931,29 @@ struct SettingsView: View {
             )
 
             compactPermissionsSection
+
+            agentHooksSection
+        }
+    }
+
+    private var agentHooksSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            SettingsGlassSectionHeader(
+                title: copy(.agentHooks),
+                subtitle: copy(.agentHooksDetail),
+                systemImage: "bell.badge",
+                tint: .orange
+            )
+
+            ForEach(AgentHookTarget.allCases, id: \.self) { target in
+                SettingsGlassCommandRow(
+                    title: "\(target.displayName) · \(target.configPath)",
+                    command: AgentHookSnippet.snippet(for: target, port: stateBridgePort),
+                    didCopy: copiedHookTarget == target,
+                    languageCode: resolvedLanguageCode,
+                    copy: { copyAgentHookSnippet(target) }
+                )
+            }
         }
     }
 
@@ -1493,6 +1517,18 @@ struct SettingsView: View {
             completeOnboarding()
         } else {
             moveOnboarding(by: 1)
+        }
+    }
+
+    private func copyAgentHookSnippet(_ target: AgentHookTarget) {
+        NSPasteboard.general.clearContents()
+        NSPasteboard.general.setString(AgentHookSnippet.snippet(for: target, port: stateBridgePort), forType: .string)
+        copiedHookTarget = target
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.4) {
+            if copiedHookTarget == target {
+                copiedHookTarget = nil
+            }
         }
     }
 

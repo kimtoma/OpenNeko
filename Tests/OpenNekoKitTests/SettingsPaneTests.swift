@@ -41,6 +41,8 @@ final class SettingsPaneTests: XCTestCase {
         XCTAssertEqual(SettingsCopy.text(.activateSkill, languageCode: "en"), "Activate skill")
         XCTAssertEqual(SettingsCopy.text(.defaultSkin, languageCode: "ko"), "white")
         XCTAssertEqual(SettingsCopy.text(.unknown, languageCode: "ko"), "모름")
+        XCTAssertEqual(SettingsCopy.text(.agentHooks, languageCode: "ko"), "에이전트 알림")
+        XCTAssertEqual(SettingsCopy.text(.agentHooks, languageCode: "en"), "Agent notifications")
         XCTAssertEqual(
             SettingsCopy.enabledSkillsCount(enabled: 2, total: 7, languageCode: "en"),
             "2/7 enabled"

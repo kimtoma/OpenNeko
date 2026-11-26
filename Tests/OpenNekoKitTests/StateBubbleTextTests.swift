@@ -45,4 +45,22 @@ final class StateBubbleTextTests: XCTestCase {
     private func event(_ state: CatState) -> StateBridgeEvent {
         StateBridgeEvent(state: state, source: "agent", message: nil)
     }
+
+    func testAttentionRequestHasLocalizedDefaultText() {
+        let attention = StateBridgeEvent(state: .hover, source: "claude-code", message: nil, isAttentionRequest: true)
+
+        XCTAssertEqual(StateBubbleText.text(for: attention), "확인이 필요하다냥!")
+        XCTAssertEqual(StateBubbleText.text(for: attention, languageCode: "en"), "Your turn, nya! Take a look?")
+        XCTAssertEqual(StateBubbleText.text(for: attention, languageCode: "ja"), "確認してほしいにゃ!")
+        XCTAssertEqual(StateBubbleText.text(for: attention, languageCode: "zh"), "需要你确认喵!")
+    }
+
+    func testAttentionRequestStillPrefersExplicitMessage() {
+        let attention = StateBridgeEvent(state: .hover, source: "hook", message: "Approve rm?", isAttentionRequest: true)
+        XCTAssertEqual(StateBubbleText.text(for: attention), "Approve rm?")
+    }
+
+    func testPlainHoverHasNoDefaultText() {
+        XCTAssertNil(StateBubbleText.text(for: event(.hover)))
+    }
 }
