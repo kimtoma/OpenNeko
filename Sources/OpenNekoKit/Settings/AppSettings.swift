@@ -13,6 +13,7 @@ public struct AppSettings: Codable, Equatable, Sendable {
         webSearchEnabled: true,
         nativeToolsEnabled: true,
         healthCompanionEnabled: true,
+        lastSeenWhatsNewRevision: 0,
         catName: "",
         userProfile: .empty,
         neighborSettings: .defaults,
@@ -30,6 +31,7 @@ public struct AppSettings: Codable, Equatable, Sendable {
     public var webSearchEnabled: Bool
     public var nativeToolsEnabled: Bool
     public var healthCompanionEnabled: Bool
+    public var lastSeenWhatsNewRevision: Int
     public var catName: String
     public var userProfile: UserProfile
     public var neighborSettings: NeighborSettings
@@ -47,6 +49,7 @@ public struct AppSettings: Codable, Equatable, Sendable {
         webSearchEnabled: Bool = true,
         nativeToolsEnabled: Bool = true,
         healthCompanionEnabled: Bool = true,
+        lastSeenWhatsNewRevision: Int = 0,
         catName: String = "",
         userProfile: UserProfile = .empty,
         neighborSettings: NeighborSettings = .defaults,
@@ -63,6 +66,7 @@ public struct AppSettings: Codable, Equatable, Sendable {
         self.webSearchEnabled = webSearchEnabled
         self.nativeToolsEnabled = nativeToolsEnabled
         self.healthCompanionEnabled = healthCompanionEnabled
+        self.lastSeenWhatsNewRevision = max(0, lastSeenWhatsNewRevision)
         self.catName = UserProfile.sanitized(catName, limit: 64)
         self.userProfile = userProfile.normalized()
         self.neighborSettings = neighborSettings.normalized()
@@ -81,6 +85,7 @@ public struct AppSettings: Codable, Equatable, Sendable {
         case webSearchEnabled
         case nativeToolsEnabled
         case healthCompanionEnabled
+        case lastSeenWhatsNewRevision
         case catName
         case userProfile
         case neighborSettings
@@ -156,6 +161,8 @@ public struct AppSettings: Codable, Equatable, Sendable {
             ?? Self.defaults.nativeToolsEnabled
         healthCompanionEnabled = (try? container.decodeIfPresent(Bool.self, forKey: .healthCompanionEnabled))
             ?? Self.defaults.healthCompanionEnabled
+        lastSeenWhatsNewRevision = max(0, (try? container.decodeIfPresent(Int.self, forKey: .lastSeenWhatsNewRevision))
+            ?? Self.defaults.lastSeenWhatsNewRevision)
         let legacyNeighbor = try? legacy?.decodeIfPresent(LegacyNeighbor.self, forKey: .neighbor)
         catName = UserProfile.sanitized(
             (try? container.decodeIfPresent(String.self, forKey: .catName))
@@ -198,6 +205,7 @@ public struct AppSettings: Codable, Equatable, Sendable {
         try container.encode(webSearchEnabled, forKey: .webSearchEnabled)
         try container.encode(nativeToolsEnabled, forKey: .nativeToolsEnabled)
         try container.encode(healthCompanionEnabled, forKey: .healthCompanionEnabled)
+        try container.encode(lastSeenWhatsNewRevision, forKey: .lastSeenWhatsNewRevision)
         try container.encode(catName, forKey: .catName)
         try container.encode(userProfile, forKey: .userProfile)
         try container.encode(neighborSettings, forKey: .neighborSettings)

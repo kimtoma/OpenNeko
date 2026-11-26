@@ -352,9 +352,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             },
             onRetryKeyboardMonitor: { [weak self, weak cat] in
                 self?.restartKeyboardMonitor(for: cat)
+            },
+            onShowWhatsNew: { [weak self] in
+                self?.startWhatsNewTour(replay: true)
             }
         )
         startKeyboardMonitor(for: cat)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 6) { [weak self] in
+            self?.startWhatsNewTour(replay: false)
+        }
         configureAgentProcessDetection()
         stateBridgeServer = StateBridgeServer(
             currentState: { [weak cat] in cat?.currentState ?? .idle },
@@ -2158,6 +2164,50 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         guard let prompt = action.prompt(for: text, languageCode: language) else { return }
         sendChat(prompt, cat: catWindow)
         catWindow?.showBubble(action.workingBubble(languageCode: language))
+    }
+
+    // MARK: - What's new tour
+
+    private func whatsNewContext() -> WhatsNew.Context {
+        WhatsNew.Context(onDeviceModelAvailable: AppleFoundationChatProvider.availability() == .available)
+    }
+
+    /// Automatic start runs once per tour revision after first-launch setup;
+    /// the menu item replays every feature.
+    private func startWhatsNewTour(replay: Bool) {
+        let context = whatsNewContext()
+        let features: [WhatsNewFeature]
+        if replay {
+            features = WhatsNew.features(context: context)
+        } else {
+            guard !isOnboardingVisible, activeChatTask == nil, WhatsNew.shouldOfferTour(
+                hasCompletedFirstLaunch: appSettings.hasCompletedFirstLaunch,
+                lastSeenRevision: appSettings.lastSeenWhatsNewRevision,
+                context: context
+            ) else { return }
+            features = WhatsNew.pendingFeatures(lastSeenRevision: appSettings.lastSeenWhatsNewRevision, context: context)
+            appSettings.lastSeenWhatsNewRevision = WhatsNew.currentRevision
+            saveSettings()
+        }
+        var tour = WhatsNewTour(features: features)
+        guard tour.current != nil else { return }
+        if replay {
+            tour.advance()
+        }
+        showWhatsNewStep(tour)
+    }
+
+    private func showWhatsNewStep(_ tour: WhatsNewTour) {
+        guard let step = tour.current else { return }
+        let language = currentLanguageCode()
+        var next = tour
+        let hasNext = next.advance() != nil
+        catWindow?.applyBridgeState(step == .outro ? .success : .hover)
+        catWindow?.showBubble(
+            WhatsNewCopy.text(step, languageCode: language),
+            onClick: hasNext ? { [weak self] in self?.showWhatsNewStep(next) } : nil,
+            helpText: hasNext ? WhatsNewCopy.nextHint(languageCode: language) : nil
+        )
     }
 
     // MARK: - Delegated tasks (/task)
