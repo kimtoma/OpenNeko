@@ -48,8 +48,8 @@ final class SkillSuggestionTests: XCTestCase {
         XCTAssertEqual(SkillSuggestion.missingConnectors(for: parsed, ready: ["github"]), ["notion"])
 
         let tools = [
-            MCPTool(server: "files", name: "read"),
-            MCPTool(server: "github", name: "search"),
+            MCPTool(server: "files", name: "read", description: ""),
+            MCPTool(server: "github", name: "search", description: ""),
         ]
         XCTAssertEqual(SkillSuggestion.prioritized(tools, for: parsed).map(\.server), ["github", "files"])
         XCTAssertEqual(SkillSuggestion.prioritized(tools, for: nil).map(\.server), ["files", "github"])
