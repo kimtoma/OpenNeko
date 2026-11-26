@@ -13,6 +13,7 @@ public struct AppSettingsDebugSnapshot: Codable, Equatable, Sendable {
     public let languageCode: String?
     public let soundEffectsEnabled: Bool
     public let webSearchEnabled: Bool
+    public let healthCompanionEnabled: Bool
     public let catName: String
     public let userProfileConfigured: Bool
     public let userProfileFields: [String]
@@ -33,6 +34,7 @@ public struct AppSettingsDebugSnapshot: Codable, Equatable, Sendable {
         languageCode = settings.languageCode
         soundEffectsEnabled = settings.soundEffectsEnabled
         webSearchEnabled = settings.webSearchEnabled
+        healthCompanionEnabled = settings.healthCompanionEnabled
         catName = settings.catName
         userProfileConfigured = settings.userProfile != .empty
         userProfileFields = Self.configuredProfileFields(settings.userProfile)

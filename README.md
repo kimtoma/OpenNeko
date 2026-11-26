@@ -19,6 +19,8 @@ prototype.
 - Small chat bubble with slash commands and skill prompts
 - Chat history window and click-to-copy answers
 - Bonjour-based neighbor cats on the same local network
+- Break reminders: after 50 minutes of nonstop typing the cat suggests a
+  stretch, eye rest, or water (up to 6 a day, toggle in General settings)
 - Local HTTP state bridge for automation
 - Launch at login, app language, sound, skin, AI, profile, and neighbor settings
 - Release ZIP and DMG packaging scripts

@@ -11,6 +11,7 @@ public struct AppSettings: Codable, Equatable, Sendable {
         languageCode: nil,
         soundEffectsEnabled: true,
         webSearchEnabled: true,
+        healthCompanionEnabled: true,
         catName: "",
         userProfile: .empty,
         neighborSettings: .defaults,
@@ -26,6 +27,7 @@ public struct AppSettings: Codable, Equatable, Sendable {
     public var languageCode: String?
     public var soundEffectsEnabled: Bool
     public var webSearchEnabled: Bool
+    public var healthCompanionEnabled: Bool
     public var catName: String
     public var userProfile: UserProfile
     public var neighborSettings: NeighborSettings
@@ -41,6 +43,7 @@ public struct AppSettings: Codable, Equatable, Sendable {
         languageCode: String? = nil,
         soundEffectsEnabled: Bool = true,
         webSearchEnabled: Bool = true,
+        healthCompanionEnabled: Bool = true,
         catName: String = "",
         userProfile: UserProfile = .empty,
         neighborSettings: NeighborSettings = .defaults,
@@ -55,6 +58,7 @@ public struct AppSettings: Codable, Equatable, Sendable {
         self.languageCode = AppLanguage.normalized(languageCode)
         self.soundEffectsEnabled = soundEffectsEnabled
         self.webSearchEnabled = webSearchEnabled
+        self.healthCompanionEnabled = healthCompanionEnabled
         self.catName = UserProfile.sanitized(catName, limit: 64)
         self.userProfile = userProfile.normalized()
         self.neighborSettings = neighborSettings.normalized()
@@ -71,6 +75,7 @@ public struct AppSettings: Codable, Equatable, Sendable {
         case languageCode
         case soundEffectsEnabled
         case webSearchEnabled
+        case healthCompanionEnabled
         case catName
         case userProfile
         case neighborSettings
@@ -142,6 +147,8 @@ public struct AppSettings: Codable, Equatable, Sendable {
         webSearchEnabled = (try? container.decodeIfPresent(Bool.self, forKey: .webSearchEnabled))
             ?? (try? legacy?.decodeIfPresent(Bool.self, forKey: .webSearch))
             ?? Self.defaults.webSearchEnabled
+        healthCompanionEnabled = (try? container.decodeIfPresent(Bool.self, forKey: .healthCompanionEnabled))
+            ?? Self.defaults.healthCompanionEnabled
         let legacyNeighbor = try? legacy?.decodeIfPresent(LegacyNeighbor.self, forKey: .neighbor)
         catName = UserProfile.sanitized(
             (try? container.decodeIfPresent(String.self, forKey: .catName))
@@ -182,6 +189,7 @@ public struct AppSettings: Codable, Equatable, Sendable {
         try container.encodeIfPresent(languageCode, forKey: .languageCode)
         try container.encode(soundEffectsEnabled, forKey: .soundEffectsEnabled)
         try container.encode(webSearchEnabled, forKey: .webSearchEnabled)
+        try container.encode(healthCompanionEnabled, forKey: .healthCompanionEnabled)
         try container.encode(catName, forKey: .catName)
         try container.encode(userProfile, forKey: .userProfile)
         try container.encode(neighborSettings, forKey: .neighborSettings)

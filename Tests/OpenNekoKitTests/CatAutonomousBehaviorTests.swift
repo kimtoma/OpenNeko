@@ -7,25 +7,25 @@ final class CatAutonomousBehaviorTests: XCTestCase {
             uptime: 10_000,
             hour: 12,
             lastInteraction: 0,
-            lastStretch: 0,
             nextAutoEffect: 0,
             lunchAlreadyShown: false,
             leaveWorkAlreadyShown: false,
-            isAvailable: false
+            isAvailable: false,
+            healthNudge: .stretch
         )
 
         XCTAssertEqual(CatAutonomousBehavior.action(for: context, randomValue: 0), .none)
     }
 
-    func testStretchTakesPriorityAfterInterval() {
+    func testDueHealthNudgeTakesPriority() {
         let context = availableContext(
-            uptime: CatAutonomousBehavior.stretchInterval + 1,
-            hour: 12,
+            uptime: CatAutonomousBehavior.napAfter + 1,
+            hour: CatAutonomousBehavior.lunchHour,
             lastInteraction: 0,
-            lastStretch: 0
+            healthNudge: .water
         )
 
-        XCTAssertEqual(CatAutonomousBehavior.action(for: context, randomValue: 0), .stretch)
+        XCTAssertEqual(CatAutonomousBehavior.action(for: context, randomValue: 0), .healthNudge(.water))
     }
 
     func testLunchRunsOnceAtLunchHour() {
@@ -74,20 +74,20 @@ final class CatAutonomousBehaviorTests: XCTestCase {
         uptime: TimeInterval,
         hour: Int,
         lastInteraction: TimeInterval = 0,
-        lastStretch: TimeInterval = 0,
         nextAutoEffect: TimeInterval = .greatestFiniteMagnitude,
         lunchAlreadyShown: Bool = false,
-        leaveWorkAlreadyShown: Bool = false
+        leaveWorkAlreadyShown: Bool = false,
+        healthNudge: HealthNudgeKind? = nil
     ) -> CatAutonomousContext {
         CatAutonomousContext(
             uptime: uptime,
             hour: hour,
             lastInteraction: lastInteraction,
-            lastStretch: lastStretch,
             nextAutoEffect: nextAutoEffect,
             lunchAlreadyShown: lunchAlreadyShown,
             leaveWorkAlreadyShown: leaveWorkAlreadyShown,
-            isAvailable: true
+            isAvailable: true,
+            healthNudge: healthNudge
         )
     }
 }

@@ -19,6 +19,7 @@ final class SettingsWindowController {
         let resolvedLanguageCode: String
         let soundEffectsEnabled: Bool
         let webSearchEnabled: Bool
+        let healthCompanionEnabled: Bool
         let catName: String
         let userProfile: UserProfile
         let neighborSettings: NeighborSettings
@@ -42,6 +43,7 @@ final class SettingsWindowController {
     private let setLanguageCode: (String?) -> Void
     private let setSoundEffects: (Bool) -> Void
     private let setWebSearch: (Bool) -> Void
+    private let setHealthCompanion: (Bool) -> Void
     private let setCatName: (String) -> Void
     private let setUserProfile: (UserProfile) -> Void
     private let setNeighborEnabled: (Bool) -> Void
@@ -76,6 +78,7 @@ final class SettingsWindowController {
         setLanguageCode: @escaping (String?) -> Void,
         setSoundEffects: @escaping (Bool) -> Void,
         setWebSearch: @escaping (Bool) -> Void,
+        setHealthCompanion: @escaping (Bool) -> Void,
         setCatName: @escaping (String) -> Void,
         setUserProfile: @escaping (UserProfile) -> Void,
         setNeighborEnabled: @escaping (Bool) -> Void,
@@ -109,6 +112,7 @@ final class SettingsWindowController {
         self.setLanguageCode = setLanguageCode
         self.setSoundEffects = setSoundEffects
         self.setWebSearch = setWebSearch
+        self.setHealthCompanion = setHealthCompanion
         self.setCatName = setCatName
         self.setUserProfile = setUserProfile
         self.setNeighborEnabled = setNeighborEnabled
@@ -213,6 +217,7 @@ final class SettingsWindowController {
             resolvedLanguageCode: state.resolvedLanguageCode,
             soundEffectsEnabled: state.soundEffectsEnabled,
             webSearchEnabled: state.webSearchEnabled,
+            healthCompanionEnabled: state.healthCompanionEnabled,
             catName: state.catName,
             userProfile: state.userProfile,
             neighborSettings: state.neighborSettings,
@@ -233,6 +238,7 @@ final class SettingsWindowController {
             setLanguageCode: setLanguageCode,
             setSoundEffects: setSoundEffects,
             setWebSearch: setWebSearch,
+            setHealthCompanion: setHealthCompanion,
             setCatName: setCatName,
             setUserProfile: setUserProfile,
             setNeighborEnabled: setNeighborEnabled,

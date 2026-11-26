@@ -4,36 +4,37 @@ public struct CatAutonomousContext: Equatable, Sendable {
     public var uptime: TimeInterval
     public var hour: Int
     public var lastInteraction: TimeInterval
-    public var lastStretch: TimeInterval
     public var nextAutoEffect: TimeInterval
     public var lunchAlreadyShown: Bool
     public var leaveWorkAlreadyShown: Bool
     public var isAvailable: Bool
+    /// A break suggestion that is due now (from `HealthNudgeTracker`).
+    public var healthNudge: HealthNudgeKind?
 
     public init(
         uptime: TimeInterval,
         hour: Int,
         lastInteraction: TimeInterval,
-        lastStretch: TimeInterval,
         nextAutoEffect: TimeInterval,
         lunchAlreadyShown: Bool,
         leaveWorkAlreadyShown: Bool,
-        isAvailable: Bool
+        isAvailable: Bool,
+        healthNudge: HealthNudgeKind? = nil
     ) {
         self.uptime = uptime
         self.hour = hour
         self.lastInteraction = lastInteraction
-        self.lastStretch = lastStretch
         self.nextAutoEffect = nextAutoEffect
         self.lunchAlreadyShown = lunchAlreadyShown
         self.leaveWorkAlreadyShown = leaveWorkAlreadyShown
         self.isAvailable = isAvailable
+        self.healthNudge = healthNudge
     }
 }
 
 public enum CatAutonomousAction: Equatable, Sendable {
     case none
-    case stretch
+    case healthNudge(HealthNudgeKind)
     case lunch
     case leaveWork
     case nap
@@ -42,7 +43,6 @@ public enum CatAutonomousAction: Equatable, Sendable {
 }
 
 public enum CatAutonomousBehavior {
-    public static let stretchInterval: TimeInterval = 50 * 60
     public static let napAfter: TimeInterval = 2 * 60
     public static let lunchHour = 12
     public static let leaveWorkHour = 18
@@ -53,8 +53,8 @@ public enum CatAutonomousBehavior {
     ) -> CatAutonomousAction {
         guard context.isAvailable else { return .none }
 
-        if context.uptime - context.lastStretch > stretchInterval {
-            return .stretch
+        if let nudge = context.healthNudge {
+            return .healthNudge(nudge)
         }
         if context.hour == lunchHour, !context.lunchAlreadyShown {
             return .lunch

@@ -35,6 +35,8 @@ public enum SettingsCopyKey: String, CaseIterable, Sendable {
     case webSearch
     case webSearchOn
     case webSearchOff
+    case healthCompanion
+    case healthCompanionDetail
     case neighborDiscovery
     case neighborDiscoveryOn
     case neighborDiscoveryOff
@@ -215,6 +217,10 @@ public enum SettingsCopy {
             return localized(language, ko: "웹 검색", en: "Web Search", ja: "Web検索", zh: "网页搜索")
         case .webSearchOn:
             return localized(language, ko: "검색 지원 provider에 전달할 준비가 되어 있습니다.", en: "Ready to pass search support to compatible providers.", ja: "対応プロバイダーに検索補助を渡せます。", zh: "已准备好传递给支持搜索的 provider。")
+        case .healthCompanion:
+            return localized(language, ko: "건강 알림", en: "Break reminders", ja: "休憩リマインダー", zh: "休息提醒")
+        case .healthCompanionDetail:
+            return localized(language, ko: "50분 넘게 계속 타이핑하면 스트레칭·눈 휴식·물 마시기를 권해요 (하루 최대 6번)", en: "After 50 minutes of nonstop typing, suggests a stretch, eye rest, or water (up to 6 a day)", ja: "50分以上入力が続くと、ストレッチ・目の休憩・水分補給をすすめます (1日最大6回)", zh: "连续打字超过50分钟时，提醒伸展、休息眼睛或喝水（每天最多6次）")
         case .webSearchOff:
             return localized(language, ko: "검색 보조 기능을 사용하지 않습니다.", en: "Search assistance is off.", ja: "検索補助は使いません。", zh: "不使用搜索辅助。")
         case .neighborDiscovery:
