@@ -17,6 +17,9 @@ public enum StateBubbleText {
         }
 
         let language = AppLanguage.normalized(languageCode) ?? "ko"
+        if event.isAttentionRequest {
+            return localized(attention: language)
+        }
         switch event.state {
         case .coding:
             return localized(coding: language)
@@ -40,6 +43,15 @@ public enum StateBubbleText {
             return localized(yawn: language)
         default:
             return nil
+        }
+    }
+
+    private static func localized(attention language: String) -> String {
+        switch language {
+        case "en": "Your turn, nya! Take a look?"
+        case "ja": "確認してほしいにゃ!"
+        case "zh": "需要你确认喵!"
+        default: "확인이 필요하다냥!"
         }
     }
 

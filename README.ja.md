@@ -116,6 +116,19 @@ curl -X POST http://127.0.0.1:48800/state \
 OPENNEKO_PORT=48801 /path/to/OpenNeko.app/Contents/MacOS/OpenNeko
 ```
 
+### エージェント通知
+
+Claude CodeやCodexが作業を終えたときや承認が必要なときに、ねこが知らせます。
+設定 > 一般 > エージェント通知からスニペットをコピーしてください。
+
+- Claude Code (`~/.claude/settings.json`): `Notification` フックが `waiting` を、
+  `Stop` フックが `done` を送ります。
+- Codex (`~/.codex/config.toml` の先頭): `notify` コマンドが `done` を送ります。
+
+ブリッジは `waiting`、`needs_input`、`attention`(ねこが確認を求め、10分間表示)
+と `done`、`finished`、`complete`(`success` として表示)も受け付けます。
+OpenNekoがこれらのファイルを自動で編集することはありません。
+
 ## パッケージ
 
 ローカルリリースチェック:

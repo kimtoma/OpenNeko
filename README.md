@@ -127,6 +127,19 @@ Use another local port with:
 OPENNEKO_PORT=48801 /path/to/OpenNeko.app/Contents/MacOS/OpenNeko
 ```
 
+### Agent notifications
+
+OpenNeko can tell you when Claude Code or Codex finishes or needs your
+approval. Copy a snippet from Settings > General > Agent notifications:
+
+- Claude Code (`~/.claude/settings.json`): a `Notification` hook posts
+  `waiting` and a `Stop` hook posts `done`.
+- Codex (`~/.codex/config.toml`, top level): a `notify` command posts `done`.
+
+The bridge also accepts `waiting`, `needs_input`, and `attention` (the cat asks
+for your attention and stays up for 10 minutes) plus `done`, `finished`, and
+`complete` (shown as `success`). OpenNeko never edits these files for you.
+
 ## Package
 
 Run local release checks:

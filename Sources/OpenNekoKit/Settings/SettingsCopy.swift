@@ -135,6 +135,8 @@ public enum SettingsCopyKey: String, CaseIterable, Sendable {
     case skillDisabled
     case copied
     case copyCommand
+    case agentHooks
+    case agentHooksDetail
     case agentOn
     case agentOff
     case neighborOff
@@ -417,6 +419,10 @@ public enum SettingsCopy {
             return localized(language, ko: "복사됨", en: "Copied", ja: "コピー済み", zh: "已复制")
         case .copyCommand:
             return localized(language, ko: "명령 복사", en: "Copy command", ja: "コマンドをコピー", zh: "复制命令")
+        case .agentHooks:
+            return localized(language, ko: "에이전트 알림", en: "Agent notifications", ja: "エージェント通知", zh: "智能体通知")
+        case .agentHooksDetail:
+            return localized(language, ko: "Claude Code나 Codex가 끝나거나 확인이 필요할 때 고양이가 알려줘요. 아래 설정을 해당 파일에 붙여넣으세요.", en: "The cat tells you when Claude Code or Codex finishes or needs you. Paste a snippet into the file shown.", ja: "Claude CodeやCodexが終わったときや確認が必要なときにねこが知らせます。下の設定を表示されたファイルに貼り付けてください。", zh: "Claude Code 或 Codex 完成或需要你确认时，猫咪会提醒你。把下面的配置粘贴到对应文件。")
         case .agentOn:
             return localized(language, ko: "자동 감지 켜짐", en: "Auto detect on", ja: "自動検出オン", zh: "自动检测开启")
         case .agentOff:

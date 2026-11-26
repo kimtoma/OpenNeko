@@ -116,6 +116,19 @@ curl -X POST http://127.0.0.1:48800/state \
 OPENNEKO_PORT=48801 /path/to/OpenNeko.app/Contents/MacOS/OpenNeko
 ```
 
+### 에이전트 알림
+
+Claude Code나 Codex가 작업을 끝내거나 승인이 필요할 때 고양이가 알려줍니다.
+설정 > 일반 > 에이전트 알림에서 스니펫을 복사하세요.
+
+- Claude Code (`~/.claude/settings.json`): `Notification` 훅이 `waiting`을,
+  `Stop` 훅이 `done`을 보냅니다.
+- Codex (`~/.codex/config.toml` 맨 위): `notify` 명령이 `done`을 보냅니다.
+
+브리지는 `waiting`, `needs_input`, `attention`(고양이가 확인을 요청하고 10분간
+유지)과 `done`, `finished`, `complete`(`success`로 표시)도 받습니다. OpenNeko는
+이 파일들을 직접 수정하지 않습니다.
+
 ## 패키징
 
 릴리스 전 로컬 체크:

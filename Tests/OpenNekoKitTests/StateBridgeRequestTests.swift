@@ -31,4 +31,26 @@ final class StateBridgeRequestTests: XCTestCase {
     func testRejectsUnknownState() {
         XCTAssertThrowsError(try StateBridgeRequest.parse(Data(#"{"state":"ghost"}"#.utf8)))
     }
+
+    func testAttentionAliasesAnimateAsHoverAndAreFlagged() throws {
+        for raw in ["waiting", "needs_input", "attention"] {
+            let event = try StateBridgeRequest.parse(Data(#"{"state":"\#(raw)"}"#.utf8))
+            XCTAssertEqual(event.state, .hover, raw)
+            XCTAssertTrue(event.isAttentionRequest, raw)
+        }
+    }
+
+    func testDoneAliasesMapToSuccess() throws {
+        for raw in ["done", "finished", "complete"] {
+            let event = try StateBridgeRequest.parse(Data(#"{"state":"\#(raw)"}"#.utf8))
+            XCTAssertEqual(event.state, .success, raw)
+            XCTAssertFalse(event.isAttentionRequest, raw)
+        }
+    }
+
+    func testPlainStatesAreNotAttentionRequests() throws {
+        let event = try StateBridgeRequest.parse(Data(#"{"state":"hover"}"#.utf8))
+        XCTAssertEqual(event.state, .hover)
+        XCTAssertFalse(event.isAttentionRequest)
+    }
 }

@@ -1906,8 +1906,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             cat?.showBubble(text)
         }
 
-        guard event.state != .idle, !bridgeOneShotStates.contains(event.state) else { return }
-        bridgeIdleTimer = Timer.scheduledTimer(withTimeInterval: 90, repeats: false) { [weak self, weak cat] _ in
+        guard let revertDelay = NekoStatePriority.bridgeRevertDelay(for: event) else { return }
+        bridgeIdleTimer = Timer.scheduledTimer(withTimeInterval: revertDelay, repeats: false) { [weak self, weak cat] _ in
             cat?.applyBridgeState(.idle)
             self?.neighborNetwork?.setPresence(.idle)
         }

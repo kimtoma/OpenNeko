@@ -1,3 +1,5 @@
+import Foundation
+
 public enum NekoStatePriority {
     public static var chatAnsweringState: CatState { .thinking }
 
@@ -17,5 +19,15 @@ public enum NekoStatePriority {
     ) -> Bool {
         guard !isChatAnswering else { return false }
         return currentState == .idle || currentState == .coding || currentState == .walk
+    }
+
+    /// How long a bridge-pushed state stays before the cat drifts back to
+    /// idle. Nil means no revert timer (one-shot states and idle itself).
+    /// Attention requests stay up much longer so the user does not miss them.
+    public static func bridgeRevertDelay(for event: StateBridgeEvent) -> TimeInterval? {
+        if event.state == .idle || oneShotStates.contains(event.state) {
+            return nil
+        }
+        return event.isAttentionRequest ? 600 : 90
     }
 }
